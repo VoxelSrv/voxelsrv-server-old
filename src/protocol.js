@@ -1,10 +1,32 @@
-const illegalCharacers = new RegExp('[^a-zA-Z0-9]')
-const player = require('./player')
-var connections = {}
+const EventEmiter = require('events')
+const event = new EventEmiter()
 
-function initProtocol(io) {
+module.exports = {
+	init(io) { initProtocol(io) },
+	send(id, type, data) { sendPacket(id, type, data) },
+	sendAll(type, data) { io.emit(type, data) },
+	event: event
+
+}
+
+
+const illegalCharacters = new RegExp('[^a-zA-Z0-9]')
+const player = require('./player')
+const chat = require('./chat')
+const world = require('./world/main')
+
+var protocol = 1
+
+var cfg = require('../config.json')
+
+var connections = {}
+var playerCount = 0
+var io
+
+function initProtocol(io0) {
+	io = io0
 	io.on('connection', function(socket) {
-		if (player.lenght() >= cfg.maxplayers) {
+		if (playerCount >= cfg.maxplayers) {
 			socket.emit('kick', 'Server is full')
 			socket.disconnect(true)
 		}
@@ -28,16 +50,35 @@ function initProtocol(io) {
 				var id = socket.id
 				player.create(id, data)
 				connections[id] = socket
-				io.emit('chat', player.getName(id) + " joined the game!")
-				console.log(player.getName(id) + " joined the game!")
+				chat.send(-2, player.getName(id) + " joined the game!")
+				playerCount = playerCount + 1
 				socket.on('disconnect', function() {
-					io.emit('chat', player.getName(id) + " left the game!")
-					console.log(player.getName(id) + " left the game!")
+					chat.send(-2, player.getName(id) + " left the game!")
 					player.remove(id)
 					connections[id] = null
+					delete connections[id]
+					playerCount = playerCount - 1 
 				})
 				socket.on('chat-send', function(data) {
-
+					chat.send(-2, player.getName(id) + " » " + data)
+				})
+				socket.on('chunk-request', async function(id) {
+					if (id == null || id == undefined) return
+					world.chunk(id).then(function(res) {
+						var chunk = res.data
+						socket.emit('chunkdata', {
+							id: id,
+							chunk: chunk.data
+						})
+					})
+				})
+				socket.on('block-break', function(data) {
+					console.log(data)
+					world.setBlock(data, 0)
+					io.emit('block-update', {
+						id: 0,
+						pos: data
+					})
 				})
 		}
 		})
@@ -47,7 +88,7 @@ function initProtocol(io) {
 				socket.emit('kick', 'Timeout')
 				socket.disconnect(true)
 			}
-		}, 10000)
+		}, 1000)
 
 	})
 
@@ -60,14 +101,10 @@ function sendPacket(id, type, data) {
 
 function verifyLogin(data) {
 	if (data == undefined) return 'No data!'
-	else if (data.username == undefined || illegalCharacters.test(data.username)) return 'Illegal username'
+	else if (data.username == undefined || illegalCharacters.test(data.username)) return 'Illegal username - ' + data.username
 	else if (data.protocol == undefined) return 'Illegal protocol'
 
 	return 0
 }
 
 
-module.exports = {
-	init(io) { initProtocol(io) },
-	send(id, type, data) { sendPacket(id, type, data) } 
-}

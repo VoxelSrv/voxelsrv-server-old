@@ -1,5 +1,8 @@
 {
 	"port": 3000,
 	"name": "VoxelSRV Multiplayer Server",
-	"maxplayers": 20
+	"maxplayers": 5,
+	"world": {
+		"seed": 15425763
+	}
 }

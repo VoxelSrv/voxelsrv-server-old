@@ -1,6 +1,6 @@
 {
-  "name": "voxelsrv",
-  "version": "0.0.10",
+  "name": "voxelsrv-server",
+  "version": "0.1.0",
   "description": "Simple voxel game",
   "scripts": {
     "start": "node server.js"

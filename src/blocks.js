@@ -53,8 +53,9 @@ function initBlocks() {
 
 
 
-
 module.exports = {
 	init() { return initBlocks() },
-	get() { return blocks }
+	get() { return blocks },
+	getIDs() { return blockIDs }
+
 }

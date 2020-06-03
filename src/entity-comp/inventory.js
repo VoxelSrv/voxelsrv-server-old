@@ -1,4 +1,4 @@
-module.exports = {
+module.exports.comp = {
 	name: 'inventory',
 	state: {
 		main: {},
