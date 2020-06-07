@@ -12,6 +12,8 @@
   "author": "Patbox",
   "license": "MIT",
   "dependencies": {
+    "deep-diff": "^1.0.2",
+    "ent-comp": "^0.9.1",
     "murmur-numbers": "0.0.1",
     "ndarray": "^1.0.19",
     "open-simplex-noise": "^2.3.1",

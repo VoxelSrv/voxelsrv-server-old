@@ -14,6 +14,11 @@ const illegalCharacters = new RegExp('[^a-zA-Z0-9]')
 const player = require('./player')
 const chat = require('./chat')
 const world = require('./world/main')
+const compressChunk = require("voxel-crunch")
+const items = require('./items').get()
+const blocksIDs = require('./blocks').getIDs()
+const blocks = require('./blocks').get()
+
 
 var protocol = 1
 
@@ -68,18 +73,49 @@ function initProtocol(io0) {
 						var chunk = res.data
 						socket.emit('chunkdata', {
 							id: id,
-							chunk: chunk.data
+							chunk: compressChunk.encode(chunk.data)
 						})
 					})
 				})
 				socket.on('block-break', function(data) {
-					console.log(data)
+					player.inv.add(id, blocks[world.getBlock(data)].data.drop, 1, {})
 					world.setBlock(data, 0)
 					io.emit('block-update', {
 						id: 0,
 						pos: data
 					})
 				})
+
+				socket.on('block-place', function(data) {
+					var inv = player.inv.data(id)
+					var item = inv.main[inv.selected]
+					if (item != undefined && item.id != undefined) {
+						if (items[item.id].type == 'block' || items[item.id].type == 'block-flat') {
+							player.inv.remove(id, item.id, 1, {})
+							world.setBlock(data, blocksIDs[item.id])
+							io.emit('block-update', {
+								id: blocksIDs[item.id],
+								pos: data
+							})
+						}
+					}
+				})
+
+				socket.on('move', function(data) {
+					player.move(id, data)
+				})
+
+				socket.on('inventory-click', function(data) {
+					if (-2 < data.slot < 35) {
+						if (data.type == 'left') player.inv.moveLeft(id, data.slot)
+						else player.inv.moveRight(id, data.slot)
+					}
+				})
+
+				socket.on('selected', function(data) {
+					if ( -1 < data < 9) player.inv.setSel(id, data) 
+				})
+
 		}
 		})
 
@@ -96,7 +132,8 @@ function initProtocol(io0) {
 }
 
 function sendPacket(id, type, data) {
-	connections[id].emit(type, data)
+	if (id == -1) io.emit(type, data)
+	else connections[id].emit(type, data)
 }
 
 function verifyLogin(data) {

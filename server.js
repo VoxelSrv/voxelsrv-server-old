@@ -13,6 +13,8 @@ try {
 }
 
 require('./src/blocks').init()
+require('./src/items').init()
+
 
 const http = require('http').createServer();
 const initProtocol = require('./src/protocol').init

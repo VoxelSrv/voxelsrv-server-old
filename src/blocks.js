@@ -37,9 +37,9 @@ function initBlocks() {
 
 	
 	function createBlock(id, name, type, texture, options, data) {
-		blockIDs[name] = id 
+		blockIDs[name] = id
 
-		blocks[name] = {
+		blocks[id] = {
 			id: id,
 			name: name,
 			type: type,

@@ -2,7 +2,8 @@ module.exports = {
 	async chunk(x, z) { return await getChunk(x, z) },
 	init(seed) { initWorldGen(seed) },
 	setBlock(pos, id) { setBlock(pos, id) },
-	getBlock(pos) { return getBlock(pos) }
+	getBlock(pos) { return getBlock(pos) },
+	toChunk(pos) { return globalToChunk(pos) }
 
 }
 
