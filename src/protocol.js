@@ -16,8 +16,9 @@ const chat = require('./chat')
 const world = require('./world/main')
 const compressChunk = require("voxel-crunch")
 const items = require('./items').get()
-const blocksIDs = require('./blocks').getIDs()
+const blockIDs = require('./blocks').getIDs()
 const blocks = require('./blocks').get()
+const command = require('./commands')
 
 
 var protocol = 1
@@ -39,7 +40,10 @@ function initProtocol(io0) {
 		socket.emit('login-request', {
 			name: cfg.name,
 			protocol: protocol,
-			maxplayers: cfg.maxplayers
+			maxplayers: cfg.maxplayers,
+			blocks: blocks,
+			blockIDs: blockIDs,
+			items: items
 		})
 
 		var loginTimeout = true
@@ -52,6 +56,7 @@ function initProtocol(io0) {
 				socket.emit('kick', check)
 				socket.disconnect(true)
 			} else {
+				socket.emit('login-success', true)
 				var id = socket.id
 				player.create(id, data)
 				connections[id] = socket
@@ -65,7 +70,11 @@ function initProtocol(io0) {
 					playerCount = playerCount - 1 
 				})
 				socket.on('chat-send', function(data) {
-					chat.send(-2, player.getName(id) + " » " + data)
+					if (data.charAt(0) == '/') {
+						var res = command(id, data)
+						chat.send(id, res)
+					}
+					else chat.send(-2, player.getName(id) + " » " + data)
 				})
 				socket.on('chunk-request', async function(id) {
 					if (id == null || id == undefined) return
@@ -78,12 +87,20 @@ function initProtocol(io0) {
 					})
 				})
 				socket.on('block-break', function(data) {
-					player.inv.add(id, blocks[world.getBlock(data)].data.drop, 1, {})
-					world.setBlock(data, 0)
-					io.emit('block-update', {
-						id: 0,
-						pos: data
-					})
+					if (data != null) {
+						var block = world.getBlock(data)
+						if (block != undefined && block != 0 && blocks[block].data.unbreakable != true) {
+							player.inv.add(id, blocks[block].data.drop, 1, {})
+							world.setBlock(data, 0)
+							io.emit('block-update', {
+								id: 0,
+								pos: data
+							})
+						}
+						else {
+							console.log(block, data)
+						}
+					}
 				})
 
 				socket.on('block-place', function(data) {
@@ -92,9 +109,9 @@ function initProtocol(io0) {
 					if (item != undefined && item.id != undefined) {
 						if (items[item.id].type == 'block' || items[item.id].type == 'block-flat') {
 							player.inv.remove(id, item.id, 1, {})
-							world.setBlock(data, blocksIDs[item.id])
+							world.setBlock(data, blockIDs[item.id])
 							io.emit('block-update', {
-								id: blocksIDs[item.id],
+								id: blockIDs[item.id],
 								pos: data
 							})
 						}
@@ -133,7 +150,7 @@ function initProtocol(io0) {
 
 function sendPacket(id, type, data) {
 	if (id == -1) io.emit(type, data)
-	else connections[id].emit(type, data)
+	else if (connections[id] != undefined) connections[id].emit(type, data)
 }
 
 function verifyLogin(data) {

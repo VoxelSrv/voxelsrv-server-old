@@ -29,11 +29,15 @@ function globalToChunk(pos) {
 	var yl = pos[1]
 	var zl = pos[2] % 24
 
+	if (xl < 0) xl = xl + 24
+	if (zl < 0) zl = zl + 24
+
 	return {
 		id: [xc, zc],
 		pos: [xl, yl, zl]
 	}
 }
+
 
 function initWorldGen(seed) {
 	worldgen.init(seed, blocks)
@@ -49,8 +53,7 @@ function setBlock(pos, id) {
 function getBlock(pos) {
 	var pos2 = globalToChunk(pos)
 
-	return loadedChunks[pos2.id].data.get(pos2.pos[0], pos2.pos[1], pos2.pos[2]
-		)
+	return loadedChunks[pos2.id].data.get(pos2.pos[0], pos2.pos[1], pos2.pos[2])
 }
 
 function getChunk(id) {
@@ -65,7 +68,6 @@ function getChunk(id) {
 }
 
 async function generateChunk(id) {
-	console.log('Gen', id)
 	var chunk = new ndarray( new Uint16Array(chunkWitdh * chunkHeight * chunkWitdh), [chunkWitdh, chunkHeight, chunkWitdh])
 	for (var x = 0; x < chunkWitdh; x++) {
 		for (var z = 0; z < chunkWitdh; z++) {
@@ -80,10 +82,8 @@ async function generateChunk(id) {
 				var a0 = chunk.get(x, y, z)
 				var m1 = chunk.get(x, y-1, z)
 				var a1 = chunk.get(x, y+1, z)
-
 				if (a0 != 0 && a0 != blocks.water && a1 != blocks.water && a1 == 0) chunk.set(x, y, z, blocks.grass)
 				else if (a0 != 0 && a1 != 0 && a0 != blocks.water) chunk.set(x, y, z, blocks.dirt)
-
 			}
 		}
 	}

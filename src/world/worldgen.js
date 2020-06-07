@@ -19,7 +19,7 @@ var biomeSpacing = 100 // Size of biomes
 var chunkWitdh = 24
 var chunkHeight = 120
 
-var waterLevel = 18
+var waterLevel = 58
 
 function initWorldGen(newSeed, blocks) {
 	init = true
@@ -48,7 +48,7 @@ function getBlock(x, y, z) {
 		var layer1 = heightNoise(x/140, z/140)*mountaines*20
 		var layer2 = heightNoise(x/40, z/40)*20
 		
-		return Math.floor((dim*30+dim2*20+layer1*20+layer2*10-3)/65) + 15
+		return Math.floor((dim*30+dim2*20+layer1*20+layer2*10-3)/65) + 50
 	}
 }
 
