@@ -24,6 +24,7 @@ const command = require('./commands')
 var protocol = 1
 
 var cfg = require('../config.json')
+const entity = require('./entity')
 
 var connections = {}
 var playerCount = 0
@@ -60,6 +61,15 @@ function initProtocol(io0) {
 				var id = socket.id
 				player.create(id, data)
 				connections[id] = socket
+
+				socket.emit('entity-ignore', player.getData(id).entity)
+				Object.entries( entity.getAll() ).forEach(function(data) {
+					socket.emit('entity-spawn', {
+						id: data[0],
+						data: data[1]
+					})
+				})
+
 				chat.send(-2, player.getName(id) + " joined the game!")
 				playerCount = playerCount + 1
 				socket.on('disconnect', function() {

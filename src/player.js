@@ -12,6 +12,7 @@ module.exports = {
 	create(id, data) { createPlayer(id, data) },
 	remove(id) { removePlayer(id) },
 	getName(id) { return getNickname(id) },
+	getData(id) { return player[id] },
 	move(id, pos) { movePlayer(id, pos) },
 	inv: {
 		setSel(id, sel) { player[id].inventory.selected = sel },
@@ -37,13 +38,15 @@ function createPlayer(id, data) {
 		health: 20,
 		maxhealth: 20,
 		model: 'human',
-		position: [0, 50, 0]
+		position: [0, 50, 0],
+		rotation: 0
 	})
 
 	player[id] = {
 		id: id,
 		nickname: data.username,
-		position: [0, 50, 0],
+		position: [0, 100, 0],
+		rotation: 0,
 		chunk: [0, 0],
 		loadedchunks: {},
 		entity: e,
@@ -62,10 +65,13 @@ function createPlayer(id, data) {
 }
 
 function movePlayer(id, pos) {
-	player[id].position = pos
-	player[id].chunk = world.toChunk(pos).id
-	entity.move(player[id].entity, pos)
-	event.emit('move', {id: id, pos: pos})
+	if (pos.pos != null) {
+		player[id].position = pos.pos
+		player[id].chunk = world.toChunk(pos.pos).id
+		player[id].rotation = pos.rot
+		entity.move(player[id].entity, pos)
+		event.emit('move', {id: id, pos: pos.pos, rot: pos.rot})
+	}
 }
 
 function removePlayer(id) {
