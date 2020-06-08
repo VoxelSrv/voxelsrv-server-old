@@ -33,7 +33,7 @@ function createEntity(data) {
 
 
 function deleteEntity(id) {
-	entities[id] = null
+	delete entities[id]
 	packet.sendAll('entity-despawn', id)
 }
 
