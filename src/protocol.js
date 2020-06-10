@@ -32,7 +32,7 @@ var io
 
 function initProtocol(io0) {
 	io = io0
-	io.on('connection', function(socket) {
+	io.on('connection', async function(socket) {
 		if (playerCount >= cfg.maxplayers) {
 			socket.emit('kick', 'Server is full')
 			socket.disconnect(true)

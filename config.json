@@ -1,8 +1,18 @@
 {
 	"port": 3000,
-	"name": "VoxelSRV Multiplayer Server",
+	"address": "pb4.eu:3000",
+	"name": "VoxelSRV Test",
+	"motd": "Test VoxelSRV server",
+	"public": true,
 	"maxplayers": 5,
 	"world": {
 		"seed": 15425763
+	},
+
+	"plugins": {
+		"discord": {
+			"token": "NTkwNTY5NzQ5Nzc2NDMzMTYy.Xt9oaw.XgN76OIlksF7KgQNqOGf5Ar7Ssk",
+			"channel": "719863280260087818"
+		}
 	}
 }

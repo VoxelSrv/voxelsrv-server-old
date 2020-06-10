@@ -13,9 +13,11 @@
   "license": "MIT",
   "dependencies": {
     "deep-diff": "^1.0.2",
+    "discord.js": "^12.2.0",
     "ent-comp": "^0.9.1",
     "murmur-numbers": "0.0.1",
     "ndarray": "^1.0.19",
+    "node-fetch": "^2.6.0",
     "open-simplex-noise": "^2.3.1",
     "socket.io": "^2.3.0",
     "voxel-crunch": "^0.2.1"

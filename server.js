@@ -15,8 +15,9 @@ try {
 require('./src/blocks').init()
 require('./src/items').init()
 
-
-const http = require('http').createServer();
+const fs = require('fs')
+const http = require('http').createServer()
+const fetch = require('node-fetch')
 const initProtocol = require('./src/protocol').init
 const { verify } = require('crypto')
 
@@ -33,8 +34,21 @@ require('./src/world/main').init(cfg.world.seed)
 
 initProtocol(io)
 
+const plugins = fs.readdirSync('./plugins').filter(file => file.endsWith('.js'))
+
+for (const file of plugins) {
+	require('./plugins/' + file)
+}
+
+if (cfg.public) {
+	fetch('http://pb4.eu:9000/update?ip=' + cfg.address + '&motd=' + cfg.motd + '&name=' + cfg.name)
+	setInterval(function() {
+		fetch('http://pb4.eu:9000/update?ip=' + cfg.address + '&motd=' + cfg.motd + '&name=' + cfg.name)
+	}, 30000)
+}	
 console.log('Server started on port: ' + cfg.port)
 http.listen(cfg.port)
+
 
 
 
