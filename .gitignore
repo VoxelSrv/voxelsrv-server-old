@@ -1,7 +1,7 @@
 node_modules
 docs/textures/Base
 world
-config.json
+/config.json
 
 plugins/
 
@@ -15,3 +15,4 @@ $RECYCLE.BIN/
 Desktop.ini
 *~
 *~
+config.json
