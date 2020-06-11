@@ -14,6 +14,7 @@ module.exports = {
 	getName(id) { return getNickname(id) },
 	getData(id) { return player[id] },
 	move(id, pos) { movePlayer(id, pos) },
+	getPos(id) { return player[id].position },
 	inv: {
 		setSel(id, sel) { player[id].inventory.selected = sel },
 		data(id) { return player[id].inventory },
@@ -155,16 +156,16 @@ function inventoryLeftClick(eid, x) {
 		
 		// If tempslot and target slot have the same itemtype
 		if (tempY.id == tempX.id &&  tempY.id != undefined ) {
-			if ((tempX.count + tempY.count) <= getItemMaxStack(tempX.id) ) {
+			if ((tempX.count + tempY.count) <=items.getStack(tempX.id) ) {
 				var tempZ = {...tempX}
 				tempZ.count = tempX.count + tempY.count
 				player[eid].inventory.main[x] = tempZ
 				player[eid].inventory.tempslot = {}
-			} else if ((tempX.count + tempY.count) > getItemMaxStack(tempX.id) ) { 
+			} else if ((tempX.count + tempY.count) > items.getStack(tempX.id) ) { 
 				var tempZ = {...tempX}
 				var tempW = {...tempY}
-				tempZ.count = getItemMaxStack(TempX.id)
-				tempW.count = tempX.count + tempY.count - getItemMaxStack(tempX.id)
+				tempZ.count = items.getStack(TempX.id)
+				tempW.count = tempX.count + tempY.count - items.getStack(tempX.id)
 				player[eid].inventory.main[x] = tempZ
 				player[eid].inventory.tempslot = tempW
 			}
@@ -213,7 +214,7 @@ function inventoryRightClick(eid, x) {
 			if (tempW.count <= 0) tempW = {}
 			player[eid].inventory.main[x] = {...tempZ}
 			player[eid].inventory.tempslot = {...tempW}
-		} else if (tempX.id == tempY.id && tempX.count+1 <= getItemMaxStack(tempX.id)) { // The same itemtype
+		} else if (tempX.id == tempY.id && tempX.count+1 <= items.getStack(tempX.id)) { // The same itemtype
 			var tempZ = {...tempX}
 			var tempW = {...tempY}
 			tempZ.count = tempZ.count + 1

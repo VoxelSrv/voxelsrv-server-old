@@ -19,6 +19,7 @@ const items = require('./items').get()
 const blockIDs = require('./blocks').getIDs()
 const blocks = require('./blocks').get()
 const command = require('./commands')
+const vec = require('gl-vec3')
 
 
 var protocol = 1
@@ -88,7 +89,7 @@ function initProtocol(io0) {
 					}
 					else chat.send(-2, player.getName(id) + " » " + data)
 				})
-				socket.on('chunk-request', async function(id) {
+				/*socket.on('chunk-request', async function(id) {
 					if (id == null || id == undefined) return
 					world.chunk(id).then(function(res) {
 						var chunk = res.data
@@ -97,11 +98,12 @@ function initProtocol(io0) {
 							chunk: compressChunk.encode(chunk)
 						})
 					})
-				})
+				})*/
 				socket.on('block-break', function(data) {
-					if (data != null) {
+					if (data != null || data.lenght == 3) {
 						var block = world.getBlock(data)
-						if (block != undefined && block != 0 && blocks[block].data.unbreakable != true) {
+						var pos = player.getPos(id)
+						if (vec.dist(pos, data) < 14 && block != undefined && block != 0 && blocks[block].data.unbreakable != true) {
 							player.inv.add(id, blocks[block].data.drop, 1, {})
 							world.setBlock(data, 0)
 							io.emit('block-update', {
@@ -112,13 +114,15 @@ function initProtocol(io0) {
 						else {
 							console.log(block, data)
 						}
+
 					}
 				})
 
 				socket.on('block-place', function(data) {
 					var inv = player.inv.data(id)
 					var item = inv.main[inv.selected]
-					if (item != undefined && item.id != undefined) {
+					var pos = player.getPos(id)
+					if (vec.dist(pos, data) < 14 && item != undefined && item.id != undefined) {
 						if (items[item.id].type == 'block' || items[item.id].type == 'block-flat') {
 							player.inv.remove(id, item.id, 1, {})
 							world.setBlock(data, blockIDs[item.id])
@@ -131,7 +135,8 @@ function initProtocol(io0) {
 				})
 
 				socket.on('move', function(data) {
-					player.move(id, data)
+					var pos = player.getPos(id)
+					if (vec.dist(pos, data) < 20) player.move(id, data)
 				})
 
 				socket.on('inventory-click', function(data) {
