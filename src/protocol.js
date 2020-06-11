@@ -53,6 +53,7 @@ function initProtocol(io0) {
 			loginTimeout = false
 
 			var check = verifyLogin(data)
+			if (data.username == '' || data.username == null || data.username == undefined ) data.username = 'Player' + Math.round(Math.random()*10000)
 			if (check != 0) {
 				socket.emit('kick', check)
 				socket.disconnect(true)
@@ -61,6 +62,7 @@ function initProtocol(io0) {
 				var id = socket.id
 				player.create(id, data)
 				connections[id] = socket
+				command(id, '/giveall')
 
 				socket.emit('entity-ignore', player.getData(id).entity)
 				Object.entries( entity.getAll() ).forEach(function(data) {
@@ -92,7 +94,7 @@ function initProtocol(io0) {
 						var chunk = res.data
 						socket.emit('chunkdata', {
 							id: id,
-							chunk: compressChunk.encode(chunk.data)
+							chunk: compressChunk.encode(chunk)
 						})
 					})
 				})

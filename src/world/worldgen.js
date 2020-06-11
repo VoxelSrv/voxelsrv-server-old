@@ -6,7 +6,7 @@ module.exports = {
 
 }
 
-const { makeNoise2D, makeNoise3D, makeNoise4D } = require('open-simplex-noise')
+const { makeNoise2D, makeNoise3D } = require('open-simplex-noise')
 var hash = require('murmur-numbers')
 const { get } = require('../blocks')
 

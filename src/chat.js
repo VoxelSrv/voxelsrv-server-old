@@ -11,7 +11,7 @@ const protocol = require('./protocol')
 
 function sendMessage(id, msg) {
 	if (id == -1) console.log(msg)
-	else if (id == -2) {
+	else if (id <= -2) {
 		protocol.sendAll('chat', msg)
 		console.log(msg)
 	}

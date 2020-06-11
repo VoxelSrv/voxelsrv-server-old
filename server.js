@@ -30,7 +30,7 @@ const io = require('socket.io')(http, {
 	cookie: false
 })
 
-require('./src/world/main').init(cfg.world.seed)
+require('./src/world/main').init(cfg.world)
 
 initProtocol(io)
 

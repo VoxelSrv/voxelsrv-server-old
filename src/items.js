@@ -13,15 +13,15 @@ function initItems() {
 
 	// Tools
 
-	itemIDs.iron_pickaxe = createItem('iron_pickaxe', 'Iron pickaxe', 'pickaxe', 'item/iron_pickaxe', {stack: 1, power: 3})
+	//itemIDs.iron_pickaxe = createItem('iron_pickaxe', 'Iron pickaxe', 'pickaxe', 'item/iron_pickaxe', {stack: 1, power: 3})
 
-	itemIDs.iron_axe = createItem('iron_axe', 'Iron axe', 'axe', 'item/iron_axe', {stack: 1, power: 3})
+	//itemIDs.iron_axe = createItem('iron_axe', 'Iron axe', 'axe', 'item/iron_axe', {stack: 1, power: 3})
 
-	itemIDs.iron_shovel = createItem('iron_shovel', 'Iron shovel', 'shovel', 'item/iron_shovel', {stack: 1, power: 3})
+	//itemIDs.iron_shovel = createItem('iron_shovel', 'Iron shovel', 'shovel', 'item/iron_shovel', {stack: 1, power: 3})
 
 	// Resources
 
-	itemIDs.coal = createItem('coal', 'Coal', 'item', 'item/coal', {stack: 64})
+	//itemIDs.coal = createItem('coal', 'Coal', 'item', 'item/coal', {stack: 64})
 
 	// Blocks
 
@@ -37,7 +37,7 @@ function initItems() {
 	itemIDs.red_flower = createItem('red_flower', 'Poppy', 'block-flat', 'block/red_flower', {stack: 64})
 	itemIDs.grass_plant = createItem('grass_plant', 'Grass', 'block-flat', 'block/grass_plant', {stack: 64})
 	itemIDs.yellow_flower = createItem('yellow_flower', 'Dandelion', 'block-flat', 'block/yellow_flower', {stack: 64})
-	itemIDs.deadbush = createItem('deadbush', 'Dead bush', 'block-flat', 'block/deadbush', {stack: 64})
+	//itemIDs.deadbush = createItem('deadbush', 'Dead bush', 'block-flat', 'block/deadbush', {stack: 64})
 
 
 	itemIDs.bricks = createItem('bricks', 'Bricks', 'block', 'block/bricks', {stack: 64})
@@ -49,7 +49,7 @@ function initItems() {
 	itemIDs.iron_ore = createItem('iron_ore', 'Iron ore', 'block', 'block/iron_ore', {stack: 64})
 
 	itemIDs.cactus = createItem('cactus', 'Cactus', 'block', 'block/cactus_side', {stack: 64})
-	itemIDs.cactus = createItem('cactus', 'Cactus', 'block', 'block/cactus_side', {stack: 64})
+	//itemIDs.cactus = createItem('cactus', 'Cactus', 'block', 'block/cactus_side', {stack: 64})
 
 
 

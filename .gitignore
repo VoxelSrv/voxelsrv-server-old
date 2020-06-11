@@ -11,6 +11,7 @@ ehthumbs.db
 *.msi
 *.msm
 *.msp
+*.chk
 $RECYCLE.BIN/
 Desktop.ini
 *~

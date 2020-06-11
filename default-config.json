@@ -6,6 +6,7 @@
 	"public": true,
 	"maxplayers": 5,
 	"world": {
-		"seed": 15425763
+		"seed": 15425763,
+		"border": 24
 	}
 }

@@ -13,9 +13,12 @@ var loadedChunks = {}
 const worldgen = require('./worldgen')
 const ndarray = require('ndarray')
 const blocks = require('../blocks').getIDs()
+const storage = require('./storage')
 
 var chunkWitdh = 24
 var chunkHeight = 120
+
+var lastChunk = Infinity
 
 var queue = []
 var init = false
@@ -39,63 +42,86 @@ function globalToChunk(pos) {
 }
 
 
-function initWorldGen(seed) {
-	worldgen.init(seed, blocks)
+function initWorldGen(cfg) {
+	worldgen.init(cfg.seed, blocks)
+	lastChunk = cfg.border
 	init = true
 }
 
 function setBlock(pos, id) {
 	var pos2 = globalToChunk(pos)
 
-	loadedChunks[pos2.id].data.set(pos2.pos[0], pos2.pos[1], pos2.pos[2], id)
+	loadedChunks[pos2.id].set(pos2.pos[0], pos2.pos[1], pos2.pos[2], id)
 }
 
 function getBlock(pos) {
 	var pos2 = globalToChunk(pos)
 
-	return loadedChunks[pos2.id].data.get(pos2.pos[0], pos2.pos[1], pos2.pos[2])
+	return loadedChunks[pos2.id].get(pos2.pos[0], pos2.pos[1], pos2.pos[2])
 }
 
-function getChunk(id) {
-	if (validateID(id) == false) return 
-	if (loadedChunks[id] == undefined || loadedChunks[id].status == 1) {
+async function getChunk(id) {
+	if (validateID(id) == false) return
+	if (loadedChunks[id] == undefined && storage.exist(id[0] + ',' + id[1]) == false) {
 		generateChunk(id)
 		return loadedChunks[id]
 	}
-	else {
+	else if (loadedChunks[id] != undefined) {
+		return loadedChunks[id]
+	}
+	else if (storage.exist(id[0] + ',' + id[1])) {
+		var newid = new String(id[0] + ',' + id[1])
+		loadedChunks[id] = storage.read(newid)
 		return loadedChunks[id]
 	}
 }
 
 async function generateChunk(id) {
 	var chunk = new ndarray( new Uint16Array(chunkWitdh * chunkHeight * chunkWitdh), [chunkWitdh, chunkHeight, chunkWitdh])
+
 	for (var x = 0; x < chunkWitdh; x++) {
 		for (var z = 0; z < chunkWitdh; z++) {
 			for (var y = 0; y < chunkHeight; y++) {
-				chunk.set(x, y, z, worldgen.get(x+id[0]*24, y, z+id[1]*24))
+				var block = 0
+				if (y == 20) block = blocks.grass
+				else if (17 < y && y < 20) block = blocks.dirt
+				else if ( y < 17) block = blocks.stone
+
+
+				chunk.set(x, y, z, block)
 			}
 		}
 	}
-	for (var x = 0; x < chunkWitdh; x++) {
-		for (var z = 0; z < chunkWitdh; z++) {
-			for (var y = 0; y < chunkHeight; y++) {
-				var a0 = chunk.get(x, y, z)
-				var m1 = chunk.get(x, y-1, z)
-				var a1 = chunk.get(x, y+1, z)
-				if (a0 != 0 && a0 != blocks.water && a1 != blocks.water && a1 == 0) chunk.set(x, y, z, blocks.grass)
-				else if (a0 != 0 && a1 != 0 && a0 != blocks.water) chunk.set(x, y, z, blocks.dirt)
+	
+	if (Math.abs(id[0]) == lastChunk || Math.abs(id[1]) == lastChunk) {
+		for (var x = 0; x < chunkWitdh; x++) {
+			for (var z = 0; z < chunkWitdh; z++) {
+				for (var y = 0; y < chunkHeight; y++) {
+					chunk.set(x, y, z, blocks.barrier)
+				}
 			}
 		}
 	}
-	loadedChunks[id] = {
-		data: chunk,
-		status: 10,
-		version: 1
-	}
+
+	loadedChunks[id] = chunk
+
+	storage.save(id[0] + ',' + id[1], loadedChunks[id])
 }
 
 
 function validateID(id) {
 	if (id == null || id == undefined) return false
+	else if (id[0] == null || id[0] == undefined) return false
+	else if (id[1] == null || id[1] == undefined) return false
+	else if (Math.abs(id[0]) > lastChunk || Math.abs(id[1]) > lastChunk) return false
 
 }
+
+setInterval(async function() {
+	var chunks = Object.keys(loadedChunks)
+
+	chunks.forEach(function(c) {
+		storage.save(c, loadedChunks[c])
+	})
+	console.log('World saved!')
+}, 30000)

@@ -291,10 +291,12 @@ setInterval(async function() {
 
 function sendChunkToPlayer(id, cid) {
 	world.chunk(cid).then(function(res) {
-		var chunk = res.data
-		protocol.send(id, 'chunkdata', {
-			id: cid,
-			chunk: compressChunk.encode(chunk.data)
-		})
+		if (res != undefined) {
+			var chunk = res.data
+			protocol.send(id, 'chunkdata', {
+				id: cid,
+				chunk: compressChunk.encode(chunk)
+			})
+		}
 	})
 }
