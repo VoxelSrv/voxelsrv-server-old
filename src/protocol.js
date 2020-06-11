@@ -136,7 +136,7 @@ function initProtocol(io0) {
 
 				socket.on('move', function(data) {
 					var pos = player.getPos(id)
-					if (vec.dist(pos, data) < 20) player.move(id, data)
+					if (vec.dist(pos, data.pos) < 20) player.move(id, data)
 				})
 
 				socket.on('inventory-click', function(data) {
