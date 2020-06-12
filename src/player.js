@@ -272,7 +272,7 @@ setInterval(async function() {
 			if (item[1] == true) player[id].loadedchunks[item[0]] = undefined
 		})
 	})
-}, 500)
+}, 1000)
 
 
 setInterval(async function() {
@@ -280,7 +280,7 @@ setInterval(async function() {
 		sendChunkToPlayer(chunksToSend[0][0], chunksToSend[0][1])
 		chunksToSend.shift()
 	}
-}, 50)
+}, 100)
 
 setInterval(async function() {
 	var list = Object.keys(player)

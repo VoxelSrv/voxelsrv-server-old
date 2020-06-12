@@ -142,12 +142,14 @@ function initProtocol(io0) {
 				socket.on('inventory-click', function(data) {
 					if (-2 < data.slot < 35) {
 						if (data.type == 'left') player.inv.moveLeft(id, data.slot)
-						else player.inv.moveRight(id, data.slot)
+						else if (data.type == 'right') player.inv.moveRight(id, data.slot)
+						else if (data.type == 'switch') player.inv.switch(id, data.slot, data.slot2)
+						else if ( -1 < data.slot < 9 && data.type == 'select') player.inv.setSel(id, data.slot)
 					}
 				})
 
 				socket.on('selected', function(data) {
-					if ( -1 < data < 9) player.inv.setSel(id, data) 
+					 
 				})
 
 		}
