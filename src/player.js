@@ -66,7 +66,7 @@ function createPlayer(id, data) {
 }
 
 function movePlayer(id, pos) {
-	if (pos.pos != null) {
+	if (pos != undefined && pos.pos != null) {
 		player[id].position = pos.pos
 		player[id].chunk = world.toChunk(pos.pos).id
 		player[id].rotation = pos.rot
@@ -164,7 +164,7 @@ function inventoryLeftClick(eid, x) {
 			} else if ((tempX.count + tempY.count) > items.getStack(tempX.id) ) { 
 				var tempZ = {...tempX}
 				var tempW = {...tempY}
-				tempZ.count = items.getStack(TempX.id)
+				tempZ.count = items.getStack(tempX.id)
 				tempW.count = tempX.count + tempY.count - items.getStack(tempX.id)
 				player[eid].inventory.main[x] = tempZ
 				player[eid].inventory.tempslot = tempW
