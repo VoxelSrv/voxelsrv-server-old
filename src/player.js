@@ -6,6 +6,7 @@ const items = require('./items')
 const protocol = require('./protocol')
 const compressChunk = require("voxel-crunch")
 const { getPackedSettings } = require('http2')
+var cfg = require('../config.json')
 
 
 module.exports = {
@@ -46,7 +47,7 @@ function createPlayer(id, data) {
 	player[id] = {
 		id: id,
 		nickname: data.username,
-		position: [0, 100, 0],
+		position: cfg.world.spawn,
 		rotation: 0,
 		chunk: [0, 0],
 		loadedchunks: {},
