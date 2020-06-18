@@ -35,6 +35,15 @@ function initBlocks() {
 
 	createBlock(_id++, 'crafting', 0, ['block/crafting_top', 'block/planks', 'block/crafting_side'], {}, {drop: 'crafting', hardness: 2, tool: 'axe'})
 
+	createBlock(_id++, 'stonebrick', 0, ['block/stonebrick'], {}, {drop: 'stonebrick', hardness: 3, tool: 'pickaxe'})
+
+	var colors = ['white', 'yellow', 'red', 'purple', 'pink', 'orange', 'magenta', 'lime', 'light_blue', 'green', 'gray', 'cyan', 'brown', 'blue', 'black']
+
+	colors.forEach(function(color) {
+		createBlock(_id++, 'wool_' + color, 0, ['block/wool_' + color] , {}, {drop: 'wool_'  + color, hardness: 1, tool: 'shears'})
+	})
+
+
 	
 	function createBlock(id, name, type, texture, options, data) {
 		blockIDs[name] = id

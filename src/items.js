@@ -51,7 +51,14 @@ function initItems() {
 	itemIDs.cactus = createItem('cactus', 'Cactus', 'block', 'block/cactus_side', {stack: 64})
 	//itemIDs.cactus = createItem('cactus', 'Cactus', 'block', 'block/cactus_side', {stack: 64})
 
+	itemIDs.stonebrick = createItem('stonebrick', 'Stone brick', 'block', 'block/stonebrick', {stack: 64})
 
+
+	var colors = ['white', 'yellow', 'red', 'purple', 'pink', 'orange', 'magenta', 'lime', 'light_blue', 'green', 'gray', 'cyan', 'brown', 'blue', 'black']
+
+	colors.forEach(function(color) {
+		itemIDs['wool_' + color] = createItem('wool_' + color, color + 'wool', 'block', 'block/wool_' + color, {stack: 64})
+	})
 
 
 	function createItem(id, name, type, texture, data) { // Saving items to items

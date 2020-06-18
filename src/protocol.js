@@ -59,7 +59,7 @@ function initProtocol(io0) {
 				socket.emit('kick', check)
 				socket.disconnect(true)
 			} else {
-				socket.emit('login-success', true)
+				socket.emit('login-success', {pos: cfg.world.spawn})
 				var id = socket.id
 				player.create(id, data)
 				connections[id] = socket

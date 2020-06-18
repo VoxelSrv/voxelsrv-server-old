@@ -280,14 +280,14 @@ setInterval(async function() {
 		sendChunkToPlayer(chunksToSend[0][0], chunksToSend[0][1])
 		chunksToSend.shift()
 	}
-}, 100)
+}, 200)
 
 setInterval(async function() {
 	var list = Object.keys(player)
 	list.forEach(function(id) {
 		protocol.send(id, 'inventory-update', {...player[id].inventory})
 	})
-}, 100)
+}, 150)
 
 
 function sendChunkToPlayer(id, cid) {

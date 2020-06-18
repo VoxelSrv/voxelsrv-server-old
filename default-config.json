@@ -7,6 +7,7 @@
 	"maxplayers": 5,
 	"world": {
 		"seed": 15425763,
-		"border": 24
+		"border": 24,
+		"spawn": [0, 100, 0]
 	}
 }
