@@ -15,7 +15,7 @@ function sendMessage(id, msg) {
 		protocol.sendAll('chat', msg)
 		console.log(msg)
 	}
-	else if (id => 0) protocol.send(id, msg)
+	else protocol.send(id, 'chat', msg)
 	event.emit('message', {id: id, msg: msg})
 }
 

@@ -40,11 +40,26 @@ function initBlocks() {
 	var colors = ['white', 'yellow', 'red', 'purple', 'pink', 'orange', 'magenta', 'lime', 'light_blue', 'green', 'gray', 'cyan', 'brown', 'blue', 'black']
 
 	colors.forEach(function(color) {
-		createBlock(_id++, 'wool_' + color, 0, ['block/wool_' + color] , {}, {drop: 'wool_'  + color, hardness: 1, tool: 'shears', material: 'cloth'})
+		createBlock(_id++, color + '_wool', 0, ['block/' + color + '_wool' ] , {}, {drop: color + '_wool', hardness: 1, tool: 'shears', material: 'cloth'})
+	})
+
+	colors.forEach(function(color) {
+		createBlock(_id++, color + '_stained_glass', 0, ['block/' + color + '_stained_glass' ] , {opaque: false}, {drop: color + '_stained_glass', hardness: 1, tool: 'pickaxe', material: 'glass'})
 	})
 
 
+	createBlock(_id++, 'birch_log', 0, ['block/birch_log_top', 'block/birch_log'], {}, {drop: 'birch_log', hardness: 4, tool: 'axe', material: 'wood'})
+	createBlock(_id++, 'birch_leaves', 0, ['block/birch_leaves'], {opaque: false}, {drop: 'birch_leaves'})
+	createBlock(_id++, 'birch_planks', 0, ['block/birch_planks'], {}, {drop: 'birch_planks', hardness: 3.5, tool: 'axe', material: 'wood'})
+
+	createBlock(_id++, 'spruce_log', 0, ['block/spruce_log_top', 'block/spruce_log'], {}, {drop: 'spruce_log', hardness: 4, tool: 'axe', material: 'wood'})
+	createBlock(_id++, 'spruce_leaves', 0, ['block/spruce_leaves'], {opaque: false}, {drop: 'spruce_leaves'})
+	createBlock(_id++, 'spruce_planks', 0, ['block/spruce_planks'], {}, {drop: 'spruce_planks', hardness: 4, tool: 'axe', material: 'wood'})
 	
+	createBlock(_id++, 'iron_block', 0, ['block/iron_block'], {}, {drop: 'iron_block', hardness: 5.5, tool: 'pickaxe', power: 2, material: 'rock'})
+	createBlock(_id++, 'gold_block', 0, ['block/gold_block'], {}, {drop: 'gold_block', hardness: 5.5, tool: 'pickaxe', power: 3, material: 'rock'})
+
+
 	function createBlock(id, name, type, texture, options, data) {
 		blockIDs[name] = id
 

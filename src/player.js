@@ -53,7 +53,7 @@ function createPlayer(id, data) {
 		loadedchunks: {},
 		entity: e,
 		inventory: {
-			maxslot: 35,
+			maxslot: 89,
 			main: {},
 			selected: 0,
 			tempslot:{}

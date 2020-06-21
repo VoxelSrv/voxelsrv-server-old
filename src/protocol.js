@@ -61,7 +61,7 @@ function initProtocol(io0) {
 			} else {
 				var id = socket.id
 				player.create(id, data)
-				socket.emit('login-success', {pos: cfg.world.spawn})
+				socket.emit('login-success', {pos: cfg.world.spawn, inv: player.inv.data(id) })
 				connections[id] = socket
 				command(id, '/giveall')
 
@@ -104,7 +104,7 @@ function initProtocol(io0) {
 						var block = world.getBlock(data)
 						var pos = player.getPos(id)
 						if (vec.dist(pos, data) < 14 && block != undefined && block != 0 && blocks[block].data.unbreakable != true) {
-							player.inv.add(id, blocks[block].data.drop, 1, {})
+							//player.inv.add(id, blocks[block].data.drop, 1, {})
 							world.setBlock(data, 0)
 							io.emit('block-update', {
 								id: 0,
@@ -124,7 +124,7 @@ function initProtocol(io0) {
 					var pos = player.getPos(id)
 					if (vec.dist(pos, data) < 14 && item != undefined && item.id != undefined) {
 						if (items[item.id].type == 'block' || items[item.id].type == 'block-flat') {
-							player.inv.remove(id, item.id, 1, {})
+							//player.inv.remove(id, item.id, 1, {})
 							world.setBlock(data, blockIDs[item.id])
 							io.emit('block-update', {
 								id: blockIDs[item.id],
