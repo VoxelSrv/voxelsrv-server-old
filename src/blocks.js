@@ -44,7 +44,7 @@ function initBlocks() {
 	})
 
 	colors.forEach(function(color) {
-		createBlock(_id++, color + '_stained_glass', 0, ['block/' + color + '_stained_glass' ] , {opaque: false}, {drop: color + '_stained_glass', hardness: 1, tool: 'pickaxe', material: 'glass'})
+		createBlock(_id++, color + '_stained_glass', 4, ['block/' + color + '_stained_glass' ] , {opaque: false}, {drop: color + '_stained_glass', hardness: 1, tool: 'pickaxe', material: 'glass'})
 	})
 
 
