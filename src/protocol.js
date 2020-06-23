@@ -18,7 +18,7 @@ const compressChunk = require("voxel-crunch")
 const items = require('./items').get()
 const blockIDs = require('./blocks').getIDs()
 const blocks = require('./blocks').get()
-const command = require('./commands')
+const command = require('./commands').execute
 const vec = require('gl-vec3')
 
 
@@ -63,7 +63,6 @@ function initProtocol(io0) {
 				player.create(id, data)
 				socket.emit('login-success', {pos: cfg.world.spawn, inv: player.inv.data(id) })
 				connections[id] = socket
-				command(id, '/giveall')
 
 				socket.emit('entity-ignore', player.getData(id).entity)
 				Object.entries( entity.getAll() ).forEach(function(data) {
@@ -75,6 +74,7 @@ function initProtocol(io0) {
 
 				chat.send(-2, player.getName(id) + " joined the game!")
 				playerCount = playerCount + 1
+
 				socket.on('disconnect', function() {
 					chat.send(-2, player.getName(id) + " left the game!")
 					player.remove(id)
@@ -84,8 +84,7 @@ function initProtocol(io0) {
 				})
 				socket.on('chat-send', function(data) {
 					if (data.charAt(0) == '/') {
-						var res = command(id, data)
-						chat.send(id, res)
+						command(id, data)
 					}
 					else chat.send(-2, player.getName(id) + " » " + data)
 				})

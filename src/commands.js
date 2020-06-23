@@ -1,30 +1,43 @@
-const player = require('./player')
-const chat = require('./chat')
-const world = require('./world/main')
-const items = require('./items').get()
-const maxStack = require('./items').getStack
-const blockIDs = require('./blocks').getIDs()
-const blocks = require('./blocks').get()
 const protocol = require('./protocol')
+const chat = require('./chat')
+const EventEmiter = require('events')
+const event = new EventEmiter()
+
+var commands = {}
 
 
-function executeCommand(id, command) {
-	var arg = command.split(' ')
-	switch (arg[0]) {
-		case '/give':
-			player.inv.add(id, arg[1], arg[2], {})
-			return 'Gived ' + arg[2] + ' of **' + arg[1] + '**'
-		case '/giveall':
-			Object.keys(items).forEach(function(item) {
-				player.inv.add(id, item, maxStack(item), {})
-			})
-			return 'Gived all items'
-		case '/playsound':
-			protocol.send(id, 'sound-play', {sound: arg[1], volume: arg[2]})
-			return 'Played sound **' + arg[1] + '** with volume ' + arg[2]
+function executeCommand(id, args) {
+	var arg = args.split(' ')
+	var command = arg[0]
+	arg.shift()
+	event.emit(arg[0], {executor: id, arg: arg})
+
+	var commandList = Object.entries(commands)
+
+	for (var cmd of commandList) {
+		if (cmd[0] == command) {
+			commands[command].execute(id, arg)
+		}
 	}
 }
 
+function registerCommand(command, func, description) {
+	commands[command] = {execute: func, desc: description}
+}
 
 
-module.exports = function(id, command) { executeCommand(id, command) }
+async function helpCommand(id, arg) {
+	chat.send(id, '**List of all commands:**')
+	Object.entries(commands).forEach(function(item) {
+		chat.send(id, item[0] + ' - ' + item[1].desc)
+	})
+	
+}
+
+registerCommand('/help', helpCommand, 'Displays list of all commands')
+
+module.exports = {
+	execute: executeCommand,
+	register: registerCommand,
+	event: event
+}

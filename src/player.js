@@ -16,6 +16,7 @@ module.exports = {
 	getData(id) { return player[id] },
 	move(id, pos) { movePlayer(id, pos) },
 	getPos(id) { return player[id].position },
+	getIDList() { return Object.keys(player) },
 	inv: {
 		setSel(id, sel) { player[id].inventory.selected = sel },
 		data(id) { return player[id].inventory },
