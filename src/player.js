@@ -14,7 +14,7 @@ module.exports = {
 	remove(id) { removePlayer(id) },
 	getName(id) { return getNickname(id) },
 	getData(id) { return player[id] },
-	move(id, pos) { movePlayer(id, pos) },
+	move(id, pos, bool) { movePlayer(id, pos, bool) },
 	getPos(id) { return player[id].position },
 	getIDList() { return Object.keys(player) },
 	inv: {
@@ -67,13 +67,14 @@ function createPlayer(id, data) {
 	event.emit('create', player[id])
 }
 
-function movePlayer(id, pos) {
+function movePlayer(id, pos, bool) {
 	if (pos != undefined && pos.pos != null) {
 		player[id].position = pos.pos
 		player[id].chunk = world.toChunk(pos.pos).id
 		player[id].rotation = pos.rot
 		entity.move(player[id].entity, pos)
 		event.emit('move', {id: id, pos: pos.pos, rot: pos.rot})
+		if (bool == true) protocol.send(id, 'teleport', pos.pos)
 	}
 }
 
