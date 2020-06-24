@@ -2,6 +2,7 @@ const protocol = require('./protocol')
 const chat = require('./chat')
 const EventEmiter = require('events')
 const event = new EventEmiter()
+const player = require('./player')
 
 var commands = {}
 
@@ -16,9 +17,16 @@ function executeCommand(id, args) {
 
 	for (var cmd of commandList) {
 		if (cmd[0] == command) {
-			commands[command].execute(id, arg)
+			try { commands[command].execute(id, arg) }
+			catch(e) {
+				console.error('User ' + player.getName(id) + ' tried to execute command ' + command + ' and it failed!', e)
+				chat.send(id, '{color:red}An error occurred during the execution of this command!{color}')
+			}
+			return
 		}
 	}
+	chat.send(id, '{color:red}(This command doesn\'t exist! Check /help for list of available commands.{color}')
+
 }
 
 function registerCommand(command, func, description) {
