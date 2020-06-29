@@ -61,7 +61,14 @@ function initProtocol(io0) {
 			} else {
 				var id = socket.id
 				player.create(id, data)
-				socket.emit('login-success', {pos: cfg.world.spawn, inv: player.inv.data(id) })
+				socket.emit('login-success', {
+					pos: cfg.world.spawn,
+					inv: player.inv.data(id),
+					clientSideBlockPrediction: true,
+					blocks: blocks,
+					blockIDs: blockIDs,
+					items: items
+				})
 				connections[id] = socket
 
 				socket.emit('entity-ignore', player.getData(id).entity)

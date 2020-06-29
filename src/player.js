@@ -37,10 +37,12 @@ var chunksToSend = []
 function createPlayer(id, data) {
 	var e = entity.create({
 		name: data.username,
+		nametag: true,
 		type: 'player',
 		health: 20,
 		maxhealth: 20,
-		model: 'human',
+		model: 'player',
+		texture: 'entity/steve',
 		position: [0, 50, 0],
 		rotation: 0
 	})
