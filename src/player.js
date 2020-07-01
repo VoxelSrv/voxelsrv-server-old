@@ -129,7 +129,7 @@ function inventorySet(eid, slot, item, count, data) {
 }
 
 function inventorySwitch(eid, x, y) {
-	event.emit('switchSlots', player[id], x, y)
+	event.emit('switchSlots', player[eid], x, y)
 	var inventory = player[eid].inventory
 	var tempx = inventory.main[x]
 	var tempy = inventory.main[y]
