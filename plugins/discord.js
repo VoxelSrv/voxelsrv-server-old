@@ -5,6 +5,9 @@ const client = new Discord.Client()
 const chat = require('../src/chat')
 
 const cfg = require('../config').plugins.discord
+
+if (cfg.token == '') return 
+
 client.commands = new Discord.Collection()
 
 

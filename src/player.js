@@ -1,35 +1,17 @@
 const EventEmiter = require('events')
+const vec = require('gl-vec3')
 const event = new EventEmiter()
 const entity = require('./entity')
 const world = require('./world/main')
 const items = require('./items')
+const blockIDs = require('./blocks').getIDs()
+const blocks = require('./blocks').get()
 const protocol = require('./protocol')
 const compressChunk = require("voxel-crunch")
-const { getPackedSettings } = require('http2')
+const chat = require('./chat')
+const command = require('./commands').execute
+
 var cfg = require('../config.json')
-
-
-module.exports = {
-	create(id, data) { createPlayer(id, data) },
-	remove(id) { removePlayer(id) },
-	getName(id) { return getNickname(id) },
-	getData(id) { return player[id] },
-	move(id, pos, bool) { movePlayer(id, pos, bool) },
-	getPos(id) { return player[id].position },
-	getIDList() { return Object.keys(player) },
-	inv: {
-		setSel(id, sel) { player[id].inventory.selected = sel },
-		data(id) { return player[id].inventory },
-		add(id, item, count, data) { inventoryAdd(id, item, count, data) },
-		remove(id, item, count) { inventoryRemove(id, item, count) },
-		set(id, slot, item, count, data) { inventorySet(id, item, count) },
-		hasItem(id, item, count) { return inventoryHasItem(id, item, count) },
-		moveLeft(id, x) { inventoryLeftClick(id, x) },
-		moveRight(id, x) { inventoryRightClick(id, x) },
-		switch(id, x, y) { inventorySwitch(id, x, y) }
-	},
-	event: event
-}
 
 var player = {}
 var chunksToSend = []
@@ -93,6 +75,7 @@ function getNickname(id) {
 // Add item to inventory
 
 function inventoryAdd(eid, item, count, data) {
+	event.emit('addItem', player[eid], item, count, data)
 	var inventory = player[eid].inventory
 	var invItems = Object.entries(inventory.main)
 	for (var [slot, data] of invItems) {
@@ -113,6 +96,7 @@ function inventoryAdd(eid, item, count, data) {
 // Removing items from inventory
 
 function inventoryRemove(eid, item, count) {
+	event.emit('removeItem', player[eid], item, count)
 	var inventory = player[eid].inventory
 	var allItems = Object.entries(inventory.main)
 	var sel = inventory.selected
@@ -138,12 +122,14 @@ function inventoryRemove(eid, item, count) {
 // Sets slot to item
 
 function inventorySet(eid, slot, item, count, data) {
+	event.emit('setSlot', player[eid], slot, item, count, data)
 	var inventory = player[eid].inventory
 	inventory.main[slot] = {id: item, count: count, data: data}
 	return false
 }
 
 function inventorySwitch(eid, x, y) {
+	event.emit('switchSlots', player[id], x, y)
 	var inventory = player[eid].inventory
 	var tempx = inventory.main[x]
 	var tempy = inventory.main[y]
@@ -154,6 +140,7 @@ function inventorySwitch(eid, x, y) {
 // Item movement on LeftClick in inventory
 
 function inventoryLeftClick(eid, x) {
+	event.emit('leftClick', player[eid], x)
 	var inventory = player[eid].inventory
 	if (x >= 0) { // Normal slots
 		var tempY = {...inventory.tempslot}
@@ -198,6 +185,7 @@ function inventoryLeftClick(eid, x) {
 // Inventory rightclick functionality
 
 function inventoryRightClick(eid, x) {
+	event.emit('rightClick', player[eid], x)
 	var inventory = player[eid].inventory
 	// Normal slots
 	if (x >= 0) {
@@ -261,14 +249,16 @@ setInterval(async function() {
 	list.forEach(async function(id) {
 		var chunk = player[id].chunk
 		var loadedchunks = {...player[id].loadedchunks}
-		for (var x = -2; x <= 2; x++) {
-			for (var z = -2; z <= 2; z++) {
-				var tempid = [chunk[0] + x, chunk[1] + z]
-				if (loadedchunks[tempid] == undefined) {
-					player[id].loadedchunks[tempid] = true
-					chunksToSend.push([id, tempid])
+		for (var w = 0; w <= 2; w++) {
+			for (var x = 0 - w; x <= 0 + w; x++) {
+				for (var z = 0 - w; z <= 0 + w; z++) {
+					var tempid = [chunk[0] + x, chunk[1] + z]
+					if (loadedchunks[tempid] == undefined) {
+						player[id].loadedchunks[tempid] = true
+						chunksToSend.push([id, tempid])
+					}
+					loadedchunks[tempid] = false
 				}
-				loadedchunks[tempid] = false
 			}
 		}
 
@@ -296,6 +286,7 @@ setInterval(async function() {
 
 
 function sendChunkToPlayer(id, cid) {
+	event.emit('sendChunk', player[id], cid)
 	world.chunk(cid).then(function(res) {
 		if (res != undefined) {
 			var chunk = res.data
@@ -305,4 +296,84 @@ function sendChunkToPlayer(id, cid) {
 			})
 		}
 	})
+}
+
+
+const actions = {
+	blockbreak(id, data) {
+		if (data != null || data.lenght == 3) {
+			var block = world.getBlock(data)
+			var pos = player[id].position
+			if (vec.dist(pos, data) < 14 && block != undefined && block != 0 && blocks[block].data.unbreakable != true) {
+				//player.inv.add(id, blocks[block].data.drop, 1, {})
+				world.setBlock(data, 0)
+				protocol.sendAll('block-update', {
+					id: 0,
+					pos: data
+				})
+			}
+
+		}
+	},
+
+	blockplace(id, data) {
+		var inv = player[id].inventory
+		var item = inv.main[inv.selected]
+		var pos = player[id].position
+		if (vec.dist(pos, data) < 14 && item != undefined && item.id != undefined) {
+			if (items.get()[item.id].type == 'block' || items.get()[item.id].type == 'block-flat') {
+				//player.inv.remove(id, item.id, 1, {})
+				world.setBlock(data, blockIDs[item.id])
+				protocol.sendAll('block-update', {
+					id: blockIDs[item.id],
+					pos: data
+				})
+			}
+		}
+	},
+
+	move(id, data) {
+		var pos = player[id].position
+		if (vec.dist(pos, data.pos) < 20) movePlayer(id, data)
+	},
+
+	inventoryclick(id, data) {
+		if (-2 < data.slot < 35) {
+			if (data.type == 'left') inventoryLeftClick(id, data.slot)
+			else if (data.type == 'right') inventoryRightClick(id, data.slot)
+			else if (data.type == 'switch') inventorySwitch(id, data.slot, data.slot2)
+			else if ( -1 < data.slot < 9 && data.type == 'select') player[id].inventory.selected = data.slot
+		}
+	},
+
+	chatsend(id, data) {
+		if (data.charAt(0) == '/') {
+			command(id, data)
+		}
+		else if (data != '' )chat.send(-2, getNickname(id) + " » " + data)
+	}
+}
+
+
+module.exports = {
+	create(id, data) { createPlayer(id, data) },
+	remove(id) { removePlayer(id) },
+	getName(id) { return getNickname(id) },
+	getData(id) { return player[id] },
+	move(id, pos, bool) { movePlayer(id, pos, bool) },
+	getPos(id) { return player[id].position },
+	getIDList() { return Object.keys(player) },
+	inv: {
+		setSel(id, sel) { player[id].inventory.selected = sel },
+		data(id) { return player[id].inventory },
+		add(id, item, count, data) { inventoryAdd(id, item, count, data) },
+		remove(id, item, count) { inventoryRemove(id, item, count) },
+		set(id, slot, item, count, data) { inventorySet(id, item, count) },
+		hasItem(id, item, count) { return inventoryHasItem(id, item, count) },
+		moveLeft(id, x) { inventoryLeftClick(id, x) },
+		moveRight(id, x) { inventoryRightClick(id, x) },
+		switch(id, x, y) { inventorySwitch(id, x, y) }
+	},
+	event: event,
+	actions: actions
 }

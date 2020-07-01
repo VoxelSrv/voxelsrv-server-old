@@ -39,10 +39,17 @@ async function helpCommand(id, arg) {
 	Object.entries(commands).forEach(function(item) {
 		chat.send(id, item[0] + ' - ' + item[1].desc)
 	})
-	
 }
 
 registerCommand('/help', helpCommand, 'Displays list of all commands')
+
+async function helpCommand(id, arg) {
+	chat.send(id, '**List of all commands:**')
+	Object.entries(commands).forEach(function(item) {
+		chat.send(id, item[0] + ' - ' + item[1].desc)
+	})
+	
+}
 
 module.exports = {
 	execute: executeCommand,
