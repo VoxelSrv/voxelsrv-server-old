@@ -4,7 +4,7 @@ var loadedChunks = {}
 var loadedChunksData = {}
 
 
-const worldgen = require('./worldgen')
+var worldgen
 const ndarray = require('ndarray')
 const blocks = require('../blocks').getIDs()
 const storage = require('./storage')
@@ -37,8 +37,9 @@ function globalToChunk(pos) {
 
 
 function initWorldGen(cfg) {
+	worldgen = require('./generator/' + cfg.generator)
 	worldgen.init(cfg.seed, blocks)
-	lastChunk = cfg.border
+	if (cfg.border != 0) lastChunk = cfg.border
 	init = true
 }
 
@@ -95,7 +96,10 @@ async function generateChunk(id) {
 		var chunk = loadedChunks[id]
 	}
 
-	for (var x = 0; x < chunkWitdh; x++) {
+	chunk = worldgen.generate(id, chunk)
+
+
+	/*for (var x = 0; x < chunkWitdh; x++) {
 		for (var z = 0; z < chunkWitdh; z++) {
 			for (var y = 0; y < chunkHeight; y++) {
 				var block = 0
@@ -106,7 +110,7 @@ async function generateChunk(id) {
 				if (block != 0) chunk.set(x, y, z, block)
 			}
 		}
-	}
+	}*/
 	
 	if (Math.abs(id[0]) == lastChunk || Math.abs(id[1]) == lastChunk) {
 		for (var x = 0; x < chunkWitdh; x++) {

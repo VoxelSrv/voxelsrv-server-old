@@ -8,7 +8,8 @@
 	"world": {
 		"seed": 15425763,
 		"border": 24,
-		"spawn": [0, 100, 0]
+		"spawn": [0, 100, 0],
+		"generator": "normal"
 	},
 
 	"plugins": {
