@@ -1,8 +1,6 @@
-const protocol = require('./protocol')
 const chat = require('./chat')
 const EventEmiter = require('events')
 const event = new EventEmiter()
-const player = require('./player')
 
 var commands = {}
 
