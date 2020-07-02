@@ -26,7 +26,11 @@ var connections = {}
 var playerCount = 0
 var io
 
+var init = false
+
 function initProtocol(io0) {
+	if (init == true) return
+	init = true
 	io = io0
 	io.on('connection', async function(socket) {
 		if (playerCount >= cfg.maxplayers) {

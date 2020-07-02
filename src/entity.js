@@ -7,8 +7,9 @@ const { sendAll } = require('./chat')
 module.exports = {
 	create(data) { return createEntity(data) },
 	delete(id) { deleteEntity(id) },
+	remove(id) { deleteEntity(id) },
 	update(id, index, data) { updateEntity(id, index, data) },
-	data(id, index) { return entities[id][index] },
+	getData(id) { return entities[id] },
 	move(id, pos) { moveEntity(id, pos) },
 	getAll() { return entities }
 }

@@ -2,7 +2,7 @@ var items = {}
 
 module.exports = {
 	init() { initItems() },
-	get() {return items},
+	get() { return items },
 	getStack(id) { return getItemMaxStack(id) }
 }
 

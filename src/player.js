@@ -396,10 +396,8 @@ module.exports = {
 		data(id) { return player[id].inventory },
 		add(id, item, count, data) { inventoryAdd(id, item, count, data) },
 		remove(id, item, count) { inventoryRemove(id, item, count) },
-		set(id, slot, item, count, data) { inventorySet(id, item, count) },
+		set(id, slot, item, count, data) { inventorySet(id, slot, item, count, data) },
 		hasItem(id, item, count) { return inventoryHasItem(id, item, count) },
-		moveLeft(id, x) { inventoryLeftClick(id, x) },
-		moveRight(id, x) { inventoryRightClick(id, x) },
 		switch(id, x, y) { inventorySwitch(id, x, y) }
 	},
 	event: event,

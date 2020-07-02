@@ -13,7 +13,7 @@ var chunkWitdh = 24
 var chunkHeight = 120
 var version = 1
 
-var lastChunk = Infinity
+var lastChunk = 5000
 
 var queue = []
 var init = false
