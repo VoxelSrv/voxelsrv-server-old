@@ -315,7 +315,7 @@ const actions = {
 
 		if (action.data != null || action.data.lenght == 3) {
 			var block = world.getBlock(action.data)
-			var pos = player[action.player].position
+			var pos = player[action.id].position
 			if (vec.dist(pos, action.data) < 14 && block != undefined && block != 0 && blocks[block].data.unbreakable != true) {
 				//player.inv.add(id, blocks[block].data.drop, 1, {})
 				world.setBlock(data, 0)
