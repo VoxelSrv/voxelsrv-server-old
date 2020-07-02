@@ -11,6 +11,7 @@ const storage = require('./storage')
 
 var chunkWitdh = 24
 var chunkHeight = 120
+var version = 1
 
 var lastChunk = Infinity
 
@@ -68,6 +69,7 @@ async function getChunk(id) {
 	else if (storage.exist(id[0] + ',' + id[1])) {
 		var newid = new String(id[0] + ',' + id[1])
 		loadedChunks[id] = storage.read(newid)
+		loadedChunksData[id] = storage.readData(newid)
 		return loadedChunks[id]
 	}
 }
@@ -123,7 +125,7 @@ async function generateChunk(id) {
 	}
 
 	loadedChunks[id] = chunk
-	loadedChunksData[id] = {generated: true}
+	loadedChunksData[id] = {gen: true, ver: version}
 
 	storage.save(id[0] + ',' + id[1], loadedChunks[id], loadedChunksData[id])
 }

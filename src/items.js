@@ -74,6 +74,9 @@ function initItems() {
 	createItem('iron_block', 'Iron block', 'block', 'block/iron_block', {stack: 64})
 	createItem('gold_block', 'Gold block', 'block', 'block/gold_block', {stack: 64})
 
+	createItem('crafting', 'Crafting table', 'block', 'block/crafting_table_top', {stack: 64})
+
+
 
 
 	function createItem(id, name, type, texture, data) { // Saving items to items

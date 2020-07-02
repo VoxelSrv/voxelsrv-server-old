@@ -2,6 +2,7 @@ const items = require('../src/items')
 const player = require('../src/player')
 const commands = require('../src/commands')
 const chat = require('../src/chat')
+const blockIDs = require('../src/blocks').getIDs()
 
 
 function give(id, arg) {
@@ -29,7 +30,13 @@ function clear(id, arg) {
 	chat.send(id, 'Inventory cleared')
 }
 
+function blockID(id, arg) {
+	console.log(arg, blockIDs[ arg[0] ])
+	if (blockIDs[ arg[0] ] != undefined) chat.send(id, blockIDs[ arg[0].toString() ])
+}
 
 commands.register('/give', give, 'Gives item to a player')
 commands.register('/giveall', giveAll, 'Gives all items to a player')
 commands.register('/clear', clear, 'Clears player\'s inventory')
+commands.register('/blockid', blockID, 'Send blockid of item')
+

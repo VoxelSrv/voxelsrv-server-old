@@ -33,7 +33,7 @@ function initBlocks() {
 	createBlock(_id++, 'deadbush', 1, ['block/deadbush'], {solid: false, opaque: false}, {drop: 'deadbush'})
 	createBlock(_id++, 'gravel', 0, ['block/gravel'], {}, {drop: 'gravel', hardness: 2.5, tool: 'shovel', material: 'rock'})
 
-	createBlock(_id++, 'crafting', 0, ['block/crafting_top', 'block/planks', 'block/crafting_side'], {}, {drop: 'crafting', hardness: 2, tool: 'axe', material: 'wood'})
+	createBlock(_id++, 'crafting', 0, ['block/crafting_table_top', 'block/oak_planks', 'block/crafting_table_side'], {}, {drop: 'crafting', hardness: 2, tool: 'axe', material: 'wood'})
 
 	createBlock(_id++, 'stonebrick', 0, ['block/stonebrick'], {}, {drop: 'stonebrick', hardness: 3, tool: 'pickaxe', material: 'rock'})
 

@@ -19,7 +19,7 @@ function executeCommand(id, args) {
 		if (cmd[0] == command) {
 			try { commands[command].execute(id, arg) }
 			catch(e) {
-				console.error('User ' + player.getName(id) + ' tried to execute command ' + command + ' and it failed!', e)
+				console.error('User ' + id + ' tried to execute command ' + command + ' and it failed!', e)
 				chat.send(id, '{color:red}An error occurred during the execution of this command!{color}')
 			}
 			return

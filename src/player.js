@@ -10,11 +10,13 @@ const protocol = require('./protocol')
 const compressChunk = require("voxel-crunch")
 const chat = require('./chat')
 const command = require('./commands').execute
+const hook = require('./hooks')
 
 var cfg = require('../config.json')
 
 var player = {}
 var chunksToSend = []
+
 
 function createPlayer(id, data) {
 	var e = entity.create({
@@ -298,18 +300,28 @@ function sendChunkToPlayer(id, cid) {
 	})
 }
 
+hook.create('player-blockbreak', 5)
+hook.create('player-blockplace', 5)
+hook.create('player-move', 5)
+hook.create('player-inventoryclick', 5)
+hook.create('player-chatsend', 5)
+
 
 const actions = {
 	blockbreak(id, data) {
-		if (data != null || data.lenght == 3) {
-			var block = world.getBlock(data)
-			var pos = player[id].position
-			if (vec.dist(pos, data) < 14 && block != undefined && block != 0 && blocks[block].data.unbreakable != true) {
+		var action = {id: id, data: data}
+		var r = hook.execute('player-blockbreak', action)
+		if (r == 1) return
+
+		if (action.data != null || action.data.lenght == 3) {
+			var block = world.getBlock(action.data)
+			var pos = player[action.player].position
+			if (vec.dist(pos, action.data) < 14 && block != undefined && block != 0 && blocks[block].data.unbreakable != true) {
 				//player.inv.add(id, blocks[block].data.drop, 1, {})
 				world.setBlock(data, 0)
 				protocol.sendAll('block-update', {
 					id: 0,
-					pos: data
+					pos: action.data
 				})
 			}
 
@@ -317,40 +329,56 @@ const actions = {
 	},
 
 	blockplace(id, data) {
-		var inv = player[id].inventory
+		var action = {id: id, data: data}
+		var r = hook.execute('player-blockplace', action)
+		if (r == 1) return
+
+		var inv = player[action.id].inventory
 		var item = inv.main[inv.selected]
-		var pos = player[id].position
-		if (vec.dist(pos, data) < 14 && item != undefined && item.id != undefined) {
+		var pos = player[action.id].position
+		if (vec.dist(pos, action.data) < 14 && item != undefined && item.id != undefined) {
 			if (items.get()[item.id].type == 'block' || items.get()[item.id].type == 'block-flat') {
 				//player.inv.remove(id, item.id, 1, {})
-				world.setBlock(data, blockIDs[item.id])
+				world.setBlock(action.data, blockIDs[item.id])
 				protocol.sendAll('block-update', {
 					id: blockIDs[item.id],
-					pos: data
+					pos: action.data
 				})
 			}
 		}
 	},
 
 	move(id, data) {
-		var pos = player[id].position
-		if (vec.dist(pos, data.pos) < 20) movePlayer(id, data)
+		var action = {id: id, data: data}
+		var r = hook.execute('player-move', action)
+		if (r == 1) return
+
+		var pos = player[action.id].position
+		if (vec.dist(pos, action.data.pos) < 20) movePlayer(action.id, action.data)
 	},
 
 	inventoryclick(id, data) {
-		if (-2 < data.slot < 35) {
-			if (data.type == 'left') inventoryLeftClick(id, data.slot)
-			else if (data.type == 'right') inventoryRightClick(id, data.slot)
-			else if (data.type == 'switch') inventorySwitch(id, data.slot, data.slot2)
-			else if ( -1 < data.slot < 9 && data.type == 'select') player[id].inventory.selected = data.slot
+		var action = {id: id, data: data}
+		var r = hook.execute('player-inventoryclick', action)
+		if (r == 1) return
+
+		if (-2 < action.data.slot < 35) {
+			if (action.data.type == 'left') inventoryLeftClick(action.id, action.data.slot)
+			else if (action.data.type == 'right') inventoryRightClick(action.id, action.data.slot)
+			else if (action.data.type == 'switch') inventorySwitch(action.id, action.data.slot, action.data.slot2)
+			else if ( -1 < action.data.slot < 9 && action.data.type == 'select') player[action.id].inventory.selected = action.data.slot
 		}
 	},
 
 	chatsend(id, data) {
-		if (data.charAt(0) == '/') {
-			command(id, data)
+		var action = {id: id, data: data}
+		var r = hook.execute('player-chatsend', action)
+		if (r == 1) return
+
+		if (action.data.charAt(0) == '/') {
+			command(action.id, action.data)
 		}
-		else if (data != '' )chat.send(-2, getNickname(id) + " » " + data)
+		else if (action.data != '' )chat.send(-2, getNickname(action.id) + " » " + action.data)
 	}
 }
 

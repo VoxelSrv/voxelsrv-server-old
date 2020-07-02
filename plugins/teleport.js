@@ -21,7 +21,7 @@ function teleport(id, arg) {
 	}
 	else if (arg.length == 3 ) {
 		player.move(id, {pos: [ parseFloat(arg[0]), parseFloat(arg[1]), parseFloat(arg[2]) ]}, true)
-		chat.send(id, 'Teleported to player ' + player.getName(plID[x]) )
+		chat.send(id, 'Teleported to player ' + JSON.stringify(arg) )
 	}
 
 	else chat.send(id, 'Usage: */tp [playername]* or */tp [x] [y] [z]*')
