@@ -1,15 +1,17 @@
 module.exports = {
-	init(seed, blocks) {initWorldGen(seed, blocks)},
-	get(x, y, z) {return getBlock(x, y, z)},
+	init: initWorldGen,
+	get: getBlock,
 	generate: generateChunk
 }
 
 const { makeNoise2D, makeNoise3D } = require('open-simplex-noise')
+const tree = require('./parts/tree')
+const world = require('../main')
 var hash = require('murmur-numbers')
 
 var init = false
 var blockIDs = {}
-var heightNoise, caveNoise, biomeNoise1, biomeNoise2, biomeNoise3, seed, world, plantSeed
+var heightNoise, caveNoise, biomeNoise1, biomeNoise2, biomeNoise3, seed, plantSeed
 
 var biomeSpacing = 100 // Size of biomes
 
@@ -22,7 +24,6 @@ function initWorldGen(newSeed, blocks) {
 	init = true
 	blockIDs = blocks
 	seed = newSeed
-	world = 'default'
 	heightNoise = makeNoise2D(Math.round(seed * Math.sin(seed^1) * 10000))
 	caveNoise = makeNoise3D(Math.round(seed * Math.sin(seed^2) * 10000))
 	biomeNoise1 = makeNoise2D(Math.round(seed * Math.sin(seed^3) * 10000))
@@ -57,22 +58,25 @@ function getBiome(x, z, temperature, biomerng) {
 }
 
 function generateChunk(id, chunk) {
+	var xoff = id[0]*24
+	var zoff = id[1]*24
+
 	for (var x = 0; x < chunkWitdh; x++) {
 		for (var z = 0; z < chunkWitdh; z++) {
 			for (var y = 0; y < chunkHeight; y++) {
-				var block = getBlock(x+id[0]*24, y, z+id[1]*24)
+				var block = getBlock(x+xoff, y, z+zoff)
 				var biome = 'plants'
 				if (block != 0) {
-					if (0 < y < 50 && getBlock(x+id[0]*24, y, z+id[1]*24) == 1 && getBlock(x+id[0]*24, y+1, z+id[1]*24) == 0 ) {
+					if (0 < y < 50 && getBlock(x+xoff, y, z+zoff) == 1 && getBlock(x+xoff, y+1, z+zoff) == 0 ) {
 						if (biome == 'plants' || biome == 'forest') chunk.set(x, y, z, blockIDs.grass)
 						else if (biome == 'iceland') chunk.set(x, y, z, blockIDs.grass_snow)
 						else if (biome == 'desert') chunk.set(x, y, z, blockIDs.sand)
 					}
-					else if (getBlock(x+id[0]*24, y+1, z+id[1]*24) != 0 && getBlock(x+id[0]*24, y, z+id[1]*24) != blockIDs.water && getBlock(x+id[0]*24, y+3, z+id[1]*24) == 0) {
+					else if (getBlock(x+xoff, y+1, z+zoff) != 0 && getBlock(x+xoff, y, z+zoff) != blockIDs.water && getBlock(x+xoff, y+3, z+zoff) == 0) {
 						if (biome == 'plants' || biome == 'forest' || biome == 'iceland') chunk.set(x, y, z, blockIDs.dirt)
 						else if (biome == 'desert') chunk.set(x, y, z, blockIDs.sand)
 					}
-					else if (getBlock(x+id[0]*24, y+1, z+id[1]*24) == blockIDs.water && getBlock(x+id[0]*24, y, z+id[1]*24) != 0 && getBlock(x+id[0]*24, y, z+id[1]*24) != blockIDs.water) {
+					else if (getBlock(x+xoff, y+1, z+zoff) == blockIDs.water && getBlock(x+xoff, y, z+zoff) != 0 && getBlock(x+xoff, y, z+zoff) != blockIDs.water) {
 						chunk.set(x, y, z, blockIDs.gravel)
 					}
 					else chunk.set(x, y, z, block)
@@ -81,6 +85,50 @@ function generateChunk(id, chunk) {
 		}
 	}
 
+	
+	for (var x = 0; x < chunk.shape[0]; x++) {
+		for (var z = 0; z < chunk.shape[2]; z++) {
+			if ( hash( (x+xoff), (z+zoff), plantSeed) < 0.1 ) {
+				var high = {...world.getHighestBlock(chunk, x, z)}
+				if (high.block == blockIDs.grass) {
+					chunk.set(x, high.level+1, z, blockIDs.grass_plant)
+				}
+			}
+			else if ( hash( (x+xoff), (z+zoff), plantSeed*2) < 0.1 ) {
+				var high = {...world.getHighestBlock(chunk, x, z)}
+				if (high.block == blockIDs.grass) {
+					chunk.set(x, high.level+1, z, ( ( hash( x+xoff, y, z+zoff, plantSeed) <= 0.5 ) ? blockIDs.red_flower : blockIDs.yellow_flower ) )
+				}
+			}
+			else if ( 5 < x && x < 17 && 5 < z && z < 17) { //Temp
+				if ( hash( (x+xoff), (z+zoff), seed) < 0.01 ) {
+					var high = {...world.getHighestBlock(chunk, x, z)}
+					if (high.block == blockIDs.grass) {
+						var gen = tree.oakTree( hash( (x+xoff), (z+zoff), seed) )
+						pasteStructure(chunk, gen, x, high.level + 1, z)
+					}
+				}
+			}
+		}
+	}
+
+	
 	return chunk
 
+}
+
+
+function pasteStructure(chunk, gen, x, y, z) {
+	var xm = Math.round(gen.shape[0]/2)
+	var zm = Math.round(gen.shape[2]/2)
+
+	for (var i = 0; i < gen.shape[0]; i++) {
+		for (var j = 0; j < gen.shape[1]; j++) {
+			for (var k = 0; k < gen.shape[2]; k++) {
+				if (gen.get(i, j, k) != 0) { 
+					chunk.set(x-xm+i, y+j, z-zm+k, gen.get(i, j, k) ) 
+				}
+			}
+		}
+	}
 }

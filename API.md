@@ -55,3 +55,14 @@
 * `execute(id, args)`- Executes command
 * `event`- Event emitter
 
+### World: `require('../src/world/main')`
+* `(async) chunk(id)` - Returns chunk
+* `setBlock(pos, id)` - Sets block at pos to id
+* `getBlock(pos)` - Returns block
+* `toChunk(pos)` - Return id of chunk and local position in it
+* `setChunk(id, data)` - Sets chunk (blocks) to *data* (ndarray)
+* `setChunkData(id, data)` - Sets chunk's (meta)data to *data*
+* `getChunk(id)` - Returns chunk (blocks)
+* `getChunkData(id)` - Returns chunk's (meta)data
+* `getHighestBlock(chunk, x, z)` - Gets highest block at [x, z] position within chunk (Object, not id)
+

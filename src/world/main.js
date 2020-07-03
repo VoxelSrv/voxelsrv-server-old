@@ -6,7 +6,7 @@ var loadedChunksData = {}
 
 var worldgen
 const ndarray = require('ndarray')
-const blocks = require('../blocks').getIDs()
+const blockIDs = require('../blocks').getIDs()
 const storage = require('./storage')
 
 var chunkWitdh = 24
@@ -39,7 +39,7 @@ function globalToChunk(pos) {
 
 function initWorldGen(cfg) {
 	worldgen = require('./generator/' + cfg.generator)
-	worldgen.init(cfg.seed, blocks)
+	worldgen.init(cfg.seed, blockIDs)
 	if (cfg.border != 0) lastChunk = cfg.border
 	init = true
 }
@@ -136,7 +136,14 @@ function validateID(id) {
 	else if (id[0] == null || id[0] == undefined) return false
 	else if (id[1] == null || id[1] == undefined) return false
 	else if (Math.abs(id[0]) > lastChunk || Math.abs(id[1]) > lastChunk) return false
+}
 
+function getHighestBlock(chunk, x, z) {
+	for (var y = chunkHeight - 1; y >= 0; y = y - 1) {
+		var val = chunk.get(x, y, z)
+		if (val != 0) return {level: y, block: val}
+	}
+	return null
 }
 
 setInterval(async function() {
@@ -150,7 +157,7 @@ setInterval(async function() {
 
 
 module.exports = {
-	async chunk(x, z) { return await getChunk(x, z) },
+	chunk: getChunk,
 	init: initWorldGen,
 	setBlock: setBlock,
 	getBlock: getBlock,
@@ -166,9 +173,10 @@ module.exports = {
 	getChunk(id) {
 		return loadedChunks[id]
 	},
-	getChunkData(id, data) {
+	getChunkData(id) {
 		return loadedChunksData[id]
 
-	}
+	},
+	getHighestBlock: getHighestBlock
 
 }
