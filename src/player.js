@@ -58,7 +58,11 @@ function movePlayer(id, pos, bool) {
 		player[id].position = pos.pos
 		player[id].chunk = world.toChunk(pos.pos).id
 		player[id].rotation = pos.rot
-		entity.move(player[id].entity, pos)
+
+		player[id].entity.move(pos.pos)
+		player[id].entity.rotate(pos.rot)
+
+
 		event.emit('move', {id: id, pos: pos.pos, rot: pos.rot})
 		if (bool == true) protocol.send(id, 'teleport', pos.pos)
 	}
@@ -66,7 +70,7 @@ function movePlayer(id, pos, bool) {
 
 function removePlayer(id) {
 	event.emit('remove', player[id])
-	entity.delete(player[id].entity)
+	player[id].entity.remove()
 	delete player[id]
 }
 

@@ -24,12 +24,15 @@
 * `actions` - Actions that player can do (internal)
 
 ### Entity: `require('../src/entity')`
-* `create(id, data)` - Creates entity
-* `remove(id)` - Removes entity
-* `getName(id)` - Returns player's name
-* `move(id, pos)` - Moves entity to selected position.
-* `getData(id)` - Returns entity's data
+* `create(id, data)` - Creates entity (and returns it)
+* `get(id)` - Returns entity
 * `getAll()` - Returns all entities
+
+**Entity object**
+* teleport(pos, eworld) - Teleports entity to pos (in eworld)
+* move(pos) - Moves entity
+* rotate(rot) - Rotates entity
+* remove() - Removes entity
 
 ### Protocol: `require('../src/protocol')`
 * `send(id, type, data)`- Send packet to player

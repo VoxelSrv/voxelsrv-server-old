@@ -2,15 +2,10 @@ var entities = {}
 
 var packet = require('./protocol')
 var world = require('./world/main')
-const { sendAll } = require('./chat')
 
 module.exports = {
 	create(data) { return createEntity(data) },
-	delete(id) { deleteEntity(id) },
-	remove(id) { deleteEntity(id) },
-	update(id, index, data) { updateEntity(id, index, data) },
-	getData(id) { return entities[id] },
-	move(id, pos) { moveEntity(id, pos) },
+	get(id) { return entities[id] },
 	getAll() { return entities }
 }
 
@@ -19,35 +14,59 @@ function createEntity(data) {
 	var id
 
 	while (id == null) {
-		var tempID = Math.round(Math.random()*10000 + Object.keys(entities).length)
+		var tempID = Math.round(Math.random()*10000000 + Object.keys(entities).length)
 		if (entities[tempID] == undefined) id = tempID
 	}
+
+	entities[id] = new Entity(id, data, 'world')
+
+	packet.sendAll('entity-spawn', { id: id, data: entities[id].data })
+
+	return entities[id]
+}
+
+
+
+class Entity {
+	constructor(id, data, entityWorld, tick) {
+		this.data = data
+		if (data.position == undefined) {
+			this.data.position = [0, 0, 0]
+		} if (data.rotation == undefined) {
+			this.data.rotation = 0
+		}
+		this.id = id
+		this.chunk = world.toChunk(this.data.position).id
+		this.world = entityWorld
+		if (tick instanceof Function) this.tick = tick
+		else this.tick = function() {}
+	}
+
+	teleport(pos, eworld) {
+		this.world = eworld
+		this.data.position = pos
+		this.chunk = world.toChunk(pos).id
+		packet.sendAll('entity-move', {id: this.id, data: { pos: this.data.position, rot: this.data.rotation } }) 
+	}
+
+	move(pos) {
+		this.data.position = pos
+		this.chunk = world.toChunk(pos).id
+		packet.sendAll('entity-move', {id: this.id, data: { pos: this.data.position, rot: this.data.rotation } }) 
+
+	}
 	
-	entities[id] = data
+	rotate(rot) {
+		this.data.rotation = rot
+		packet.sendAll('entity-move', {id: this.id, data: { pos: this.data.position, rot: this.data.rotation } }) 
+	}
 
-	packet.sendAll('entity-spawn', {
-		id: id,
-		data: data
-	})
-	return id
-}
+	remove() {
+		packet.sendAll('entity-despawn', this.id)
+		delete entities[this.id]
+	}
 
-
-function deleteEntity(id) {
-	delete entities[id]
-	packet.sendAll('entity-despawn', id)
-}
-
-
-function updateEntity(id, index, data) {
-	entities[id][index] = data
-	packet.sendAll('entity-update', {id: id, index: index, data: data})
-}
-
-function moveEntity(id, pos) {
-	entities[id].position = pos.pos
-	entities[id].chunk = world.toChunk(pos.pos).id
-	entities[id].rotation = pos.rot
-	packet.sendAll('entity-move', {id: id, data: pos})
-
+	getID() {
+		return this.id
+	}
 }

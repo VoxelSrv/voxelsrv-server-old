@@ -101,10 +101,16 @@ function generateChunk(id, chunk) {
 				}
 			}
 			else if ( 5 < x && x < 17 && 5 < z && z < 17) { //Temp
-				if ( hash( (x+xoff), (z+zoff), seed) < 0.01 ) {
+				if ( hash( (x+xoff), (z+zoff), seed) < 0.02 ) {
 					var high = {...world.getHighestBlock(chunk, x, z)}
 					if (high.block == blockIDs.grass) {
-						var gen = tree.oakTree( hash( (x+xoff), (z+zoff), seed) )
+						var gen = tree.oakTree( hash( (x+xoff), (z+zoff), seed)*1000 )
+						pasteStructure(chunk, gen, x, high.level + 1, z)
+					}
+				} else if ( hash( (x+xoff), (z+zoff), seed*5) < 0.007 ) {
+					var high = {...world.getHighestBlock(chunk, x, z)}
+					if (high.block == blockIDs.grass) {
+						var gen = tree.birchTree( hash( (x+xoff), (z+zoff), seed)*5834 )
 						pasteStructure(chunk, gen, x, high.level + 1, z)
 					}
 				}

@@ -71,11 +71,12 @@ function initProtocol(io0) {
 				})
 				connections[id] = socket
 
-				socket.emit('entity-ignore', player.getData(id).entity)
+				socket.emit('entity-ignore', player.getData(id).entity.id)
+
 				Object.entries( entity.getAll() ).forEach(function(data) {
 					socket.emit('entity-spawn', {
 						id: data[0],
-						data: data[1]
+						data: data[1].data
 					})
 				})
 
