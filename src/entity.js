@@ -55,12 +55,12 @@ class Entity {
 		packet.sendAll('entity-move', {id: this.id, data: { pos: this.data.position, rot: this.data.rotation } }) 
 
 	}
-	
+
 	rotate(rot) {
 		this.data.rotation = rot
 		packet.sendAll('entity-move', {id: this.id, data: { pos: this.data.position, rot: this.data.rotation } }) 
 	}
-
+	
 	remove() {
 		packet.sendAll('entity-despawn', this.id)
 		delete entities[this.id]

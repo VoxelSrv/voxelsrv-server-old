@@ -1,17 +1,19 @@
-const player = require('../src/player')
+const players = require('../src/player')
 const commands = require('../src/commands')
 const chat = require('../src/chat')
 
 async function list(id, arg) {
 	chat.send(id, 'Player\s online:')
 	var list = '`'
-	var pidlist = player.getIDList()
+	var playerList = Object.values( players.getAll() )
+	console.log(playerList)
 
-	for (var x = 0; x < pidlist.length-1; x++) {
-		list = list + player.getName(pidlist[x]) + ', '
+
+	for (var x = 0; x < playerList.length-1; x++) {
+		list = list + playerList[x].nickname + ', '
 	}
 
-	if (x == pidlist.length-1) list = list + player.getName(pidlist[x])
+	if (x == playerList.length-1) list = list + playerList[x].nickname
 	
 	chat.send(id, list + '`')
 

@@ -1,9 +1,9 @@
-const player = require('../src/player')
+const players = require('../src/player')
 const items = require('../src/items')
 
 
-player.event.on('create', function(data) {
+players.event.on('create', function(player) {
 	Object.keys( items.get() ).forEach(function(item) {
-		player.inv.add(data.id, item, items.getStack(item) , {})
+		player.inventory.add(item, items.getStack(item) , {})
 	})	
 })

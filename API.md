@@ -1,4 +1,5 @@
 ## Plugin API
+They might be incomplete, so it's better to just check the source code!
 
 ### Hooks: `require('../src/hooks')`
 * `create(name, size)` - Create hooks (used internally). Size changes number of priorities. Server uses by default size of 5 (0 - 4)
@@ -7,21 +8,9 @@
 
 ### Player: `require('../src/player')`
 * `create(id, data)` - Creates player
-* `remove(id)` - Removes player
-* `getName(id)` - Returns player's name
-* `move(id, pos, bool)` - Moves player to selected position. If `bool` is *true*, acts as teleportation
-* `getPos(id)` - Returns player's position
-* `getData(id)` - Returns player's data object
-* `getIDList()` - Returns list of players
-* `inv`- Used for modification of player's inventory:
-  * `setSel(id, sel)` - Changes selected hotbar slot
-  * `data(id)` - Returns Inventory
-  * `add(id, item, count, data)` - Adds item
-  * `remove(id, item, count, data)` - Removes item
-  * `set(id, slot, item, count, data)` - Sets slot to item
-  * `hasItem(id, item, count)` - Checks, if player has selected item
+* `get(id)` - Returns player object
+* `getAll()` - Returns list of players
 * `event` - Event emitter
-* `actions` - Actions that player can do (internal)
 
 ### Entity: `require('../src/entity')`
 * `create(id, data)` - Creates entity (and returns it)

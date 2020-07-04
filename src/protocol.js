@@ -12,7 +12,7 @@ module.exports = {
 
 
 const illegalCharacters = new RegExp('[^a-zA-Z0-9]')
-const player = require('./player')
+const players = require('./player')
 const chat = require('./chat')
 const items = require('./items').get()
 const blockIDs = require('./blocks').getIDs()
@@ -59,11 +59,12 @@ function initProtocol(io0) {
 				socket.disconnect(true)
 			} else {
 				var id = socket.id
-				player.event.emit('connection', id)
-				player.create(id, data)
+				players.event.emit('connection', id)
+				var player = players.create(id, data, socket)
+
 				socket.emit('login-success', {
 					pos: cfg.world.spawn,
-					inv: player.inv.data(id),
+					inv: player.inventory,
 					clientSideBlockPrediction: true,
 					blocks: blocks,
 					blockIDs: blockIDs,
@@ -71,7 +72,7 @@ function initProtocol(io0) {
 				})
 				connections[id] = socket
 
-				socket.emit('entity-ignore', player.getData(id).entity.id)
+				socket.emit('entity-ignore', player.entity.id)
 
 				Object.entries( entity.getAll() ).forEach(function(data) {
 					socket.emit('entity-spawn', {
@@ -80,36 +81,36 @@ function initProtocol(io0) {
 					})
 				})
 
-				chat.send(-2, player.getName(id) + " joined the game!")
+				chat.send(-2, player.nickname + " joined the game!")
 				playerCount = playerCount + 1
 
 				socket.on('disconnect', function() {
-					player.event.emit('disconnect', id)
-					chat.send(-2, player.getName(id) + " left the game!")
-					player.remove(id)
+					players.event.emit('disconnect', id)
+					chat.send(-2, player.nickname + " left the game!")
+					player.remove()
 					connections[id] = null
 					delete connections[id]
 					playerCount = playerCount - 1 
 				})
 				socket.on('chat-send', function(data) {
-					player.actions.chatsend(id, data)
+					player.action_chatsend(data)
 				})
 
 				socket.on('block-break', function(data) {
-					player.actions.blockbreak(id, data)
+					player.action_blockbreak(data)
 				})
 
 				socket.on('block-place', function(data) {
-					player.actions.blockplace(id, data)
+					player.action_blockplace(data)
 				})
 
 				socket.on('move', function(data) {
-					player.actions.move(id, data)
+					player.action_move(data)
 
 				})
 
 				socket.on('inventory-click', function(data) {
-					player.actions.inventoryclick(id, data)
+					player.action_invclick(data)
 				})
 
 		}

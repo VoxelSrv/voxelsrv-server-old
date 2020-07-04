@@ -23,7 +23,7 @@ function executeCommand(id, args) {
 			return
 		}
 	}
-	chat.send(id, '{color:red}(This command doesn\'t exist! Check /help for list of available commands.{color}')
+	chat.send(id, '{color:red}This command doesn\'t exist! Check /help for list of available commands.{color}')
 
 }
 

@@ -1,16 +1,16 @@
 const protocol = require('../src/protocol')
-const player = require('../src/player')
+const players = require('../src/player')
 const cfg = require('../config.json')
 
 
 
 setInterval( function() {
-	var players = player.getIDList()
+	var playerList = Object.values( players.getAll() )
 
 	var tab = '**Welcome on ' + cfg.name + '!**<br><center>'
 
-	players.forEach(function(id) {
-		tab = tab + player.getName(id) + '<br>'
+	playerList.forEach(function(player) {
+		tab = tab + player.nickname + '<br>'
 	})
 
 	tab = tab + '</center>'
