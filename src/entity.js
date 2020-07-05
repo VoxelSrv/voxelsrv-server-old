@@ -6,11 +6,7 @@ var world = require('./world/main')
 const uuid = require('uuid').v4;
 
 
-module.exports = {
-	create(data) { return createEntity(data) },
-	get(id) { return entities[id] },
-	getAll() { return entities }
-}
+
 
 
 function createEntity(data) {
@@ -23,7 +19,11 @@ function createEntity(data) {
 	return entities[id]
 }
 
+function recreateEntity(id, data) {
+	entities[id] = new Entity(id, data, 'world')
 
+	return entities[id]
+}
 
 class Entity {
 	constructor(id, data, entityWorld, tick) {
@@ -38,6 +38,15 @@ class Entity {
 		this.world = entityWorld
 		if (tick instanceof Function) this.tick = tick
 		else this.tick = function() {}
+	}
+
+	getObject() {
+		return {
+			id: this.id,
+			data: this.data,
+			chunk: this.chunk,
+			world: this.world
+		}
 	}
 
 	teleport(pos, eworld) {
@@ -67,4 +76,13 @@ class Entity {
 	getID() {
 		return this.id
 	}
+}
+
+
+
+module.exports = {
+	create: createEntity,
+	recreate: recreateEntity,
+	get(id) { return entities[id] },
+	getAll() { return entities }
 }

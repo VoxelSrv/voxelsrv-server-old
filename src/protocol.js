@@ -58,12 +58,12 @@ function initProtocol(io0) {
 				socket.emit('kick', check)
 				socket.disconnect(true)
 			} else {
-				var id = socket.id
+				var id = data.username.toLowerCase()
 				players.event.emit('connection', id)
 				var player = players.create(id, data, socket)
 
 				socket.emit('login-success', {
-					pos: cfg.world.spawn,
+					pos: player.entity.data.position,
 					inv: player.inventory,
 					clientSideBlockPrediction: true,
 					blocks: blocks,

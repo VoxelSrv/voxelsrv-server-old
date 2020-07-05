@@ -3,11 +3,15 @@ const items = require('./items')
 // Generic Inventory for mobs/block like chest, etc
 
 class Inventory {
-	constructor(size) {
+	constructor(size, data) {
 		this.main = {}
 		this.maxslot = size*9-1
+		if (data != undefined && data != null) {
+			this.main = data.main
+		}
+
 		for (var x = 0; x < size*9; x++) {
-			this.main[x] = {}
+			if (this.main[x] == undefined) this.main[x] = {}
 		}
 	}
 
@@ -69,14 +73,27 @@ class Inventory {
 // Inventory for players
 
 class PlayerInventory extends Inventory {
-	constructor(size) {
-		super(size)
-		this.selected = 0
-		this.tempslot = {}
+	constructor(size, data) {
+		super(size, data)
+		if (data == undefined) {
+			this.selected = 0
+			this.tempslot = {}
+		} else {
+			this.selected = data.selected
+			this.tempslot = data.tempslot
+		}
 	}
 
 	select(slot) {
 		this.selected = slot
+	}
+
+	getObject() {
+		return {
+			main: this.main,
+			selected: this.selected,
+			tempslot: this.tempslot
+		}
 	}
 
 	getTool() {

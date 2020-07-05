@@ -2,6 +2,8 @@
 // storage for data from voxels that were unloaded
 var loadedChunks = {}
 var loadedChunksData = {}
+var loadedChunksTempData = {}
+
 
 
 var worldgen
@@ -46,12 +48,16 @@ function initWorldGen(cfg) {
 
 function setBlock(pos, id) {
 	var pos2 = globalToChunk(pos)
+	if (loadedChunksTempData[pos2.id] != undefined) loadedChunksTempData[pos2.id].lastUsed = Date.now()
+	else { loadedChunksTempData[id] = {lastUsed: Date.now()} }
 
 	loadedChunks[pos2.id].set(pos2.pos[0], pos2.pos[1], pos2.pos[2], id)
 }
 
 function getBlock(pos) {
 	var pos2 = globalToChunk(pos)
+	if (loadedChunksTempData[pos2.id] != undefined) loadedChunksTempData[pos2.id].lastUsed = Date.now()
+	else { loadedChunksTempData[id] = {lastUsed: Date.now()} }
 
 	return loadedChunks[pos2.id].get(pos2.pos[0], pos2.pos[1], pos2.pos[2])
 }
@@ -63,10 +69,16 @@ async function getChunk(id) {
 		return loadedChunks[id]
 	}
 	else if (loadedChunksData[id] != undefined) {
+		if (loadedChunksTempData[id] != undefined) loadedChunksTempData[id].lastUsed = Date.now()
+		else { loadedChunksTempData[id] = {lastUsed: Date.now()} }
+
 		return loadedChunks[id]
 	}
 	
 	else if (storage.exist(id[0] + ',' + id[1])) {
+		if (loadedChunksTempData[id] != undefined) loadedChunksTempData[id].lastUsed = Date.now()
+		else { loadedChunksTempData[id] = {lastUsed: Date.now()} }
+
 		var newid = new String(id[0] + ',' + id[1])
 		loadedChunks[id] = storage.read(newid)
 		loadedChunksData[id] = storage.readData(newid)
@@ -80,9 +92,14 @@ async function getChunkData(id) {
 		return undefined
 	}
 	else if (loadedChunksData[id] != undefined) {
+		if (loadedChunksTempData[id] != undefined) loadedChunksTempData[id].lastUsed = Date.now()
+		else { loadedChunksTempData[id] = {lastUsed: Date.now()} }
+
 		return loadedChunksData[id]
 	}
 	else if (storage.existData(id[0] + ',' + id[1])) {
+		if (loadedChunksTempData[id] != undefined) loadedChunksTempData[id].lastUsed = Date.now()
+		else { loadedChunksTempData[id] = {lastUsed: Date.now()} }
 		var newid = new String(id[0] + ',' + id[1])
 		loadedChunksData[id] = storage.readData(newid)
 		return loadedChunksData[id]
@@ -99,20 +116,6 @@ async function generateChunk(id) {
 	}
 
 	chunk = worldgen.generate(id, chunk)
-
-
-	/*for (var x = 0; x < chunkWitdh; x++) {
-		for (var z = 0; z < chunkWitdh; z++) {
-			for (var y = 0; y < chunkHeight; y++) {
-				var block = 0
-				if (y == 20) block = blocks.grass
-				else if (17 < y && y < 20) block = blocks.dirt
-				else if ( y <= 17) block = blocks.stone
-
-				if (block != 0) chunk.set(x, y, z, block)
-			}
-		}
-	}*/
 	
 	if (Math.abs(id[0]) == lastChunk || Math.abs(id[1]) == lastChunk) {
 		for (var x = 0; x < chunkWitdh; x++) {
@@ -126,6 +129,9 @@ async function generateChunk(id) {
 
 	loadedChunks[id] = chunk
 	loadedChunksData[id] = {gen: true, ver: version}
+	loadedChunksTempData[id] = { lastUsed: Date.now() }
+
+
 
 	storage.save(id[0] + ',' + id[1], loadedChunks[id], loadedChunksData[id])
 }
@@ -148,12 +154,23 @@ function getHighestBlock(chunk, x, z) {
 
 setInterval(async function() {
 	var chunks = Object.keys(loadedChunks)
-
 	chunks.forEach(function(c) {
 		storage.save(c, loadedChunks[c], loadedChunksData[c])
 	})
-	console.log('World saved!')
-}, 30000)
+}, 20000)
+
+
+setInterval(async function() {
+	var chunks = Object.keys(loadedChunksTempData)
+	chunks.forEach(function(c) {
+		if (Date.now() - loadedChunksTempData[c].lastUsed > 2000) {
+			storage.save(c, loadedChunks[c], loadedChunksData[c])
+			delete loadedChunks[c]
+			delete loadedChunksData[c]
+			delete loadedChunksTempData[c]
+		}
+	})
+}, 500)
 
 
 module.exports = {
@@ -170,13 +187,11 @@ module.exports = {
 		loadedChunksData[id] = data
 		storage.save(id[0] + ',' + id[1], loadedChunks[id], loadedChunksData[id])
 	},
-	getChunk(id) {
-		return loadedChunks[id]
-	},
-	getChunkData(id) {
-		return loadedChunksData[id]
+	getChunk: getChunk,
+	getChunkData: getChunkData,
+	getChunkTempData(id) { return loadedChunksTempData[id] },
+	getHighestBlock: getHighestBlock,
+	keepChunkAlive(id) { if(loadedChunksTempData[id] != undefined) loadedChunksTempData[id].lastUsed = Date.now()}
 
-	},
-	getHighestBlock: getHighestBlock
 
 }

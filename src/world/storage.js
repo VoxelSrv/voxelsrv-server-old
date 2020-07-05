@@ -5,10 +5,13 @@ const ndarray = require('ndarray')
 
 module.exports = { 
 	save: saveChunk,
+	savePlayer: savePlayer,
 	read: readChunk,
 	readData: readChunkData,
+	readPlayer: readPlayer,
 	exist: existChunk,
-	existData: existChunkData
+	existData: existChunkData,
+	existPlayer: existPlayer
 
 }
 
@@ -21,7 +24,13 @@ function saveChunk(id, chunk, json) {
 	})
 
 	fs.writeFile('./world/chunks/' + id + '.json', JSON.stringify(json), function (err) {
-		if (err) console.error ('Cant save chunk ' + id + '! Reason: ' + err);
+		if (err) console.error ('Cant save chunkdata ' + id + '! Reason: ' + err);
+	})
+}
+
+function savePlayer(id, data) {
+	fs.writeFile('./world/players/' + id +'.json', JSON.stringify(data), function (err) {
+		if (err) console.error ('Cant save player ' + id + '! Reason: ' + err);
 	})
 }
 
@@ -44,6 +53,15 @@ function readChunkData(id) {
 	return r
 }
 
+function readPlayer(id) {
+	var r = false
+	var name = id + '.json'
+	var data = fs.readFileSync('./world/players/' + name)
+	r = JSON.parse(data)
+	return r
+}
+
+
 function existChunk(id) {
 	var name = id + '.chk'
 	var r = fs.existsSync('./world/chunks/' + name)
@@ -53,5 +71,11 @@ function existChunk(id) {
 function existChunkData(id) {
 	var name = id + '.json'
 	var r = fs.existsSync('./world/chunks/' + name)
+	return r
+}
+
+function existPlayer(id) {
+	var name = id + '.json'
+	var r = fs.existsSync('./world/players/' + name)
 	return r
 }

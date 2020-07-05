@@ -41,7 +41,7 @@ function getBlock(x, y, z) {
 	else return 0
 
 	function getHeightMap(x, y, z, mountaines) {
-		var dim = (caveNoise(x/200, y/200, z/200)+0.3)*150
+		var dim = (caveNoise(x/180, y/180, z/180)+0.3)*140
 		var dim2 = (caveNoise(x/20, y/20, z/20))*50
 		var layer1 = heightNoise(x/140, z/140)*mountaines*20
 		var layer2 = heightNoise(x/40, z/40)*20

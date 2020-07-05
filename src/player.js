@@ -3,6 +3,7 @@ const vec = require('gl-vec3')
 const event = new EventEmiter()
 const entity = require('./entity')
 const world = require('./world/main')
+const storage = require('./world/storage')
 const items = require('./items')
 const blockIDs = require('./blocks').getIDs()
 const blocks = require('./blocks').get()
@@ -32,24 +33,52 @@ class Player {
 	constructor(id, name, socket) {
 		this.id = id
 		this.nickname = name
-		this.entity = entity.create({
-			name: name,
-			nametag: true,
-			type: 'player',
-			health: 20,
-			maxhealth: 20,
-			model: 'player',
-			texture: 'entity/steve',
-			position: cfg.world.spawn,
-			rotation: 0
-		})
+		if ( storage.existPlayer(this.id) ) {
+			var data = storage.readPlayer(this.id)
+			this.entity = entity.recreate(data.entity.id, {
+				name: data.entity.data.name,
+				nametag: data.entity.data.nametag,
+				type: 'player',
+				health: data.entity.data.health,
+				maxhealth: data.entity.data.maxhealth,
+				model: 'player',
+				texture: 'entity/steve',
+				position: data.entity.data.position,
+				rotation: data.entity.data.rotation
+			})
 
+			this.inventory = new PlayerInventory(10, data.inventory)
+		} else {
+			this.entity = entity.create({
+				name: name,
+				nametag: true,
+				type: 'player',
+				health: 20,
+				maxhealth: 20,
+				model: 'player',
+				texture: 'entity/steve',
+				position: cfg.world.spawn,
+				rotation: 0
+			})
+
+			this.inventory = new PlayerInventory(10)
+		}
 		this.socket = socket
 		this.chunks = {}
-		this.inventory = new PlayerInventory(10)
+		storage.savePlayer(this.id, this.getObject())
+	}
+
+	getObject() {
+		return {
+			id: this.id,
+			nickname: this.nickname,
+			entity: this.entity.getObject(),
+			inventory: this.inventory.getObject()
+		}
 	}
 
 	remove() {
+		storage.savePlayer(this.id, this.getObject())
 		this.entity.remove()
 		delete players[this.id]
 	}
@@ -168,6 +197,7 @@ setInterval(async function() {
 						players[id].chunks[tempid] = true
 						chunksToSend.push([id, tempid])
 					}
+					world.keepChunkAlive(tempid)
 					loadedchunks[tempid] = false
 				}
 			}
@@ -200,6 +230,7 @@ function sendChunkToPlayer(id, cid) {
 	event.emit('sendChunk', id, cid)
 	world.chunk(cid).then(function(res) {
 		if (res != undefined && players[id] != undefined) {
+			world.keepChunkAlive(cid)
 			var chunk = res.data
 			players[id].socket.emit('chunkdata', {
 				id: cid,
