@@ -91,59 +91,50 @@ class PlayerInventory extends Inventory {
 		this.main[y] = tempx
 	}
 
-	action_left(x) {
+	action_left(inv, x) {
 		if (x >= 0) { // Normal slots
 			var tempY = {...this.tempslot}
-			var tempX = {...this.main[x]}
+			var tempX = {...inv.main[x]}
 			
 			// If tempslot and target slot have the same itemtype
 			if (tempY.id == tempX.id &&  tempY.id != undefined ) {
 				if ((tempX.count + tempY.count) <= items.getStack(tempX.id) ) {
 					var tempZ = {...tempX}
 					tempZ.count = tempX.count + tempY.count
-					this.main[x] = tempZ
+					inv.main[x] = tempZ
 					this.tempslot = {}
 				} else if ((tempX.count + tempY.count) > items.getStack(tempX.id) ) { 
 					var tempZ = {...tempX}
 					var tempW = {...tempY}
 					tempZ.count = items.getStack(tempX.id)
 					tempW.count = tempX.count + tempY.count - items.getStack(tempX.id)
-					this.main[x] = tempZ
+					inv.main[x] = tempZ
 					this.tempslot = tempW
 				}
 			}
 			// If target slot has diffrent itemtype	
 			else {
-				this.main[x] = tempY
+				inv.main[x] = tempY
 				this.tempslot = tempX
 			}
 		}
-		else if (x == -1) { // Bin slot
-			var tempy = {...inventory.tempslot}
-			var tempx = {...inventory.bin}
-			if (tempy.id == undefined) {
-				this.bin = {}
-				this.tempslot = tempx
-			}
-			else {
-				this.bin = tempy
-				this.tempslot = {}
-			}
+		else if (x == -1) {
+	
 		}
 	}
 
-	action_right(x) {
+	action_right(inv, x) {
 		// Normal slots
 		if (x >= 0) {
 			var tempY = {...this.tempslot}
-			var tempX = {...this.main[x]}
+			var tempX = {...inv.main[x]}
 			if (tempY.id == undefined) { // Tempslot slot is empty
 				var tempZ = {...tempX}
 				var tempW = {...tempX}
 				tempZ.count = Math.ceil(tempZ.count/2)
 				tempW.count = Math.floor(tempW.count/2)
 				if (tempW.count <= 0) tempW = {}
-				this.main[x] = {...tempZ}
+				inv.main[x] = {...tempZ}
 				this.tempslot = {...tempW}
 			} else if (tempX.id == undefined) { // Target is empty
 				var tempZ = {...tempY}
@@ -151,7 +142,7 @@ class PlayerInventory extends Inventory {
 				tempZ.count = 1
 				tempW.count = tempW.count - 1
 				if (tempW.count <= 0) tempW = {}
-				this.main[x] = {...tempZ}
+				inv.main[x] = {...tempZ}
 				this.tempslot = {...tempW}
 			} else if (tempX.id == tempY.id && tempX.count+1 <= items.getStack(tempX.id)) { // The same itemtype
 				var tempZ = {...tempX}
@@ -159,7 +150,7 @@ class PlayerInventory extends Inventory {
 				tempZ.count = tempZ.count + 1
 				tempW.count = tempW.count - 1
 				if (tempW.count <= 0) tempW = {}
-				this.main[x] = {...tempZ}
+				inv.main[x] = {...tempZ}
 				this.tempslot = {...tempW}
 			}
 		}

@@ -3,6 +3,9 @@ var entities = {}
 var packet = require('./protocol')
 var world = require('./world/main')
 
+const uuid = require('uuid').v4;
+
+
 module.exports = {
 	create(data) { return createEntity(data) },
 	get(id) { return entities[id] },
@@ -11,12 +14,7 @@ module.exports = {
 
 
 function createEntity(data) {
-	var id
-
-	while (id == null) {
-		var tempID = Math.round(Math.random()*10000000 + Object.keys(entities).length)
-		if (entities[tempID] == undefined) id = tempID
-	}
+	var id = uuid()
 
 	entities[id] = new Entity(id, data, 'world')
 

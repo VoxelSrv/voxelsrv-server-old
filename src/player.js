@@ -65,7 +65,7 @@ class Player {
 	}
 
 	rotate(rot) {
-		event.emit('player-rotate', {id: id, rot: rot})
+		event.emit('player-rotate', {id: this.id, rot: rot})
 		this.entity.rotate(rot)
 	}
 	
@@ -116,13 +116,14 @@ class Player {
 	}
 
 	action_invclick(data) {
+		if (data.inventory == undefined) data.inventory = this.inventory
 		var action = {id: this.id, data: data}
 		var r = hook.execute('player-inventoryclick', action)
 		if (r == 1) return
 
 		if (-2 < action.data.slot < 35) {
-			if (action.data.type == 'left') this.inventory.action_left(action.data.slot)
-			else if (action.data.type == 'right')  this.inventory.action_right(action.data.slot)
+			if (action.data.type == 'left') this.inventory.action_left(action.data.inventory, action.data.slot)
+			else if (action.data.type == 'right')  this.inventory.action_right(action.data.inventory, action.data.slot)
 			else if (action.data.type == 'switch')  this.inventory.action_switch(action.data.slot, action.data.slot2)
 			else if ( -1 < action.data.slot < 9 && action.data.type == 'select')  this.inventory.select(action.data.slot)
 		}
@@ -147,6 +148,8 @@ class Player {
 
 		var pos = this.entity.data.position
 		if (vec.dist(pos, action.data.pos) < 20) this.move(action.data.pos)
+
+		this.rotate(action.data.rot)
 	}
 }
 

@@ -106,7 +106,6 @@ function initProtocol(io0) {
 
 				socket.on('move', function(data) {
 					player.action_move(data)
-
 				})
 
 				socket.on('inventory-click', function(data) {
