@@ -40,7 +40,7 @@ function globalToChunk(pos) {
 
 
 function initWorldGen(cfg) {
-	worldgen = require('./generator/' + cfg.generator)
+	worldgen = require('../worldgen/' + cfg.generator)
 	worldgen.init(cfg.seed, blockIDs)
 	if (cfg.border != 0) lastChunk = cfg.border
 	init = true

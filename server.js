@@ -35,8 +35,7 @@ require('./src/world/main').init(cfg.world)
 initProtocol(io)
 
 if (!fs.existsSync('./plugins') ) fs.mkdirSync('./plugins')
-if (!fs.existsSync('./world') ) fs.mkdirSync('./world')
-if (!fs.existsSync('./world/chunks') ) fs.mkdirSync('./world/chunks')
+if (!fs.existsSync('./players') ) fs.mkdirSync('./players')
 
 
 

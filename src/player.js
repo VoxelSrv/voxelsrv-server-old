@@ -3,7 +3,6 @@ const vec = require('gl-vec3')
 const event = new EventEmiter()
 const entity = require('./entity')
 const world = require('./world/main')
-const storage = require('./world/storage')
 const items = require('./items')
 const blockIDs = require('./blocks').getIDs()
 const blocks = require('./blocks').get()
@@ -12,6 +11,7 @@ const compressChunk = require("voxel-crunch")
 const chat = require('./chat')
 const command = require('./commands').execute
 const hook = require('./hooks')
+const fs = require('fs')
 
 var cfg = require('../config.json')
 const { PlayerInventory } = require('./inventory')
@@ -29,12 +29,32 @@ function createPlayer(id, data, socket) {
 }
 
 
+function readPlayer(id) {
+	var r = false
+	var name = id + '.json'
+	var data = fs.readFileSync('./players/' + name)
+	r = JSON.parse(data)
+	return r
+}
+
+function existPlayer(id) {
+	var name = id + '.json'
+	var r = fs.existsSync('./players/' + name)
+	return r
+}
+
+function savePlayer(id, data) {
+	fs.writeFile('./players/' + id +'.json', JSON.stringify(data), function (err) {
+		if (err) console.error ('Cant save player ' + id + '! Reason: ' + err);
+	})
+}
+
 class Player {
 	constructor(id, name, socket) {
 		this.id = id
 		this.nickname = name
-		if ( storage.existPlayer(this.id) ) {
-			var data = storage.readPlayer(this.id)
+		if ( existPlayer(this.id) ) {
+			var data = readPlayer(this.id)
 			this.entity = entity.recreate(data.entity.id, {
 				name: data.entity.data.name,
 				nametag: data.entity.data.nametag,
@@ -65,7 +85,7 @@ class Player {
 		}
 		this.socket = socket
 		this.chunks = {}
-		storage.savePlayer(this.id, this.getObject())
+		savePlayer(this.id, this.getObject())
 	}
 
 	getObject() {
@@ -78,7 +98,7 @@ class Player {
 	}
 
 	remove() {
-		storage.savePlayer(this.id, this.getObject())
+		savePlayer(this.id, this.getObject())
 		this.entity.remove()
 		delete players[this.id]
 	}
@@ -108,8 +128,13 @@ class Player {
 		if (r == 1) return
 
 		if (action.data != null || action.data.lenght == 3) {
+			if ( Math.abs(action.data[0]) >= 120000 || Math.abs(action.data) >= 120000) {
+				return
+			}
+
 			var block = world.getBlock(action.data)
 			var pos = this.entity.data.position
+
 			if (vec.dist(pos, action.data) < 14 && block != undefined && block != 0 && blocks[block].data.unbreakable != true) {
 				//player.inv.add(id, blocks[block].data.drop, 1, {})
 				world.setBlock(data, 0)
@@ -176,6 +201,10 @@ class Player {
 		if (r == 1) return
 
 		var pos = this.entity.data.position
+		if ( Math.abs(action.data.pos[0]) > 120000 || Math.abs(action.data.pos[2]) > 120000) {
+			this.socket.emit('teleport', pos)
+			return
+		}
 		if (vec.dist(pos, action.data.pos) < 20) this.move(action.data.pos)
 
 		this.rotate(action.data.rot)

@@ -6,7 +6,7 @@ module.exports = {
 
 const { makeNoise2D, makeNoise3D } = require('open-simplex-noise')
 const tree = require('./parts/tree')
-const world = require('../main')
+const world = require('../world/main')
 var hash = require('murmur-numbers')
 
 var init = false
