@@ -53,12 +53,17 @@ function initProtocol(io0) {
 			loginTimeout = false
 
 			var check = verifyLogin(data)
-			if (data.username == '' || data.username == null || data.username == undefined ) data.username = 'Player' + Math.round(Math.random()*10000)
+			if (data.username == '' || data.username == null || data.username == undefined ) data.username = 'Player' + Math.round(Math.random()*100000)
+
+			var id = data.username.toLowerCase()
+
 			if (check != 0) {
 				socket.emit('kick', check)
 				socket.disconnect(true)
+			} if (connections[id] != undefined) {
+				socket.emit('kick', 'Player with that nickname is already online!')
+				socket.disconnect(true)
 			} else {
-				var id = data.username.toLowerCase()
 				players.event.emit('connection', id)
 				var player = players.create(id, data, socket)
 

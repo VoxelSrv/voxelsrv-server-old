@@ -192,6 +192,4 @@ module.exports = {
 	getChunkTempData(id) { return loadedChunksTempData[id] },
 	getHighestBlock: getHighestBlock,
 	keepChunkAlive(id) { if(loadedChunksTempData[id] != undefined) loadedChunksTempData[id].lastUsed = Date.now()}
-
-
 }
