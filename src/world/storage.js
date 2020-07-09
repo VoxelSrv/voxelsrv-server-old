@@ -17,7 +17,7 @@ module.exports = {
 
 
 function saveChunk(id, chunk, json) {
-	var data = crunch.encode(chunk.data)
+	var data = Buffer.from( crunch.encode(chunk.data) )
 
 	fs.writeFile('./world/chunks/' + id +'.chk', data, function (err) {
 		if (err) console.error ('Cant save chunk ' + id + '! Reason: ' + err);

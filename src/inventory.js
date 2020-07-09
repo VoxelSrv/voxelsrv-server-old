@@ -13,9 +13,11 @@ class Inventory {
 		for (var x = 0; x < size*9; x++) {
 			if (this.main[x] == undefined) this.main[x] = {}
 		}
+		this.lastUpdate = Date.now()
 	}
 
 	add(item, count, data) {
+		this.lastUpdate = Date.now()
 		var invItems = Object.entries(this.main)
 		for (var [slot, data] of invItems) {
 			if (data.id == item && (data.count+count) < items.getStack(item) +1) {
@@ -33,6 +35,7 @@ class Inventory {
 	}
 
 	remove(item, count) {
+		this.lastUpdate = Date.now()
 		var allItems = Object.entries(this.main)
 		var sel = this.selected
 		if (this.main[sel].id == item) {
@@ -55,6 +58,7 @@ class Inventory {
 	}
 
 	set(slot, item, count, data) {
+		this.lastUpdate = Date.now()
 		this.main[slot] = {id: item, count: count, data: data}
 	}
 
@@ -82,6 +86,7 @@ class PlayerInventory extends Inventory {
 			this.selected = data.selected
 			this.tempslot = data.tempslot
 		}
+		this.updated = false
 	}
 
 	select(slot) {
@@ -102,6 +107,8 @@ class PlayerInventory extends Inventory {
 	}
 
 	action_switch(x, y) {
+		this.lastUpdate = Date.now()
+		this.updated = false
 		var tempx = this.main[x]
 		var tempy = this.main[y]
 		this.main[x] = tempy
@@ -109,6 +116,8 @@ class PlayerInventory extends Inventory {
 	}
 
 	action_left(inv, x) {
+		this.lastUpdate = Date.now()
+		this.updated = false
 		if (x >= 0) { // Normal slots
 			var tempY = {...this.tempslot}
 			var tempX = {...inv.main[x]}
@@ -141,6 +150,8 @@ class PlayerInventory extends Inventory {
 	}
 
 	action_right(inv, x) {
+		this.lastUpdate = Date.now()
+		this.updated = false
 		// Normal slots
 		if (x >= 0) {
 			var tempY = {...this.tempslot}

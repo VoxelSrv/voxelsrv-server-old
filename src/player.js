@@ -215,10 +215,12 @@ class Player {
 setInterval(async function() {
 	var list = Object.keys(players)
 
+	var viewDistance = 3
+
 	list.forEach(async function(id) {
 		var chunk = players[id].entity.chunk
 		var loadedchunks = {...players[id].chunks}
-		for (var w = 0; w <= 2; w++) {
+		for (var w = 0; w <= viewDistance; w++) {
 			for (var x = 0 - w; x <= 0 + w; x++) {
 				for (var z = 0 - w; z <= 0 + w; z++) {
 					var tempid = [chunk[0] + x, chunk[1] + z]
@@ -245,14 +247,18 @@ setInterval(async function() {
 		sendChunkToPlayer(chunksToSend[0][0], chunksToSend[0][1])
 		chunksToSend.shift()
 	}
-}, 200)
+}, 100)
 
 setInterval(async function() {
-	var list = Object.keys(players)
-	list.forEach(function(id) {
-		protocol.send(id, 'inventory-update', {...players[id].inventory})
+	var list = Object.values(players)
+	list.forEach(function(player) {
+		if (player.inventory.updated != true) {
+			player.inventory.updated = true
+			console.log(Date.now() - player.inventory.lastUpdate, Date.now(), player.inventory.lastUpdate)
+			player.socket.emit('inventory-update', {...player.inventory})
+		}
 	})
-}, 150)
+}, 50)
 
 
 function sendChunkToPlayer(id, cid) {

@@ -19,7 +19,6 @@ const fs = require('fs')
 const http = require('http').createServer()
 const fetch = require('node-fetch')
 const initProtocol = require('./src/protocol').init
-const { verify } = require('crypto')
 
 const io = require('socket.io')(http, {
 	path: '/',
