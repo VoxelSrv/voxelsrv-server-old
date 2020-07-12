@@ -1,6 +1,7 @@
-const fs = require('./src/fs')
 const http = require('http').createServer()
 const fetch = require('node-fetch')
+
+const fs = require('./src/fs')
 
 var version = '0.1.0'
 var protocol = 1

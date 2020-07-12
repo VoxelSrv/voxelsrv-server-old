@@ -30,11 +30,17 @@ function createPlayer(id, data, socket) {
 
 
 function readPlayer(id) {
-	var r = false
-	var name = id + '.json'
-	var data = fs.readFileSync('./players/' + name)
-	r = JSON.parse(data)
-	return r
+	try {
+		var r = false
+		var name = id + '.json'
+		var data = fs.readFileSync('./players/' + name)
+		r = JSON.parse(data)
+
+		return r
+	} catch(e) {
+		console.log('Tried to load data of player ' + id + ', but it failed! Error: ', e)
+	}
+	
 }
 
 function existPlayer(id) {
@@ -53,8 +59,25 @@ class Player {
 	constructor(id, name, socket) {
 		this.id = id
 		this.nickname = name
-		if ( existPlayer(this.id) ) {
-			var data = readPlayer(this.id)
+		if ( existPlayer(this.id) ) var data = readPlayer(this.id)
+		
+		if (data == undefined) {
+			this.entity = entity.create({
+				name: name,
+				nametag: true,
+				type: 'player',
+				health: 20,
+				maxhealth: 20,
+				model: 'player',
+				texture: 'entity/steve',
+				position: cfg.world.spawn,
+				rotation: 0
+			}, 'default')
+	
+			this.world = 'default'
+	
+			this.inventory = new PlayerInventory(10)
+		} else {
 			this.entity = entity.recreate(data.entity.id, {
 				name: data.entity.data.name,
 				nametag: data.entity.data.nametag,
@@ -70,23 +93,8 @@ class Player {
 			this.world = data.world
 
 			this.inventory = new PlayerInventory(10, data.inventory)
-		} else {
-			this.entity = entity.create({
-				name: name,
-				nametag: true,
-				type: 'player',
-				health: 20,
-				maxhealth: 20,
-				model: 'player',
-				texture: 'entity/steve',
-				position: cfg.world.spawn,
-				rotation: 0
-			}, 'default')
-
-			this.world = 'default'
-
-			this.inventory = new PlayerInventory(10)
 		}
+		
 		this.socket = socket
 		this.chunks = {}
 		savePlayer(this.id, this.getObject())
@@ -105,7 +113,9 @@ class Player {
 	remove() {
 		savePlayer(this.id, this.getObject())
 		this.entity.remove()
-		delete players[this.id]
+
+		setTimeout(() => { delete players[this.id] }, 10 )
+		
 	}
 
 	teleport(pos, eworld) {

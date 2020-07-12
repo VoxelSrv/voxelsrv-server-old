@@ -100,14 +100,14 @@ class World {
 		else this.version = ver
 		this.chunks = {}
 		this.entities = {}
-		this.folder = './worlds/' + name + '/'
-		this.chunkFolder = './worlds/' + name + '/chunks/'
+		this.folder = './worlds/' + name
+		this.chunkFolder = './worlds/' + name + '/chunks'
 
 		if (!fs.existsSync(this.folder) ) fs.mkdirSync(this.folder)
 		if (!fs.existsSync(this.chunkFolder) ) fs.mkdirSync(this.chunkFolder)
 
-		fs.writeFile(this.folder + 'world.json', JSON.stringify(this.getSettings()), function (err) {
-			if (err) console.error ('Cant save world ' + id + '! Reason: ' + err);
+		fs.writeFile(this.folder + '/world.json', JSON.stringify(this.getSettings()), function (err) {
+			if (err) console.error ('Cant save world ' + this.name + '! Reason: ' + err);
 		})
 
 		this.autoSaveInterval = setInterval( async () => { this.saveAll() }, 30000)
@@ -148,16 +148,16 @@ class World {
 	}
 
 	existChunk(id) {
-		var chk = fs.existsSync(this.chunkFolder + id + '.chk')
-		var meta = fs.existsSync(this.chunkFolder + id + '.json')
+		var chk = fs.existsSync(this.chunkFolder + '/' + id + '.chk')
+		var meta = fs.existsSync(this.chunkFolder + '/' + id + '.json')
 		return {chunk: chk, metadata: meta}
 	}
 
 	saveAll() {
 		var chunklist = Object.keys(this.chunks)
 
-		fs.writeFile(this.folder + 'world.json', JSON.stringify(this.getSettings()), function (err) {
-			if (err) console.error ('Cant save world ' + id + '! Reason: ' + err);
+		fs.writeFile(this.folder + '/world.json', JSON.stringify(this.getSettings()), function (err) {
+			if (err) console.error ('Cant save world ' + this.name + '! Reason: ' + err);
 		})
 
 		chunklist.forEach( (id) => { this.saveChunk(id) } )
@@ -168,11 +168,11 @@ class World {
 
 		var data = Buffer.from( crunch.encode(chunk.data.data) )
 
-		fs.writeFile(this.chunkFolder + id +'.chk', data, function (err) {
+		fs.writeFile(this.chunkFolder + '/' + id +'.chk', data, function (err) {
 			if (err) console.error ('Cant save chunk ' + id + '! Reason: ' + err)
 		})
 	
-		fs.writeFile(this.chunkFolder + id + '.json', JSON.stringify(chunk.metadata), function (err) {
+		fs.writeFile(this.chunkFolder + '/' + id + '.json', JSON.stringify(chunk.metadata), function (err) {
 			if (err) console.error ('Cant save chunkdata ' + id + '! Reason: ' + err)
 		})
 	}
@@ -182,12 +182,12 @@ class World {
 		var chunk = null
 		var meta = null
 		if (exist.chunk) {
-			var data = fs.readFileSync(this.chunkFolder + id + '.chk')
+			var data = fs.readFileSync(this.chunkFolder + '/' + id + '.chk')
 			var array = crunch.decode([...data], new Uint16Array(24*120*24) )
 			chunk = new ndarray(array, [24, 120, 24])
 		}
 		if (exist.metadata) {
-			var data = fs.readFileSync(this.chunkFolder + id + '.json')
+			var data = fs.readFileSync(this.chunkFolder + '/' + id + '.json')
 			var meta = JSON.parse(data)
 		}
 		return {chunk: chunk, metadata: meta}
@@ -240,6 +240,7 @@ module.exports = {
 	unload: unloadWorld,
 	exist: existWorld,
 	get: getWorld,
+	getAll() { return worlds },
 	toChunk: globalToChunk,
 	validateID: validateID,
 	addGenerator(name, worldgen) { worldgen[ name ] = worldgen } 

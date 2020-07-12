@@ -93,7 +93,6 @@ function initProtocol(io0) {
 					players.event.emit('disconnect', id)
 					chat.send(-2, player.nickname + " left the game!")
 					player.remove()
-					connections[id] = null
 					delete connections[id]
 					playerCount = playerCount - 1 
 				})

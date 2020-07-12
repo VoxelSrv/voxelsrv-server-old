@@ -64,10 +64,17 @@ class Entity {
 	}
 	
 	remove() {
-		var world = this.world
-		var id = this.id
-		packet.sendAll('entity-despawn', id)
-		delete worldManager.get(world).entities[id]
+		try {
+			var id = this.id
+			packet.sendAll('entity-despawn', id)
+
+			if (this.data.type != 'player') {
+				var world = worldManager.get(this.world)
+				if (world.entities[id] != undefined) delete world.entities[id]
+			}
+		} catch(e) {
+			console.log('Server tried to remove entity, but it didn\'t work! Error: ', e)
+		}
 	}
 
 	getID() {
