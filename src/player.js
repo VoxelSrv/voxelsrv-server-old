@@ -11,7 +11,7 @@ const compressChunk = require("voxel-crunch")
 const chat = require('./chat')
 const command = require('./commands').execute
 const hook = require('./hooks')
-const fs = require('fs')
+const fs = require('./fs.js')
 
 var cfg = require('../config.json')
 const { PlayerInventory } = require('./inventory')
