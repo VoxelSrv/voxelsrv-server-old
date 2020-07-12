@@ -1,7 +1,7 @@
 
 const { makeNoise2D, makeNoise3D } = require('open-simplex-noise')
 const tree = require('./parts/tree')
-const world = require('../world/main')
+const worldManager = require('../worlds')
 var hash = require('murmur-numbers')
 
 
@@ -81,26 +81,26 @@ module.exports = class {
 		for (var x = 0; x < chunk.shape[0]; x++) {
 			for (var z = 0; z < chunk.shape[2]; z++) {
 				if ( hash( (x+xoff), (z+zoff), this.plantSeed) < 0.1 ) {
-					var high = {...world.getHighestBlock(chunk, x, z)}
+					var high = {...worldManager.getHighestBlock(chunk, x, z)}
 					if (high.block == this.blockIDs.grass) {
 						chunk.set(x, high.level+1, z, this.blockIDs.grass_plant)
 					}
 				}
 				else if ( hash( (x+xoff), (z+zoff), this.plantSeed*2) < 0.1 ) {
-					var high = {...world.getHighestBlock(chunk, x, z)}
+					var high = {...worldManager.getHighestBlock(chunk, x, z)}
 					if (high.block == this.blockIDs.grass) {
 						chunk.set(x, high.level+1, z, ( ( hash( x+xoff, y, z+zoff, this.plantSeed) <= 0.5 ) ? this.blockIDs.red_flower : this.blockIDs.yellow_flower ) )
 					}
 				}
 				else if ( 5 < x && x < 17 && 5 < z && z < 17) { //Temp
 					if ( hash( (x+xoff), (z+zoff), this.seed) < 0.02 ) {
-						var high = {...world.getHighestBlock(chunk, x, z)}
+						var high = {...worldManager.getHighestBlock(chunk, x, z)}
 						if (high.block == this.blockIDs.grass) {
 							var gen = tree.oakTree( hash( (x+xoff), (z+zoff), this.seed)*1000 )
 							this.pasteStructure(chunk, gen, x, high.level + 1, z)
 						}
 					} else if ( hash( (x+xoff), (z+zoff), this.seed*5) < 0.007 ) {
-						var high = {...world.getHighestBlock(chunk, x, z)}
+						var high = {...worldManager.getHighestBlock(chunk, x, z)}
 						if (high.block == this.blockIDs.grass) {
 							var gen = tree.birchTree( hash( (x+xoff), (z+zoff), this.seed)*5834 )
 							this.pasteStructure(chunk, gen, x, high.level + 1, z)
