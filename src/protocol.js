@@ -79,7 +79,7 @@ function initProtocol(io0) {
 
 				socket.emit('entity-ignore', player.entity.id)
 
-				Object.entries( entity.getAll() ).forEach(function(data) {
+				Object.entries( entity.getAll(player.world) ).forEach(function(data) {
 					socket.emit('entity-spawn', {
 						id: data[0],
 						data: data[1].data

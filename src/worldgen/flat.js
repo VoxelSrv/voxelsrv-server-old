@@ -1,41 +1,38 @@
-module.exports = {
-	init(seed, blocks) {initWorldGen(seed, blocks)},
-	get(x, y, z) {return getBlock(x, y, z)},
-	generate: generateChunk
-}
+module.exports = class {
+	constructor(seed, blocks) {
+		this.blockIDs = {}
+		this.chunkWitdh = 24
+		this.chunkHeight = 120
+		this.blockIDs = blocks
+		this.seed = seed
+	}
 
-var init = false
-var blockIDs = {}
-var heightNoise, caveNoise, biomeNoise1, biomeNoise2, biomeNoise3, seed, world, plantSeed
-
-var chunkWitdh = 24
-var chunkHeight = 120
-
-function initWorldGen(newSeed, blocks) {
-	init = true
-	blockIDs = blocks
-	seed = newSeed
-	world = 'default'
-}
+	getBlock(x, y, z) {
+		if (y == 40) return blockIDs.grass
+		else if (35 < y && y < 40) return blockIDs.dirt
+		else if (y <= 35) return blockIDs.stone
+		else return 0
+	}
 
 
-function getBlock(x, y, z) {
-	if (y == 40) return blockIDs.grass
-	else if (35 < y < 40) return blockIDs.dirt
-	else if (y <= 35) return blockIDs.stone
-	else return 0
-}
-
-
-function generateChunk(id, chunk) {
-	for (var x = 0; x < chunkWitdh; x++) {
-		for (var z = 0; z < chunkWitdh; z++) {
-			for (var y = 0; y < chunkHeight; y++) {
-				var block = getBlock(x+id[0]*24, y, z+id[1]*24)
-				if (block != 0) chunk.set(x, y, z, block)
+	generateChunk(id, chunk) {
+		for (var x = 0; x < this.chunkWitdh; x++) {
+			for (var z = 0; z < this.chunkWitdh; z++) {
+				for (var y = 0; y < this.chunkHeight; y++) {
+					var block = this.getBlock(x+id[0]*24, y, z+id[1]*24)
+					if (block != 0) chunk.set(x, y, z, block)
+				}
 			}
 		}
+		return chunk
 	}
-	return chunk
+
+	getHeightMap() {
+		return 40
+	}
+
+	getBiome() {
+		return 'plants'
+	}
 
 }

@@ -1,56 +1,147 @@
+const fs = require('fs')
+const ndarray = require('ndarray')
+const crunch = require('voxel-crunch')
+
+const blockIDs = require('./blocks').getIDs()
+
+var chunkWitdh = 24
+var chunkHeight = 120
+
+var lastChunk = 5000
+
 var worlds = {}
+
+var worldgen = {
+	normal: require('./worldgen/normal'),
+	flat: require('./worldgen/flat')
+}
 
 var baseMetadata = {gen: true, ver: 1}
 
 function createWorld(name, seed, generator) {
 	if ( existWorld(name) == false && worlds[name] == undefined ) {
-		worlds[name] = new World(name, seed, generator)
-	}
+		worlds[name] = new World(name, seed, generator, null)
+		console.log('Created world ' + name)
+		return worlds[name]
+	} else { return null }
 }
 
 function loadWorld(name) {
 
+	if ( existWorld(name) == true && worlds[name] == undefined ) {
+		var data = JSON.parse( fs.readFileSync('./worlds/' + name + '/world.json') )
+
+
+		worlds[name] = new World(name, data.seed, data.generator, data.version)
+
+		console.log('Loaded world ' + name)
+		return worlds[name]
+	} else { return null }
 }
 
 function unloadWorld(name) {
+	worlds[name].saveAll()
+	clearInterval(worlds[name].autoSaveInterval)
+	clearInterval(worlds[name].chunkUnloadInterval)
+
+
+	console.log('Unloaded world ' + name)
+	setTimeout(function() { delete worlds[name] }, 50)
 
 }
 
 function existWorld(name) {
-	return fs.existsSync( './worlds/' + name + '.chk')
+	return fs.existsSync( './worlds/' + name)
 }
 
 function getWorld(name) {
 	return worlds[name]
 }
 
+function validateID(id) {
+	if (id == null || id == undefined) return false
+	else if (id[0] == null || id[0] == undefined) return false
+	else if (id[1] == null || id[1] == undefined) return false
+}
+
+
+function getHighestBlock(chunk, x, z) {
+	for (var y = chunkHeight - 1; y >= 0; y = y - 1) {
+		var val = chunk.get(x, y, z)
+		if (val != 0) return {level: y, block: val}
+	}
+	return null
+}
+
+function globalToChunk(pos) {
+	var xc = Math.floor(pos[0]/24)
+	var zc = Math.floor(pos[2]/24)
+
+	var xl = pos[0] % 24
+	var yl = pos[1]
+	var zl = pos[2] % 24
+
+	if (xl < 0) xl = xl + 24
+	if (zl < 0) zl = zl + 24
+
+	return {
+		id: [xc, zc],
+		pos: [xl, yl, zl]
+	}
+}
+
 class World {
-	constructor(name, seed, generator) {
-		this.name = name,
-		this.seed = seed,
-		this.generator = generator
+	constructor(name, seed, generator, ver) {
+		this.name = name
+		this.seed = seed
+		this.generator = new worldgen[generator](seed, blockIDs)
+		if (ver == null) this.version = 1
+		else this.version = ver
 		this.chunks = {}
+		this.entities = {}
 		this.folder = './worlds/' + name + '/'
 		this.chunkFolder = './worlds/' + name + '/chunks/'
+
+		if (!fs.existsSync(this.folder) ) fs.mkdirSync(this.folder)
+		if (!fs.existsSync(this.chunkFolder) ) fs.mkdirSync(this.chunkFolder)
+
+		fs.writeFile(this.folder + 'world.json', JSON.stringify(this.getSettings()), function (err) {
+			if (err) console.error ('Cant save world ' + id + '! Reason: ' + err);
+		})
+
+		this.autoSaveInterval = setInterval( async () => { this.saveAll() }, 30000)
+
+		this.chunkUnloadInterval = setInterval( async () => { 
+			var chunklist = Object.keys(this.chunks)
+			chunklist.forEach( (id) => {
+				if (Date.now() - this.chunks[id].lastUse >= 5000) this.unloadChunk(id)
+			})
+		}, 1000)
+
 	}
 
-	getChunk(id, bool) {
+	async getChunk(id, bool) {
 		if (this.chunks[id] != undefined) {
 			return this.chunks[id]
 		}
-		else if ( existChunk(id).metadata ) {
+		else if ( this.existChunk(id).metadata ) {
 			var data = this.readChunk(id)
 			this.chunks[id] = new Chunk(id, data.chunk, data.metadata)
-			return this.chunk[id]
+			return this.chunks[id]
 		}
 		if (bool) {
-			if ( existChunk(id).chunk ) {
+			if ( this.existChunk(id).chunk ) {
 				var data = this.readChunk(id)
 				this.chunks[id] = new Chunk(id, data.chunk, {...baseMetadata})
-				return this.chunk[id]
+				return this.chunks[id]
 			} else {
-				this.chunks[id] = this.genetateChunk(id)
-				return this.chunk[id]
+				var data = new ndarray( new Uint16Array(chunkWitdh * chunkHeight * chunkWitdh), [chunkWitdh, chunkHeight, chunkWitdh])
+
+				var chunk = this.generator.generateChunk(id, data)
+				this.chunks[id] = new Chunk(id, chunk, {...baseMetadata})
+
+				return this.chunks[id]
+
 			}
 		}
 	}
@@ -61,8 +152,32 @@ class World {
 		return {chunk: chk, metadata: meta}
 	}
 
+	saveAll() {
+		var chunklist = Object.keys(this.chunks)
+
+		fs.writeFile(this.folder + 'world.json', JSON.stringify(this.getSettings()), function (err) {
+			if (err) console.error ('Cant save world ' + id + '! Reason: ' + err);
+		})
+
+		chunklist.forEach( (id) => { this.saveChunk(id) } )
+	}
+
+	saveChunk(id) {
+		var chunk = this.chunks[id]
+
+		var data = Buffer.from( crunch.encode(chunk.data.data) )
+
+		fs.writeFile(this.chunkFolder + id +'.chk', data, function (err) {
+			if (err) console.error ('Cant save chunk ' + id + '! Reason: ' + err)
+		})
+	
+		fs.writeFile(this.chunkFolder + id + '.json', JSON.stringify(chunk.metadata), function (err) {
+			if (err) console.error ('Cant save chunkdata ' + id + '! Reason: ' + err)
+		})
+	}
+
 	readChunk(id) {
-		var exist = existChunk(id)
+		var exist = this.existChunk(id)
 		var chunk = null
 		var meta = null
 		if (exist.chunk) {
@@ -76,11 +191,36 @@ class World {
 		}
 		return {chunk: chunk, metadata: meta}
 	}
+
+	unloadChunk(id) {
+		this.saveChunk(id)
+		delete this.chunks[id]
+	}
+
+	getSettings() {
+		return {
+			name: this.name,
+			seed: this.seed,
+			generator: this.generator.name,
+			version: this.version
+		}
+	}
+
+
+	getBlock(data, bool) {
+		var local = globalToChunk(data)
+		if (this.chunks[local.id] != undefined) return this.chunks[local.id].data.get(local.pos[0], local.pos[1], local.pos[2])
+	}
+
+	setBlock(data, block, bool) {
+		var local = globalToChunk(data)
+		if (this.chunks[local.id] != undefined) this.chunks[local.id].data.set(local.pos[0], local.pos[1], local.pos[2], block)
+	}
 }
 
 
 class Chunk {
-	const(id, blockdata, metadata, bool) {
+	constructor(id, blockdata, metadata, bool) {
 		this.id = id
 		this.data = blockdata
 		this.metadata = metadata
@@ -98,5 +238,9 @@ module.exports = {
 	load: loadWorld,
 	unload: unloadWorld,
 	exist: existWorld,
-	get: getWorld
+	get: getWorld,
+	toChunk: globalToChunk,
+	highestBlock: getHighestBlock,
+	validateID: validateID,
+	addGenerator(name, worldgen) { worldgen[ name ] = worldgen } 
 }

@@ -1,32 +1,28 @@
-var entities = {}
-
 var packet = require('./protocol')
-var world = require('./world/main')
+var worldManager = require('./worlds')
 
 const uuid = require('uuid').v4;
 
 
-
-
-
-function createEntity(data) {
+function createEntity(data, worldName) {
 	var id = uuid()
 
-	entities[id] = new Entity(id, data, 'world')
+	worldManager.get(worldName).entities[id] = new Entity(id, data, worldName)
 
-	packet.sendAll('entity-spawn', { id: id, data: entities[id].data })
+	packet.sendAll('entity-spawn', { id: id, data: worldManager.get(worldName).entities[id].data })
 
-	return entities[id]
+	return worldManager.get(worldName).entities[id]
 }
 
-function recreateEntity(id, data) {
-	entities[id] = new Entity(id, data, 'world')
+function recreateEntity(id, data, worldName) {
+	
+	worldManager.get(worldName).entities[id] = new Entity(id, data)
 
-	return entities[id]
+	return worldManager.get(worldName).entities[id]
 }
 
 class Entity {
-	constructor(id, data, entityWorld, tick) {
+	constructor(id, data, world, tick) {
 		this.data = data
 		if (data.position == undefined) {
 			this.data.position = [0, 0, 0]
@@ -34,8 +30,8 @@ class Entity {
 			this.data.rotation = 0
 		}
 		this.id = id
-		this.chunk = world.toChunk(this.data.position).id
-		this.world = entityWorld
+		this.world = world
+		this.chunk = worldManager.toChunk(this.data.position).id
 		if (tick instanceof Function) this.tick = tick
 		else this.tick = function() {}
 	}
@@ -44,21 +40,20 @@ class Entity {
 		return {
 			id: this.id,
 			data: this.data,
-			chunk: this.chunk,
-			world: this.world
+			chunk: this.chunk
 		}
 	}
 
 	teleport(pos, eworld) {
 		this.world = eworld
 		this.data.position = pos
-		this.chunk = world.toChunk(pos).id
+		this.chunk = worldManager.toChunk(pos).id
 		packet.sendAll('entity-move', {id: this.id, data: { pos: this.data.position, rot: this.data.rotation } }) 
 	}
 
 	move(pos) {
 		this.data.position = pos
-		this.chunk = world.toChunk(pos).id
+		this.chunk = worldManager.toChunk(pos).id
 		packet.sendAll('entity-move', {id: this.id, data: { pos: this.data.position, rot: this.data.rotation } }) 
 
 	}
@@ -70,7 +65,7 @@ class Entity {
 	
 	remove() {
 		packet.sendAll('entity-despawn', this.id)
-		delete entities[this.id]
+		delete worldManager.get(this.world).entities[this.id]
 	}
 
 	getID() {
@@ -83,6 +78,6 @@ class Entity {
 module.exports = {
 	create: createEntity,
 	recreate: recreateEntity,
-	get(id) { return entities[id] },
-	getAll() { return entities }
+	get(world, id) { return worldManager.get(world).entities[id] },
+	getAll(world) { return worldManager.get(world).entities }
 }

@@ -1,3 +1,7 @@
+const fs = require('fs')
+const http = require('http').createServer()
+const fetch = require('node-fetch')
+
 var version = '0.1.0'
 var protocol = 1
 
@@ -15,9 +19,13 @@ try {
 require('./src/blocks').init()
 require('./src/items').init()
 
-const fs = require('fs')
-const http = require('http').createServer()
-const fetch = require('node-fetch')
+const plugins = fs.readdirSync('./plugins').filter(file => file.endsWith('.js'))
+
+for (const file of plugins) {
+	require('./plugins/' + file)
+}
+
+
 const initProtocol = require('./src/protocol').init
 
 const io = require('socket.io')(http, {
@@ -29,20 +37,18 @@ const io = require('socket.io')(http, {
 	cookie: false
 })
 
-require('./src/world/main').init(cfg.world)
+if (!fs.existsSync('./plugins') ) fs.mkdirSync('./plugins')
+if (!fs.existsSync('./players') ) fs.mkdirSync('./players')
+if (!fs.existsSync('./worlds') ) fs.mkdirSync('./worlds')
+
+
+const worldManager = require('./src/worlds')
+
+if (worldManager.exist('default') == false) worldManager.create('default', cfg.world.seed, cfg.world.generator)
+else worldManager.load('default')
 
 initProtocol(io)
 
-if (!fs.existsSync('./plugins') ) fs.mkdirSync('./plugins')
-if (!fs.existsSync('./players') ) fs.mkdirSync('./players')
-
-
-
-const plugins = fs.readdirSync('./plugins').filter(file => file.endsWith('.js'))
-
-for (const file of plugins) {
-	require('./plugins/' + file)
-}
 
 if (cfg.public) {
 	fetch('http://pb4.eu:9000/update?ip=' + cfg.address + '&motd=' + cfg.motd + '&name=' + cfg.name)

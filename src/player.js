@@ -2,7 +2,7 @@ const EventEmiter = require('events')
 const vec = require('gl-vec3')
 const event = new EventEmiter()
 const entity = require('./entity')
-const world = require('./world/main')
+const worldManager = require('./worlds')
 const items = require('./items')
 const blockIDs = require('./blocks').getIDs()
 const blocks = require('./blocks').get()
@@ -64,8 +64,10 @@ class Player {
 				model: 'player',
 				texture: 'entity/steve',
 				position: data.entity.data.position,
-				rotation: data.entity.data.rotation
-			})
+				rotation: data.entity.data.rotation,
+			}, data.world)
+
+			this.world = data.world
 
 			this.inventory = new PlayerInventory(10, data.inventory)
 		} else {
@@ -79,7 +81,9 @@ class Player {
 				texture: 'entity/steve',
 				position: cfg.world.spawn,
 				rotation: 0
-			})
+			}, 'default')
+
+			this.world = 'default'
 
 			this.inventory = new PlayerInventory(10)
 		}
@@ -93,7 +97,8 @@ class Player {
 			id: this.id,
 			nickname: this.nickname,
 			entity: this.entity.getObject(),
-			inventory: this.inventory.getObject()
+			inventory: this.inventory.getObject(),
+			world: this.world
 		}
 	}
 
@@ -132,12 +137,12 @@ class Player {
 				return
 			}
 
-			var block = world.getBlock(action.data)
+			var block = worldManager.get(this.world).getBlock(action.data)
 			var pos = this.entity.data.position
 
 			if (vec.dist(pos, action.data) < 14 && block != undefined && block != 0 && blocks[block].data.unbreakable != true) {
 				//player.inv.add(id, blocks[block].data.drop, 1, {})
-				world.setBlock(data, 0)
+				worldManager.get(this.world).setBlock(data, 0)
 				protocol.sendAll('block-update', {
 					id: 0,
 					pos: action.data
@@ -160,7 +165,7 @@ class Player {
 		if (vec.dist(pos, action.data) < 14 && item != undefined && item.id != undefined) {
 			if (items.get()[item.id].type == 'block' || items.get()[item.id].type == 'block-flat') {
 				//player.inv.remove(id, item.id, 1, {})
-				world.setBlock(action.data, blockIDs[item.id])
+				worldManager.get(this.world).setBlock(action.data, blockIDs[item.id])
 				protocol.sendAll('block-update', {
 					id: blockIDs[item.id],
 					pos: action.data
@@ -228,7 +233,7 @@ setInterval(async function() {
 						players[id].chunks[tempid] = true
 						chunksToSend.push([id, tempid])
 					}
-					world.keepChunkAlive(tempid)
+					if (worldManager.get(players[id].world).chunks[tempid] != undefined) worldManager.get(players[id].world).chunks[tempid].keepAlive()
 					loadedchunks[tempid] = false
 				}
 			}
@@ -254,7 +259,6 @@ setInterval(async function() {
 	list.forEach(function(player) {
 		if (player.inventory.updated != true) {
 			player.inventory.updated = true
-			console.log(Date.now() - player.inventory.lastUpdate, Date.now(), player.inventory.lastUpdate)
 			player.socket.emit('inventory-update', {...player.inventory})
 		}
 	})
@@ -263,16 +267,17 @@ setInterval(async function() {
 
 function sendChunkToPlayer(id, cid) {
 	event.emit('sendChunk', id, cid)
-	world.chunk(cid).then(function(res) {
-		if (res != undefined && players[id] != undefined) {
-			world.keepChunkAlive(cid)
-			var chunk = res.data
-			players[id].socket.emit('chunkdata', {
-				id: cid,
-				chunk: compressChunk.encode(chunk)
-			})
-		}
-	})
+	if (players[id] != undefined) {
+		worldManager.get(players[id].world).getChunk(cid, true).then(function(chunk) {
+			if (chunk != undefined && players[id] != undefined) {
+				chunk.keepAlive()
+				players[id].socket.emit('chunkdata', {
+					id: cid,
+					chunk: compressChunk.encode(chunk.data.data)
+				})
+			}
+		})
+	}
 }
 
 hook.create('player-blockbreak', 5)
