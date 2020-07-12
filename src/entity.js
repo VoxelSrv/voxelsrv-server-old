@@ -64,8 +64,10 @@ class Entity {
 	}
 	
 	remove() {
-		packet.sendAll('entity-despawn', this.id)
-		delete worldManager.get(this.world).entities[this.id]
+		var world = this.world
+		var id = this.id
+		packet.sendAll('entity-despawn', id)
+		delete worldManager.get(world).entities[id]
 	}
 
 	getID() {

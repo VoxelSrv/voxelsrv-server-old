@@ -1,4 +1,4 @@
-const fs = require('fs')
+const fs = require('./src/fs')
 const http = require('http').createServer()
 const fetch = require('node-fetch')
 

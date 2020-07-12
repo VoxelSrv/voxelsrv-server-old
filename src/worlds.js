@@ -241,7 +241,6 @@ module.exports = {
 	exist: existWorld,
 	get: getWorld,
 	toChunk: globalToChunk,
-	highestBlock: getHighestBlock,
 	validateID: validateID,
 	addGenerator(name, worldgen) { worldgen[ name ] = worldgen } 
 }
