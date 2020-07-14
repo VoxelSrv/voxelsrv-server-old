@@ -12,6 +12,8 @@ const chat = require('./chat')
 const command = require('./commands').execute
 const hook = require('./hooks')
 const fs = require('./fs.js')
+const console = require('./console')
+
 
 var cfg = require('../config.json')
 const { PlayerInventory } = require('./inventory')
@@ -38,7 +40,7 @@ function readPlayer(id) {
 
 		return r
 	} catch(e) {
-		console.log('Tried to load data of player ' + id + ', but it failed! Error: ', e)
+		console.error('Tried to load data of player ' + id + ', but it failed! Error: ', e)
 	}
 	
 }

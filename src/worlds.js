@@ -2,6 +2,9 @@ const fs = require('./fs.js')
 
 const ndarray = require('ndarray')
 const crunch = require('voxel-crunch')
+const console = require('./console')
+
+
 
 const blockIDs = require('./blocks').getIDs()
 
@@ -22,7 +25,6 @@ var baseMetadata = {gen: true, ver: 1}
 function createWorld(name, seed, generator) {
 	if ( existWorld(name) == false && worlds[name] == undefined ) {
 		worlds[name] = new World(name, seed, generator, null)
-		console.log('Created world ' + name)
 		return worlds[name]
 	} else { return null }
 }
@@ -35,7 +37,6 @@ function loadWorld(name) {
 
 		worlds[name] = new World(name, data.seed, data.generator, data.version)
 
-		console.log('Loaded world ' + name)
 		return worlds[name]
 	} else { return null }
 }
@@ -115,7 +116,7 @@ class World {
 		this.chunkUnloadInterval = setInterval( async () => { 
 			var chunklist = Object.keys(this.chunks)
 			chunklist.forEach( (id) => {
-				if (Date.now() - this.chunks[id].lastUse >= 5000) this.unloadChunk(id)
+				if (Date.now() - this.chunks[id].lastUse >= 5000 && !!this.chunks[id].forceload) this.unloadChunk(id)
 			})
 		}, 1000)
 

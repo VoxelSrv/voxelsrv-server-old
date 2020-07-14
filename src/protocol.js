@@ -17,6 +17,8 @@ const chat = require('./chat')
 const items = require('./items').get()
 const blockIDs = require('./blocks').getIDs()
 const blocks = require('./blocks').get()
+const console = require('./console')
+
 var protocol = 1
 
 var cfg = require('../config.json')

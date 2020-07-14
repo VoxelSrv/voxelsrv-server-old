@@ -1,6 +1,8 @@
 const chat = require('./chat')
 const EventEmiter = require('events')
 const event = new EventEmiter()
+const console = require('./console')
+
 
 var commands = {}
 
@@ -17,7 +19,7 @@ function executeCommand(id, args) {
 		if (cmd[0] == command) {
 			try { commands[command].execute(id, arg) }
 			catch(e) {
-				console.error('User ' + id + ' tried to execute command ' + command + ' and it failed!', e)
+				console.error('User ^R' + id + '^r tried to execute command ^R' + command + '^r and it failed! \n ^R', e)
 				chat.send(id, '{color:red}An error occurred during the execution of this command!{color}')
 			}
 			return

@@ -6,14 +6,16 @@ const fs = require('./src/fs')
 var version = '0.1.0'
 var protocol = 1
 
-console.log('Starting VoxelSRV server version ' + version + ' [Protocol: ' + protocol + ']\n')
+const console = require('./src/console')
+
+console.log('^yStarting VoxelSRV server version ^:' + version + ' ^y[Protocol: ^:' + protocol + '^y]')
 
 try {
 	var cfg = require('./config.json')
-	console.log('Loaded configuration file! \n', cfg), '\n'
+	console.log('^gLoaded configuration file!')
 } catch(e) {
-	console.error('Can\'t load config file! \n', e)
-	console.error('\nStopping server')
+	console.error('Can\'t load config file! \n^R', e.toString())
+	console.log('Stopping server')
 	return
 }
 
@@ -57,7 +59,7 @@ if (cfg.public) {
 		fetch('http://pb4.eu:9000/update?ip=' + cfg.address + '&motd=' + cfg.motd + '&name=' + cfg.name)
 	}, 30000)
 }	
-console.log('Server started on port: ' + cfg.port)
+console.log('^yServer started on port: ^:' + cfg.port)
 http.listen(cfg.port)
 
 
