@@ -66,11 +66,13 @@ require('./src/commands').register('/stop', (id, args) => {
 
 	console.log('^rStopping server...')
 
-	require('./src/player').getAll().forEach( player => { player.remove() })
+	Object.values( require('./src/player').getAll() ).forEach( player => { player.remove() })
 
-	worldManager.getAll().forEach(world => {
+	Object.values( worldManager.getAll() ).forEach(world => {
 		world.unload()
 	})
+
+	setTimeout( () => { process.exit() }, 1000 )
 
 }, 'Stops the server (console only)')
 
