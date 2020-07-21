@@ -42,13 +42,8 @@ function loadWorld(name) {
 }
 
 function unloadWorld(name) {
-	worlds[name].saveAll()
-	clearInterval(worlds[name].autoSaveInterval)
-	clearInterval(worlds[name].chunkUnloadInterval)
-
-
+	worlds[name].unload()
 	console.log('Unloaded world ' + name)
-	setTimeout(function() { delete worlds[name] }, 50)
 
 }
 
@@ -217,6 +212,14 @@ class World {
 	setBlock(data, block, bool) {
 		var local = globalToChunk(data)
 		if (this.chunks[local.id] != undefined) this.chunks[local.id].data.set(local.pos[0], local.pos[1], local.pos[2], block)
+	}
+
+	unload() {
+		this.saveAll()
+		clearInterval(this.autoSaveInterval)
+		clearInterval(this.chunkUnloadInterval)
+
+		setTimeout(function() { delete worlds[this.name] }, 50)
 	}
 }
 

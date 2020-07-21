@@ -34,15 +34,6 @@ function hourNow() {
 }
 
 
-/*
-term.inputField(
-	{ history: history, autoComplete: [] , autoCompleteMenu: false } ,
-	function( error , input ) {
-        require('./commands').execute('#console', '/' + input)
-	}
-)
-*/
-
 
 module.exports = {
     log: log,

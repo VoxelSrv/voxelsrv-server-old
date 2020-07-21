@@ -60,6 +60,21 @@ if (cfg.public) {
 	}, 30000)
 }	
 console.log('^yServer started on port: ^:' + cfg.port)
+
+require('./src/commands').register('/stop', (id, args) => {
+	if(id != '#console') return
+
+	console.log('^rStopping server...')
+
+	require('./src/player').getAll().forEach( player => { player.remove() })
+
+	worldManager.getAll().forEach(world => {
+		world.unload()
+	})
+
+}, 'Stops the server (console only)')
+
+require('./src/console-exec')
 http.listen(cfg.port)
 
 

@@ -12,8 +12,8 @@ module.exports = {
 const protocol = require('./protocol')
 
 function sendMessage(id, msg) {
-	if (id == -1) console.log(msg)
-	else if (id <= -2) {
+	if (id == -1 || id == '#console') console.log(msg)
+	else if (id <= -2 || id == "#all") {
 		protocol.sendAll('chat', msg)
 		console.chat(msg)
 	}
