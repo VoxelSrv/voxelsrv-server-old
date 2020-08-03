@@ -2,7 +2,7 @@ Hello! Welcome on repository of VoxelSrv Server. It's really incomplete for now,
 I'm open to any PR/suggestions about functionality, API, fixes, etc
 
 ## Requirements
-- NodeJS 12+ ()
+- NodeJS 12+
 - NPM
 - Some free disk space
 

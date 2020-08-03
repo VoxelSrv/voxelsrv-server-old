@@ -20,7 +20,7 @@
     "open-simplex-noise": "^2.3.1",
     "socket.io": "^2.3.0",
     "terminal-kit": "^1.36.0",
-    "uuid": "^8.2.0",
+    "uuid": "^8.3.0",
     "voxel-crunch": "^0.2.1"
   }
 }
