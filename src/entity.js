@@ -18,6 +18,8 @@ function recreateEntity(id, data, worldName) {
 	
 	worldManager.get(worldName).entities[id] = new Entity(id, data)
 
+	packet.sendAll('entity-spawn', { id: id, data: worldManager.get(worldName).entities[id].data })
+
 	return worldManager.get(worldName).entities[id]
 }
 

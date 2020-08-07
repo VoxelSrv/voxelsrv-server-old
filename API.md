@@ -11,17 +11,29 @@ They might be incomplete, so it's better to just check the source code!
 * `get(id)` - Returns player object
 * `getAll()` - Returns list of players
 * `event` - Event emitter
+#### Player [Object/Class]
+* `entity` [Object/Class] - look **Entity [Object/Class]**
+* `world` [String] - Player's world name
+* `inventory` [Object/Class] - look **PlayerInventiory [Object/Class]* `id` [String] - Player's id 
+* `nickname` [String] - Player's nickname
+* `socket` [Socket.io Socket] - Player's connection socket
+* `chunks` [Object] - Chunks loaded by player
+* `remove()` - Removes player
+* `teleport(pos, eworld)` - Teleports player to pos (array) in eworld (text)
+* `move(pos)` - Moves player to pos (array)
+* `rotate(rot)` - Rotates player
 
 ### Entity: `require('../src/entity')`
-* `create(id, data)` - Creates entity (and returns it)
+* `create(data, worldName)` - Creates entity (and returns it)
+* `recreate(id, data, worldName)`
 * `get(id)` - Returns entity
 * `getAll()` - Returns all entities
 
-**Entity object**
-* teleport(pos, eworld) - Teleports entity to pos (in eworld)
-* move(pos) - Moves entity
-* rotate(rot) - Rotates entity
-* remove() - Removes entity
+#### Entity [Object/Class]
+* `teleport(pos, eworld)` - Teleports entity to pos (array) in eworld (string)
+* `move(pos)` - Moves entity to pos (array)
+* `rotate(rot)` - Rotates entity
+* `remove()` - Removes entity
 
 ### Protocol: `require('../src/protocol')`
 * `send(id, type, data)`- Send packet to player
@@ -47,14 +59,18 @@ They might be incomplete, so it's better to just check the source code!
 * `execute(id, args)`- Executes command
 * `event`- Event emitter
 
-### World: `require('../src/world/main')`
-* `(async) chunk(id)` - Returns chunk
-* `setBlock(pos, id)` - Sets block at pos to id
-* `getBlock(pos)` - Returns block
+### World: `require('../src/worlds')`
+* `create(name, seed, generator)` - Creates new world named name (String), with seed (Number) and selected generator (String)
+* `load(name)` - Loads world
+* `unload(name)` - Unloads world
+* `exist(name)` - Checks, if world exist
+* `get(name)` - Returns world Object/Class
+* `getAll()` - Returns all loaded worlds
+* `toChunk(pos)` - Converts global coordinates to local ones
+* `validateID(id)` - Validates chunk id (Array)
+* `addGenerator(name, worldgen)` - Adds new generator [worldgen - function] named *name*
+#### World [Object/Class]
+* `(async) getChunk(id)` - Returns chunk
+* `setBlock(data, pos)` - Sets block at pos to data
+* `getBlock(data)` - Returns block
 * `toChunk(pos)` - Return id of chunk and local position in it
-* `setChunk(id, data)` - Sets chunk (blocks) to *data* (ndarray)
-* `setChunkData(id, data)` - Sets chunk's (meta)data to *data*
-* `getChunk(id)` - Returns chunk (blocks)
-* `getChunkData(id)` - Returns chunk's (meta)data
-* `getHighestBlock(chunk, x, z)` - Gets highest block at [x, z] position within chunk (Object, not id)
-

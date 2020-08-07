@@ -1,4 +1,8 @@
-const term = require('terminal-kit').terminal
+try {
+	const term = require('terminal-kit').terminal
+} catch(e) {
+	const term = (text) => { console.log('Server: ' + text) }
+}
 
 var history = []
 
