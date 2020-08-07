@@ -1,7 +1,7 @@
 try {
-	const term = require('terminal-kit').terminal
+	var term = require('terminal-kit').terminal
 } catch(e) {
-	const term = (text) => { console.log('Server: ' + text) }
+	var term = (text) => { console.log('Server: ' + text) }
 }
 
 var history = []
