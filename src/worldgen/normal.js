@@ -1,7 +1,6 @@
 
 const { makeNoise2D, makeNoise3D } = require('open-simplex-noise')
 const tree = require('./parts/tree')
-const worldManager = require('../worlds')
 var hash = require('murmur-numbers')
 
 function getHighestBlock(chunk, x, z) {

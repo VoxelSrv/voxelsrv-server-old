@@ -22,6 +22,10 @@ try {
 require('./src/blocks').init()
 require('./src/items').init()
 
+if (!fs.existsSync('./plugins') ) fs.mkdirSync('./plugins')
+if (!fs.existsSync('./players') ) fs.mkdirSync('./players')
+if (!fs.existsSync('./worlds') ) fs.mkdirSync('./worlds')
+
 const plugins = fs.readdirSync('./plugins').filter(file => file.endsWith('.js'))
 
 for (const file of plugins) {
@@ -40,9 +44,7 @@ const io = require('socket.io')(http, {
 	cookie: false
 })
 
-if (!fs.existsSync('./plugins') ) fs.mkdirSync('./plugins')
-if (!fs.existsSync('./players') ) fs.mkdirSync('./players')
-if (!fs.existsSync('./worlds') ) fs.mkdirSync('./worlds')
+
 
 
 const worldManager = require('./src/worlds')

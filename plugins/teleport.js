@@ -1,6 +1,5 @@
-const players = require('../src/player')
-const commands = require('../src/commands')
-const chat = require('../src/chat')
+const { chat, players, commands } = require('../src/api')
+
 const vec = require('gl-vec3')
 
 

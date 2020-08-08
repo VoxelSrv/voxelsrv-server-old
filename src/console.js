@@ -42,5 +42,6 @@ function hourNow() {
 module.exports = {
     log: log,
     chat: chat,
-    error: error
+	error: error,
+	obj: console.log
 }

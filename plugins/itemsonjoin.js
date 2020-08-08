@@ -1,5 +1,5 @@
-const players = require('../src/player')
-const items = require('../src/items')
+const { items, players } = require('../src/api')
+
 
 
 players.event.on('create', function(player) {

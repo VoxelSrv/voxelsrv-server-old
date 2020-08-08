@@ -1,8 +1,6 @@
-const items = require('../src/items')
-const players = require('../src/player')
-const commands = require('../src/commands')
-const chat = require('../src/chat')
-const blockIDs = require('../src/blocks').getIDs()
+const { chat, items, players, commands, blocks } = require('../src/api')
+
+const blockIDs = blocks.getIDs()
 
 
 function give(id, arg) {

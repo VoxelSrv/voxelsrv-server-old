@@ -5,6 +5,8 @@ node_modules
 
 Thumbs.db
 ehthumbs.db
+database.json
+/plugins/auth
 *.cab
 *.msi
 *.msm

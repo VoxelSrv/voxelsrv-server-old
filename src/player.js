@@ -130,6 +130,10 @@ class Player {
 		this.entity.move(pos)
 	}
 
+	send(msg) {
+		this.socket.emit('chat', msg)
+	}
+
 	rotate(rot) {
 		event.emit('player-rotate', {id: this.id, rot: rot})
 		this.entity.rotate(rot)

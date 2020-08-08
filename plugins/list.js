@@ -1,6 +1,5 @@
-const players = require('../src/player')
-const commands = require('../src/commands')
-const chat = require('../src/chat')
+const { chat, players, commands } = require('../src/api')
+
 
 async function list(id, arg) {
 	chat.send(id, 'Player\s online:')

@@ -1,5 +1,5 @@
-const protocol = require('../src/protocol')
-const players = require('../src/player')
+const { players, protocol } = require('../src/api')
+
 const cfg = require('../config.json')
 
 
