@@ -83,7 +83,9 @@ class Player {
 				model: 'player',
 				texture: 'entity/steve',
 				position: cfg.world.spawn,
-				rotation: 0
+				rotation: 0,
+				hitbox: [0.55, 1.9, 0.55]
+
 			}, 'default')
 	
 			this.world = 'default'
@@ -100,6 +102,7 @@ class Player {
 				texture: 'entity/steve',
 				position: data.entity.data.position,
 				rotation: data.entity.data.rotation,
+				hitbox: [0.55, 1.9, 0.55]
 			}, data.world)
 
 			this.world = data.world
