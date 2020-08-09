@@ -55,7 +55,13 @@ const api = {
 		getStack: items.getStack
 	},
 	inventories: inventory,
-	protocol: protocol,
+	protocol: {
+		send: protocol.send,
+		sendAll: protocol.sendAll,
+		getSocket: protocol.getSocket,
+		io: protocol.io,
+		event: protocol.event
+	},
 	worlds: worlds
 }
 
