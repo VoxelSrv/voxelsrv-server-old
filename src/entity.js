@@ -1,15 +1,15 @@
-var packet = require('./protocol')
 var worldManager = require('./worlds')
 
 const uuid = require('uuid').v4;
 
+var io
 
 function createEntity(data, worldName) {
 	var id = uuid()
 
 	worldManager.get(worldName).entities[id] = new Entity(id, data, worldName)
 
-	packet.sendAll('entity-spawn', { id: id, data: worldManager.get(worldName).entities[id].data })
+	io.emit('entity-spawn', { id: id, data: worldManager.get(worldName).entities[id].data })
 
 	return worldManager.get(worldName).entities[id]
 }
@@ -18,7 +18,7 @@ function recreateEntity(id, data, worldName) {
 	
 	worldManager.get(worldName).entities[id] = new Entity(id, data)
 
-	packet.sendAll('entity-spawn', { id: id, data: worldManager.get(worldName).entities[id].data })
+	io.emit('entity-spawn', { id: id, data: worldManager.get(worldName).entities[id].data })
 
 	return worldManager.get(worldName).entities[id]
 }
@@ -50,25 +50,25 @@ class Entity {
 		this.world = eworld
 		this.data.position = pos
 		this.chunk = worldManager.toChunk(pos).id
-		packet.sendAll('entity-move', {id: this.id, data: { pos: this.data.position, rot: this.data.rotation } }) 
+		io.emit('entity-move', {id: this.id, data: { pos: this.data.position, rot: this.data.rotation } }) 
 	}
 
 	move(pos) {
 		this.data.position = pos
 		this.chunk = worldManager.toChunk(pos).id
-		packet.sendAll('entity-move', {id: this.id, data: { pos: this.data.position, rot: this.data.rotation } }) 
+		io.emit('entity-move', {id: this.id, data: { pos: this.data.position, rot: this.data.rotation } }) 
 
 	}
 
 	rotate(rot) {
 		this.data.rotation = rot
-		packet.sendAll('entity-move', {id: this.id, data: { pos: this.data.position, rot: this.data.rotation } }) 
+		io.emit('entity-move', {id: this.id, data: { pos: this.data.position, rot: this.data.rotation } }) 
 	}
 	
 	remove() {
 		try {
 			var id = this.id
-			packet.sendAll('entity-despawn', id)
+			io.emit('entity-despawn', id)
 
 			if (this.data.type != 'player') {
 				var world = worldManager.get(this.world)
@@ -90,5 +90,6 @@ module.exports = {
 	create: createEntity,
 	recreate: recreateEntity,
 	get(world, id) { return worldManager.get(world).entities[id] },
-	getAll(world) { return worldManager.get(world).entities }
+	getAll(world) { return worldManager.get(world).entities },
+	setIO(io2) { io = io2 }
 }

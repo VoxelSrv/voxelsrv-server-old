@@ -6,20 +6,30 @@ const worldManager = require('./worlds')
 const items = require('./items')
 const blockIDs = require('./blocks').getIDs()
 const blocks = require('./blocks').get()
-const protocol = require('./protocol')
 const compressChunk = require("voxel-crunch")
-const chat = require('./chat')
-const command = require('./commands').execute
+const commands = require('./commands')
 const hook = require('./hooks')
 const fs = require('./fs.js')
 const console = require('./console')
-
 
 var cfg = require('../config.json')
 const { PlayerInventory } = require('./inventory')
 
 var players = {}
 var chunksToSend = []
+
+var io
+
+commands.setPlayer(players)
+
+function send(id, msg) {
+	if (id == '#console') console.log(msg)
+	else if (id == '#all') {
+		console.chat(msg)
+		io.emit('chat', msg)
+	}
+	else players['id'].send(msg)
+}
 
 
 function createPlayer(id, data, socket) {
@@ -159,7 +169,7 @@ class Player {
 			if (vec.dist(pos, action.data) < 14 && block != undefined && block != 0 && blocks[block].data.unbreakable != true) {
 				//player.inv.add(id, blocks[block].data.drop, 1, {})
 				worldManager.get(this.world).setBlock(data, 0)
-				protocol.sendAll('block-update', {
+				io.emit('block-update', {
 					id: 0,
 					pos: action.data
 				})
@@ -182,7 +192,7 @@ class Player {
 			if (items.get()[item.id].type == 'block' || items.get()[item.id].type == 'block-flat') {
 				//player.inv.remove(id, item.id, 1, {})
 				worldManager.get(this.world).setBlock(action.data, blockIDs[item.id])
-				protocol.sendAll('block-update', {
+				io.emit('block-update', {
 					id: blockIDs[item.id],
 					pos: action.data
 				})
@@ -211,9 +221,9 @@ class Player {
 		if (r == 1) return
 
 		if (action.data.charAt(0) == '/') {
-			command(this.id, action.data)
+			commands.execute(this.id, action.data)
 		}
-		else if (action.data != '' ) chat.send(-2, this.nickname + " » " + action.data)
+		else if (action.data != '' ) send(-2, this.nickname + " » " + action.data)
 	}
 
 	action_move(data) {
@@ -307,5 +317,6 @@ module.exports = {
 	create: createPlayer,
 	get(id) { return players[id] },
 	getAll() { return players },
+	setIO(io2) { io = io2 },
 	event: event
 }

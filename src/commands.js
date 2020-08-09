@@ -1,10 +1,15 @@
-const chat = require('./chat')
 const EventEmiter = require('events')
 const event = new EventEmiter()
 const console = require('./console')
 
+var player
 
 var commands = {}
+
+function send(id, msg) {
+	if (id == '#console') console.log(msg)
+	else player['id'].send(msg)
+}
 
 
 function executeCommand(id, args) {
@@ -20,12 +25,12 @@ function executeCommand(id, args) {
 			try { commands[command].execute(id, arg) }
 			catch(e) {
 				console.error('User ^R' + id + '^r tried to execute command ^R' + command + '^r and it failed! \n ^R', e)
-				chat.send(id, '{color:red}An error occurred during the execution of this command!{color}')
+				send(id, '{color:red}An error occurred during the execution of this command!{color}')
 			}
 			return
 		}
 	}
-	chat.send(id, '{color:red}This command doesn\'t exist! Check /help for list of available commands.{color}')
+	send(id, '{color:red}This command doesn\'t exist! Check /help for list of available commands.{color}')
 
 }
 
@@ -35,18 +40,18 @@ function registerCommand(command, func, description) {
 
 
 async function helpCommand(id, arg) {
-	chat.send(id, '**List of all commands:**')
+	send(id, '**List of all commands:**')
 	Object.entries(commands).forEach(function(item) {
-		chat.send(id, item[0] + ' - ' + item[1].desc)
+		send(id, item[0] + ' - ' + item[1].desc)
 	})
 }
 
 registerCommand('/help', helpCommand, 'Displays list of all commands')
 
 async function helpCommand(id, arg) {
-	chat.send(id, '**List of all commands:**')
+	send(id, '**List of all commands:**')
 	Object.entries(commands).forEach(function(item) {
-		chat.send(id, item[0] + ' - ' + item[1].desc)
+		send(id, item[0] + ' - ' + item[1].desc)
 	})
 	
 }
@@ -54,5 +59,6 @@ async function helpCommand(id, arg) {
 module.exports = {
 	execute: executeCommand,
 	register: registerCommand,
+	setPlayer(p) { player = p },
 	event: event
 }

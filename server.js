@@ -53,6 +53,9 @@ if (worldManager.exist('default') == false) worldManager.create('default', cfg.w
 else worldManager.load('default')
 
 initProtocol(io)
+require('./src/player').setIO(io)
+require('./src/entity').setIO(io)
+
 
 
 if (cfg.public) {

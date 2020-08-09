@@ -6,20 +6,28 @@ module.exports = {
 	send(id, type, data) { sendPacket(id, type, data) },
 	sendAll(type, data) { io.emit(type, data) },
 	getSocket(id) { return connections[id] },
+	io: io,
 	event: event
-
 }
 
 
 const illegalCharacters = new RegExp('[^a-zA-Z0-9]')
 const players = require('./player')
-const chat = require('./chat')
 const items = require('./items').get()
 const blockIDs = require('./blocks').getIDs()
 const blocks = require('./blocks').get()
 const console = require('./console')
 
 var protocol = 1
+
+function send(id, msg) {
+	if (id == '#console') console.log(msg)
+	else if (id == '#all') {
+		console.chat(msg)
+		io.emit('chat', msg)
+	}
+	else ( players.get('id') ).send(msg)
+}
 
 var cfg = require('../config.json')
 const entity = require('./entity')
@@ -88,12 +96,12 @@ function initProtocol(io0) {
 					})
 				})
 
-				chat.send(-2, player.nickname + " joined the game!")
+				send('#all', player.nickname + " joined the game!")
 				playerCount = playerCount + 1
 
 				socket.on('disconnect', function() {
 					players.event.emit('disconnect', id)
-					chat.send(-2, player.nickname + " left the game!")
+					send('#all', player.nickname + " left the game!")
 					player.remove()
 					delete connections[id]
 					playerCount = playerCount - 1 
