@@ -1,0 +1,243 @@
+{
+	"nested": {
+		"loginRequest": {
+			"fields": {
+				"name": {
+					"type": "string",
+					"id": 1
+				},
+				"protocol": {
+					"type": "int32",
+					"id": 2
+				},
+				"maxplayers": {
+					"type": "int32",
+					"id": 3
+				}
+			}
+		},
+
+		"loginSuccess": {
+			"fields": {
+				"xPos": {
+					"type": "int32",
+					"id": 1
+				},
+				"yPos": {
+					"type": "int32",
+					"id": 2
+				},
+				"zPos": {
+					"type": "int32",
+					"id": 3
+				},
+				"itemsDef": {
+					"type": "string",
+					"id": 4
+				},
+				"blocksDef": {
+					"type": "string",
+					"id": 5
+				},
+				"blockIDsDef": {
+					"type": "string",
+					"id": 6
+				},
+				"inventory": {
+					"type": "string",
+					"id": 7
+				}
+			}
+		},
+
+		"playerEntity": {
+			"fields": {
+				"uuid": {
+					"type": "string",
+					"id": 1
+				}
+			}
+		},
+
+
+		"playerTeleport": {
+			"fields": {
+				"x": {
+					"type": "int32",
+					"id": 1
+				},
+				"y": {
+					"type": "int32",
+					"id": 2
+				},
+				"z": {
+					"type": "int32",
+					"id": 3
+				}
+			}
+		},
+
+		"playerInventory": {
+			"fields": {
+				"inventory": {
+					"type": "string",
+					"id": 1
+				}
+			}
+		},
+
+		"playerMovementChange": {
+			"fields": {
+				"key": {
+					"type": "string",
+					"id": 1
+				},
+				"value": {
+					"type": "string",
+					"id": 2
+				}
+			}
+		},
+
+		"playerKick": {
+			"fields": {
+				"reason": {
+					"type": "string",
+					"id": 1
+				}
+			}
+		},
+
+		"soundPlay": {
+			"fields": {
+				"sound": {
+					"type": "string",
+					"id": 1
+				},
+				"volume": {
+					"type": "int32",
+					"id": 2
+				},
+				"x": {
+					"type": "int32",
+					"id": 3,
+					"optional": true
+				},
+				"y": {
+					"type": "int32",
+					"id": 4,
+					"optional": true
+				},
+				"z": {
+					"type": "int32",
+					"id": 5,
+					"optional": true
+				}
+			}
+		},
+
+		"chatMessage": {
+			"fields": {
+				"message": {
+					"type": "string",
+					"id": 1
+				}
+			}
+		},
+
+		"tabUpdate": {
+			"fields": {
+				"message": {
+					"type": "string",
+					"id": 1
+				}
+			}
+		},
+
+		"entityCreate": {
+			"fields": {
+				"uuid": {
+					"type": "string",
+					"id": 1
+				},
+				"data": {
+					"type": "string",
+					"id": 2
+				}
+			}
+		},
+
+		"entityRemove": {
+			"fields": {
+				"uuid": {
+					"type": "string",
+					"id": 1
+				}
+			}
+		},
+
+		"entityMove": {
+			"fields": {
+				"uuid": {
+					"type": "string",
+					"id": 1
+				},
+				"x": {
+					"type": "int32",
+					"id": 2
+				},
+				"y": {
+					"type": "int32",
+					"id": 3
+				},
+				"z": {
+					"type": "int32",
+					"id": 4
+				},
+				"rotation": {
+					"type": "int32",
+					"id": 5
+				}
+			}
+		},
+
+		"worldBlockUpdate": {
+			"fields": {
+				"x": {
+					"type": "int32",
+					"id": 1
+				},
+				"y": {
+					"type": "int32",
+					"id": 2
+				},
+				"z": {
+					"type": "int32",
+					"id": 3
+				},
+				"id": {
+					"type": "int32",
+					"id": 4
+				}
+			}
+		},
+
+		"worldChunk": {
+			"fields": {
+				"x": {
+					"type": "int32",
+					"id": 1
+				},
+				"z": {
+					"type": "int32",
+					"id": 2
+				},
+				"data": {
+					"type": "bytes",
+					"id": 3
+				}
+			}
+		}
+
+	}
+}

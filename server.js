@@ -1,10 +1,11 @@
-const http = require('http').createServer()
 const fetch = require('node-fetch')
+const WebSocket = require('ws')
+
 
 const fs = require('./src/fs')
 
-var version = '0.1.1'
-var protocol = 1
+var version = '0.2.0'
+var protocol = 2
 
 const console = require('./src/console')
 
@@ -33,18 +34,7 @@ for (const file of plugins) {
 }
 
 
-const initProtocol = require('./src/protocol').init
-
-const io = require('socket.io')(http, {
-	path: '/',
-	serveClient: false,
-	// below are engine.IO options
-	pingInterval: 10000,
-	pingTimeout: 5000,
-	cookie: false
-})
-
-
+const wss = new WebSocket.Server({ port: cfg.port });
 
 
 const worldManager = require('./src/worlds')
@@ -52,16 +42,16 @@ const worldManager = require('./src/worlds')
 if (worldManager.exist('default') == false) worldManager.create('default', cfg.world.seed, cfg.world.generator)
 else worldManager.load('default')
 
-initProtocol(io)
-require('./src/player').setIO(io)
-require('./src/entity').setIO(io)
+require('./src/actions').init(wss)
+require('./src/player').setIO(wss)
+require('./src/entity').setIO(wss)
 
 
 
 if (cfg.public) {
-	fetch('http://pb4.eu:9000/update?ip=' + cfg.address + '&motd=' + cfg.motd + '&name=' + cfg.name)
+	fetch('http://pb4.eu:9000/update?ip=' + cfg.address + '&motd=' + cfg.motd + '&name=' + cfg.name + 'protocol=' + protocol)
 	setInterval(function() {
-		fetch('http://pb4.eu:9000/update?ip=' + cfg.address + '&motd=' + cfg.motd + '&name=' + cfg.name)
+		fetch('http://pb4.eu:9000/update?ip=' + cfg.address + '&motd=' + cfg.motd + '&name=' + cfg.name  + 'protocol=' + protocol)
 	}, 30000)
 }	
 console.log('^yServer started on port: ^:' + cfg.port)
@@ -82,7 +72,6 @@ require('./src/commands').register('/stop', (id, args) => {
 }, 'Stops the server (console only)')
 
 require('./src/console-exec')
-http.listen(cfg.port)
 
 
 

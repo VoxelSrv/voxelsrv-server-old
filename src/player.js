@@ -32,8 +32,8 @@ function send(id, msg) {
 }
 
 
-function createPlayer(id, data, socket) {
-	players[id] = new Player(id, data.username, socket)
+function createPlayer(id, data, socket, packetEvent) {
+	players[id] = new Player(id, data.username, socket, packetEvent)
 
 	event.emit('create', players[id])
 
@@ -68,7 +68,7 @@ function savePlayer(id, data) {
 }
 
 class Player {
-	constructor(id, name, socket) {
+	constructor(id, name, socket, packetEvent) {
 		this.id = id
 		this.nickname = name
 		if ( existPlayer(this.id) ) var data = readPlayer(this.id)
@@ -111,6 +111,7 @@ class Player {
 		}
 		
 		this.socket = socket
+		this.packetRecived = packetEvent
 		this.chunks = {}
 		savePlayer(this.id, this.getObject())
 	}

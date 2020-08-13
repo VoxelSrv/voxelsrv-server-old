@@ -1,8 +1,9 @@
 var worldManager = require('./worlds')
+const protocol = require('./protocol')
 
 const uuid = require('uuid').v4;
 
-var io
+var wss
 
 function createEntity(data, worldName) {
 	var id = uuid()
@@ -91,5 +92,5 @@ module.exports = {
 	recreate: recreateEntity,
 	get(world, id) { return worldManager.get(world).entities[id] },
 	getAll(world) { return worldManager.get(world).entities },
-	setIO(io2) { io = io2 }
+	setIO(io2) { wss = io2 }
 }

@@ -1,3 +1,4 @@
+const actions = require('./actions')
 const blocks = require('./blocks')
 const commands = require('./commands')
 const console = require('./console')
@@ -12,7 +13,7 @@ const worlds = require('./worlds')
 const EventEmiter = require('events')
 const eventChat = new EventEmiter()
 
-function sendMessage(id, msg) {
+function sendChatMessage(id, msg) {
 	if (id == -1 || id == '#console') console.log(msg)
 	else if (id <= -2 || id == "#all") {
 		protocol.sendAll('chat', msg)
@@ -34,8 +35,8 @@ const api = {
 		getIDs: blocks.getIDs
 	},
 	chat: {
-		send(id, msg) { sendMessage(id, msg) },
-		sendAll(msg) { sendMessage(-2, msg) },
+		send(id, msg) { sendChatMessage(id, msg) },
+		sendAll(msg) { sendChatMessage(-2, msg) },
 		event: eventChat
 	},
 	commands: {
@@ -56,11 +57,8 @@ const api = {
 	},
 	inventories: inventory,
 	protocol: {
-		send: protocol.send,
-		sendAll: protocol.sendAll,
-		getSocket: protocol.getSocket,
-		io: protocol.io,
-		event: protocol.event
+		server: actions.wss,
+		...protocol
 	},
 	worlds: worlds
 }
