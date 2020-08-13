@@ -1,16 +1,16 @@
 var worldManager = require('./worlds')
 const protocol = require('./protocol')
+const prothelper = require('./protocol-helper')
 
 const uuid = require('uuid').v4;
 
-var wss
 
 function createEntity(data, worldName) {
 	var id = uuid()
 
 	worldManager.get(worldName).entities[id] = new Entity(id, data, worldName)
 
-	io.emit('entity-spawn', { id: id, data: worldManager.get(worldName).entities[id].data })
+	prothelper.broadcast('entityCreate', { uuid: id, data: JSON.stringify(worldManager.get(worldName).entities[id].data) })
 
 	return worldManager.get(worldName).entities[id]
 }
@@ -19,7 +19,7 @@ function recreateEntity(id, data, worldName) {
 	
 	worldManager.get(worldName).entities[id] = new Entity(id, data)
 
-	io.emit('entity-spawn', { id: id, data: worldManager.get(worldName).entities[id].data })
+	prothelper.broadcast('entityCreate', { uuid: id, data: JSON.stringify(worldManager.get(worldName).entities[id].data) })
 
 	return worldManager.get(worldName).entities[id]
 }
@@ -51,25 +51,26 @@ class Entity {
 		this.world = eworld
 		this.data.position = pos
 		this.chunk = worldManager.toChunk(pos).id
-		io.emit('entity-move', {id: this.id, data: { pos: this.data.position, rot: this.data.rotation } }) 
+		prothelper.broadcast('entityMove', { uuid: id, x: this.data.position[0], y: this.data.position[1], z: this.data.position[2], rotation: this.data.rotation })
+
 	}
 
 	move(pos) {
 		this.data.position = pos
 		this.chunk = worldManager.toChunk(pos).id
-		io.emit('entity-move', {id: this.id, data: { pos: this.data.position, rot: this.data.rotation } }) 
+		prothelper.broadcast('entityMove', { uuid: this.id, x: this.data.position[0], y: this.data.position[1], z: this.data.position[2], rotation: this.data.rotation })
 
 	}
 
 	rotate(rot) {
 		this.data.rotation = rot
-		io.emit('entity-move', {id: this.id, data: { pos: this.data.position, rot: this.data.rotation } }) 
+		prothelper.broadcast('entityMove', { uuid: this.id, x: this.data.position[0], y: this.data.position[1], z: this.data.position[2], rotation: this.data.rotation })
 	}
 	
 	remove() {
 		try {
 			var id = this.id
-			io.emit('entity-despawn', id)
+			prothelper.broadcast('entityRemove', { uuid: this.id })
 
 			if (this.data.type != 'player') {
 				var world = worldManager.get(this.world)

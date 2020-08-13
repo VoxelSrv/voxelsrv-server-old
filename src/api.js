@@ -8,6 +8,7 @@ const inventory = require('./inventory')
 const items = require('./items')
 const player = require('./player')
 const protocol = require('./protocol')
+const prothelper = require('./protocol-helper')
 const worlds = require('./worlds')
 
 const EventEmiter = require('events')
@@ -16,10 +17,13 @@ const eventChat = new EventEmiter()
 function sendChatMessage(id, msg) {
 	if (id == -1 || id == '#console') console.log(msg)
 	else if (id <= -2 || id == "#all") {
-		protocol.sendAll('chat', msg)
+		prothelper.broadcast('chatMessage', { message: msg })
 		console.chat(msg)
 	}
-	else protocol.send(id, 'chat', msg)
+	else {
+		var p = player.get(id)
+		if (p != undefined) p.send(msg)
+	}
 	eventChat.emit('message', {id: id, msg: msg})
 }
 
@@ -57,7 +61,9 @@ const api = {
 	},
 	inventories: inventory,
 	protocol: {
-		server: actions.wss,
+		server: prothelper.wss,
+		sendAll: prothelper.broadcast,
+		broadcast: prothelper.broadcast,
 		...protocol
 	},
 	worlds: worlds

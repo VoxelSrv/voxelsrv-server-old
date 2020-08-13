@@ -1,7 +1,6 @@
 
 module.exports = {
-	init: init,
-	wss: wsg
+	init: init
 }
 
 const EventEmitter = require('events')
@@ -13,7 +12,7 @@ const blockIDs = require('./blocks').getIDs()
 const blocks = require('./blocks').get()
 const console = require('./console')
 const protocol = require('./protocol')
-
+const prothelper = require('./protocol-helper')
 var protocolVer = 2
 
 var cfg = require('../config.json')
@@ -22,43 +21,35 @@ const entity = require('./entity')
 var connections = {}
 var playerCount = 0
 
-var wsg 
-
-function packet(type, data) {
-	return protocol.parseToMessage('server', type, data)
-}
-
 function init(wss) {
-	wsg = wss
 
 	function sendChat(id, msg) {
 		if (id == '#console') console.log(msg)
 		else if (id == '#all') {
 			console.chat(msg)
-			wss.clients.forEach(function each(client) {
-				if (client.readyState === WebSocket.OPEN) {
-					client.send( packet('chatMessage', { message: msg }) )
-				}
-			})
+			prothelper.broadcast('chatMessage', { message: msg })
+			
 		}
 		else ( players.get('id') ).send(msg)
 	}
 
 	wss.on('connection', async function(socket) {
+		socket.binaryType = 'arraybuffer'
+
+		function send(type, data) {
+			socket.send( protocol.parseToMessage('server', type, data) )
+		}
+
 		if (playerCount >= cfg.maxplayers) {
-			socket.send( packet('playerKick', { reason: 'Server is full' }) )
-			socket.destroy()
+			send( 'playerKick', { reason: 'Server is full' })
+			socket.close()
 		}
 
 		var packetEvent = new EventEmitter()
 		socket.on('message', (m) => {
-			var packet = protocol.parseToObject('client', m)
-			packetEvent.emit(packet.type, packetEvent.data)
+			var packet = protocol.parseToObject('client', new Uint8Array(m))
+			packetEvent.emit(packet.type, packet.data)
 		})
-
-		function send(type, data) {
-			socket.send( packet(type, data) )
-		}
 
 		send('loginRequest', {
 			name: cfg.name,
@@ -77,12 +68,12 @@ function init(wss) {
 			var id = data.username.toLowerCase()
 
 			if (check != 0) {
-				packetEvent('playerKick', { reason: check })
-				socket.destroy()
+				send('playerKick', { reason: check })
+				socket.close()
 				delete packetEvent
 			} if (connections[id] != undefined) {
 				send('playerKick', { reason: 'Player with that nickname is already online!' })
-				socket.destroy()
+				socket.close()
 				delete packetEvent
 			} else {
 				players.event.emit('connection', id)
@@ -94,15 +85,15 @@ function init(wss) {
 					zPos: player.entity.data.position[2],
 					inventory: JSON.stringify(player.inventory),
 					blocksDef: JSON.stringify(blocks),
-					blockIDs: JSON.stringify(blockIDsDef),
-					items: JSON.stringify(items)
+					blockIDsDef: JSON.stringify(blockIDs),
+					itemsDef: JSON.stringify(items)
 				})
 				connections[id] = socket
 
 				send('playerEntity', { uuid: player.entity.id })
 
 				Object.entries( entity.getAll(player.world) ).forEach(function(data) {
-					socket.emit('entityCreate', {
+					send('entityCreate', {
 						uuid: data[0],
 						data: JSON.stringify(data[1].data)
 					})
@@ -145,7 +136,7 @@ function init(wss) {
 		setTimeout(function() {
 			if (loginTimeout == true) { 
 				send('playerKick', { reason: 'Timeout'})
-				socket.destroy()
+				socket.close()
 				delete packetEvent
 
 			}
@@ -159,7 +150,7 @@ function init(wss) {
 function verifyLogin(data) {
 	if (data == undefined) return 'No data!'
 	else if (data.username == undefined || illegalCharacters.test(data.username)) return 'Illegal username - ' + data.username
-	else if (data.protocol == undefined || data.protocol != protocol) return 'Unsupported protocol'
+	else if (data.protocol == undefined || data.protocol != protocolVer) return 'Unsupported protocol'
 
 	return 0
 }

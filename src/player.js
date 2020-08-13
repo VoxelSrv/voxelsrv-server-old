@@ -11,6 +11,8 @@ const commands = require('./commands')
 const hook = require('./hooks')
 const fs = require('./fs.js')
 const console = require('./console')
+const protocol = require('./protocol')
+const prothelper = require('./protocol-helper')
 
 var cfg = require('../config.json')
 const { PlayerInventory } = require('./inventory')
@@ -22,13 +24,14 @@ var io
 
 commands.setPlayer(players)
 
-function send(id, msg) {
+function sendChat(id, msg) {
 	if (id == '#console') console.log(msg)
 	else if (id == '#all') {
 		console.chat(msg)
-		io.emit('chat', msg)
+		prothelper.broadcast('chatMessage', { message: msg })
+
 	}
-	else players['id'].send(msg)
+	else ( players.get('id') ).send(msg)
 }
 
 
@@ -126,6 +129,10 @@ class Player {
 		}
 	}
 
+	sendPacket(type, data) {
+		this.socket.send( protocol.parseToMessage('server', type, data) )
+	}
+
 	remove() {
 		savePlayer(this.id, this.getObject())
 		this.entity.remove()
@@ -136,7 +143,7 @@ class Player {
 
 	teleport(pos, eworld) {
 		this.entity.teleport(pos, eworld)
-		this.socket.emit('teleport', pos)
+		this.sendPacket('playerTeleport', {x: pos[0], y: pos[1], z: pos[2] })
 	}
 
 	move(pos) {
@@ -145,7 +152,7 @@ class Player {
 	}
 
 	send(msg) {
-		this.socket.emit('chat', msg)
+		this.sendPacket('chatMessage', {message: msg})
 	}
 
 	rotate(rot) {
@@ -173,9 +180,11 @@ class Player {
 			if (vec.dist(pos, action.data) < 14 && block != undefined && block != 0 && blocks[block].data.unbreakable != true) {
 				//player.inv.add(id, blocks[block].data.drop, 1, {})
 				worldManager.get(this.world).setBlock(data, 0)
-				io.emit('block-update', {
+				prothelper.broadcast('worldBlockUpdate', {
 					id: 0,
-					pos: action.data
+					x: action.data[0],
+					y: action.data[1],
+					z: action.data[2]
 				})
 			}
 
@@ -196,9 +205,11 @@ class Player {
 			if (items.get()[item.id].type == 'block' || items.get()[item.id].type == 'block-flat') {
 				//player.inv.remove(id, item.id, 1, {})
 				worldManager.get(this.world).setBlock(action.data, blockIDs[item.id])
-				io.emit('block-update', {
+				prothelper.broadcast('worldBlockUpdate', {
 					id: blockIDs[item.id],
-					pos: action.data
+					x: action.data[0],
+					y: action.data[1],
+					z: action.data[2]
 				})
 			}
 		}
@@ -227,7 +238,7 @@ class Player {
 		if (action.data.charAt(0) == '/') {
 			commands.execute(this.id, action.data)
 		}
-		else if (action.data != '' ) send(-2, this.nickname + " » " + action.data)
+		else if (action.data != '' ) sendChat(-2, this.nickname + " » " + action.data)
 	}
 
 	action_move(data) {
@@ -237,7 +248,7 @@ class Player {
 
 		var pos = this.entity.data.position
 		if ( Math.abs(action.data.pos[0]) > 120000 || Math.abs(action.data.pos[2]) > 120000) {
-			this.socket.emit('teleport', pos)
+			this.sendPacket('playerTeleport', { x: pos[0], y: pos[1], z: pos[2] })
 			return
 		}
 		if (vec.dist(pos, action.data.pos) < 20) this.move(action.data.pos)
@@ -301,9 +312,10 @@ function sendChunkToPlayer(id, cid) {
 		worldManager.get(players[id].world).getChunk(cid, true).then(function(chunk) {
 			if (chunk != undefined && players[id] != undefined) {
 				chunk.keepAlive()
-				players[id].socket.emit('chunkdata', {
-					id: cid,
-					chunk: compressChunk.encode(chunk.data.data)
+				players[id].sendPacket('worldChunk', {
+					x: cid[0],
+					z: cid[1],
+					data: compressChunk.encode(chunk.data.data)
 				})
 			}
 		})

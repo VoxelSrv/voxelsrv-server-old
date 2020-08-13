@@ -45,6 +45,7 @@ else worldManager.load('default')
 require('./src/actions').init(wss)
 require('./src/player').setIO(wss)
 require('./src/entity').setIO(wss)
+require('./src/protocol-helper').setWS(wss)
 
 
 
