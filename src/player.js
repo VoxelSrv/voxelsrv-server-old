@@ -300,7 +300,7 @@ setInterval(async function() {
 	list.forEach(function(player) {
 		if (player.inventory.updated != true) {
 			player.inventory.updated = true
-			player.socket.emit('inventory-update', {...player.inventory})
+			player.sendPacket('playerInventory', { inventory: JSON.stringify ({...player.inventory}) })
 		}
 	})
 }, 50)

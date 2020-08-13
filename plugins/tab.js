@@ -15,5 +15,5 @@ setInterval( function() {
 
 	tab = tab + '</center>'
 
-	protocol.sendAll('tab-update', tab)
+	protocol.broadcast('tabUpdate', { message: tab })
 }, 1000)

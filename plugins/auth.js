@@ -39,7 +39,8 @@ function noMove(name, obj) {
 	if (x == 0) return x
 	else {
 		var player = players.get(obj.id)
-		player.socket.emit('teleport', player.entity.data.position)
+		var pos = player.entity.data.position
+		player.sendPacket('playerTeleport', { x: pos[0], y: pos[1], z: pos[2] })
 
 		return x
 	} 
