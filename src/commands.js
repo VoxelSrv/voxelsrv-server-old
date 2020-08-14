@@ -8,7 +8,7 @@ var commands = {}
 
 function send(id, msg) {
 	if (id == '#console') console.log(msg)
-	else player['id'].send(msg)
+	else player[id].send(msg)
 }
 
 

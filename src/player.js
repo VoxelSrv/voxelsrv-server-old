@@ -14,8 +14,9 @@ const console = require('./console')
 const protocol = require('./protocol')
 const prothelper = require('./protocol-helper')
 
-var cfg = require('../config.json')
 const { PlayerInventory } = require('./inventory')
+
+let cfg = require('../config.json')
 
 var players = {}
 var chunksToSend = []
@@ -31,7 +32,7 @@ function sendChat(id, msg) {
 		prothelper.broadcast('chatMessage', { message: msg })
 
 	}
-	else ( players.get('id') ).send(msg)
+	else if (players[id] != undefined) players[id].send(msg)
 }
 
 
@@ -117,6 +118,10 @@ class Player {
 		this.packetRecived = packetEvent
 		this.chunks = {}
 		savePlayer(this.id, this.getObject())
+		
+		this.inventory.event.on('slot-update', (data) => {
+			this.sendPacket('playerSlotUpdate', { slot: parseInt(data.slot), data: JSON.stringify(data.data), type: data.type })
+		}) 
 	}
 
 	getObject() {
@@ -238,7 +243,7 @@ class Player {
 		if (action.data.charAt(0) == '/') {
 			commands.execute(this.id, action.data)
 		}
-		else if (action.data != '' ) sendChat(-2, this.nickname + " » " + action.data)
+		else if (action.data != '' ) sendChat('#all', this.nickname + " » " + action.data)
 	}
 
 	action_move(data) {
@@ -295,7 +300,7 @@ setInterval(async function() {
 	}
 }, 100)
 
-setInterval(async function() {
+/* setInterval(async function() {
 	var list = Object.values(players)
 	list.forEach(function(player) {
 		if (player.inventory.updated != true) {
@@ -303,7 +308,7 @@ setInterval(async function() {
 			player.sendPacket('playerInventory', { inventory: JSON.stringify ({...player.inventory}) })
 		}
 	})
-}, 50)
+}, 50) */
 
 
 function sendChunkToPlayer(id, cid) {

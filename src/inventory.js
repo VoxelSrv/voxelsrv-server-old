@@ -1,4 +1,5 @@
 const items = require('./items')
+const EventEmitter = require('events')
 
 // Generic Inventory for mobs/block like chest, etc
 
@@ -14,6 +15,8 @@ class Inventory {
 			if (this.main[x] == undefined) this.main[x] = {}
 		}
 		this.lastUpdate = Date.now()
+		this.event = new EventEmitter()
+
 	}
 
 	add(item, count, data) {
@@ -22,12 +25,14 @@ class Inventory {
 		for (var [slot, data] of invItems) {
 			if (data.id == item && (data.count+count) < items.getStack(item) +1) {
 				this.main[slot] = {id: item, count: count+data.count, data: data}
+				this.event.emit('slot-update', {data: this.main[slot], slot: slot, type: 'main'})
 				return true
 			}
 		}
 		for (var [slot, data] of invItems) {
 			if (data.id == undefined) {
 				this.main[slot] = {id: item, count: count, data: data}
+				this.event.emit('slot-update', {data: this.main[slot], slot: slot, type: 'main'})
 				return true
 			}
 		}
@@ -43,6 +48,7 @@ class Inventory {
 			count = count - this.main[sel].count
 			if (newcount > 0) this.main[sel] = {id: item, count: newcount, data: this.main[sel].data}
 			else this.main[sel] = {}
+			this.event.emit('slot-update', {data: this.main[sel], slot: sel, type: 'main'})
 			if (count <= 0) return true
 		}
 		for (var [slot, data] of allItems) {
@@ -52,6 +58,7 @@ class Inventory {
 				count = count - data.count
 				if (newcount > 0) this.main[slot] = {id: item, count: newcount, data: data.data}
 				else this.main[slot] = {}
+				this.event.emit('slot-update', {data: this.main[slot], slot: slot, type: 'main'})
 			}
 		}
 		return true
@@ -60,6 +67,8 @@ class Inventory {
 	set(slot, item, count, data) {
 		this.lastUpdate = Date.now()
 		this.main[slot] = {id: item, count: count, data: data}
+		this.event.emit('slot-update', {data: this.main[slot], slot: slot, type: 'main'})
+
 	}
 
 	contains(item, count) {
@@ -113,6 +122,9 @@ class PlayerInventory extends Inventory {
 		var tempy = this.main[y]
 		this.main[x] = tempy
 		this.main[y] = tempx
+		this.event.emit('slot-update', {data: this.main[x], slot: x, type: 'main'})
+		this.event.emit('slot-update', {data: this.main[y], slot: y, type: 'main'})
+
 	}
 
 	action_left(inv, x) {
@@ -137,15 +149,16 @@ class PlayerInventory extends Inventory {
 					inv.main[x] = tempZ
 					this.tempslot = tempW
 				}
+				inv.event.emit('slot-update', {data: inv.main[x], slot: x, type: 'main'})
+				this.event.emit('slot-update', {data: this.tempslot, slot: -1, type: 'temp'})
 			}
 			// If target slot has diffrent itemtype	
 			else {
 				inv.main[x] = tempY
 				this.tempslot = tempX
+				inv.event.emit('slot-update', {data: inv.main[x], slot: x, type: 'main'})
+				this.event.emit('slot-update', {data: this.tempslot, slot: -1, type: 'temp'})
 			}
-		}
-		else if (x == -1) {
-	
 		}
 	}
 
@@ -181,10 +194,8 @@ class PlayerInventory extends Inventory {
 				inv.main[x] = {...tempZ}
 				this.tempslot = {...tempW}
 			}
-		}
-		// Bin slot (ignored for now)
-		else if (x == -1){
-	
+			inv.event.emit('slot-update', {data: inv.main[x], slot: x, type: 'main'})
+			this.event.emit('slot-update', {data: this.tempslot, slot: -1, type: 'temp'})
 		}
 	}
 }
