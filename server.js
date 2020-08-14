@@ -2,7 +2,7 @@ const fetch = require('node-fetch')
 const WebSocket = require('ws')
 
 
-const fs = require('./src/fs')
+const fs = require('fs')
 
 var version = '0.2.0'
 var protocol = 2

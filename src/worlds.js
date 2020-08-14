@@ -1,4 +1,4 @@
-const fs = require('./fs.js')
+const fs = require('fs')
 
 const ndarray = require('ndarray')
 const crunch = require('voxel-crunch')
