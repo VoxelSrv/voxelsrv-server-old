@@ -85,7 +85,7 @@ function init(wss) {
 					zPos: player.entity.data.position[2],
 					inventory: JSON.stringify(player.inventory),
 					blocksDef: JSON.stringify(blocks),
-					blockIDsDef: JSON.stringify(blockIDs),
+					blockidsDef: JSON.stringify(blockIDs),
 					itemsDef: JSON.stringify(items)
 				})
 				connections[id] = socket
