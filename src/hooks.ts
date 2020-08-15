@@ -1,18 +1,18 @@
 
-var hooks = {}
+const hooks = {}
 
-function createHook(name, size) {
+export function create(name: string, size: number): string {
 	hooks[name] = new Array(size)
-	for (var x = 0; x < hooks[name].length; x++ ) {
+	for (let x = 0; x < hooks[name].length; x++ ) {
 		hooks[name][x] = [] 
 	}
 	return name
 }
 
-function executeHook(name, data) {
-	var r = 0
+export function execute(name: string, data: object): number {
+	let r: number = 0
 	if (hooks[name] != undefined) {
-		for (var x = 0; x < hooks[name].length; x++ ) {
+		for (let x = 0; x < hooks[name].length; x++ ) {
 			for (var y = 0; y < hooks[name][x].length; y++ ) {
 				r = hooks[name][x][y](name, data)
 				if (r == 1) {
@@ -22,21 +22,14 @@ function executeHook(name, data) {
 		}
 	} else { 
 		r = 1
-		return r 
+		return r
 	}
 }
 
-function addToHook(name, priority, func) {
+export function add(name: string, priority: number, func: Function) {
 	if (hooks[name] != undefined) {
 		if (hooks[name][priority] != undefined) {
 			hooks[name][priority].push(func)
 		} else return false
 	} else return false
-}
-
-
-module.exports = {
-	create: createHook,
-	execute: executeHook,
-	add: addToHook
 }

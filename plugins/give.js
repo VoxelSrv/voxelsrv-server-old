@@ -1,4 +1,4 @@
-const { chat, items, players, commands, blocks } = require('../src/api')
+const { chat, items, players, commands, blocks} = require('../')
 
 const blockIDs = blocks.getIDs()
 
@@ -17,6 +17,7 @@ function give(id, arg) {
 
 function giveAll(id, arg) {
 	var player = players.get(id)
+
 	Object.keys( items.registry ).forEach(function(item) {
 		player.inventory.add(item, items.registry[ item ].stack , {})
 	})
@@ -25,9 +26,9 @@ function giveAll(id, arg) {
 
 function clear(id, arg) {
 	var player = players.get(id)
-	Object.keys( items.registry ).forEach(function(item) {
-		player.inventory.remove(item, items.registry[ item ].stack , {})
-	})
+	for (let x = 0; x <= player.inventory.maxslot; x++) {
+		player.inventory.set(x, null, null, null)
+	}
 	chat.send(id, 'Inventory cleared')
 }
 
