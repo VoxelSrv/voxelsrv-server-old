@@ -1,4 +1,4 @@
-const items = require('./items')
+const items = require('./items').registry
 const EventEmitter = require('events')
 
 // Generic Inventory for mobs/block like chest, etc
@@ -11,7 +11,7 @@ class Inventory {
 			this.main = data.main
 		}
 
-		for (var x = 0; x < size*9; x++) {
+		for (let x = 0; x < size*9; x++) {
 			if (this.main[x] == undefined) this.main[x] = {}
 		}
 		this.lastUpdate = Date.now()
@@ -21,15 +21,15 @@ class Inventory {
 
 	add(item, count, data) {
 		this.lastUpdate = Date.now()
-		var invItems = Object.entries(this.main)
-		for (var [slot, data] of invItems) {
-			if (data.id == item && (data.count+count) < items.getStack(item) +1) {
+		let invItems = Object.entries(this.main)
+		for (let [slot, data] of invItems) {
+			if (data.id == item && (data.count+count) < items[item].stack + 1) {
 				this.main[slot] = {id: item, count: count+data.count, data: data}
 				this.event.emit('slot-update', {data: this.main[slot], slot: slot, type: 'main'})
 				return true
 			}
 		}
-		for (var [slot, data] of invItems) {
+		for (let [slot, data] of invItems) {
 			if (data.id == undefined) {
 				this.main[slot] = {id: item, count: count, data: data}
 				this.event.emit('slot-update', {data: this.main[slot], slot: slot, type: 'main'})
@@ -41,20 +41,20 @@ class Inventory {
 
 	remove(item, count) {
 		this.lastUpdate = Date.now()
-		var allItems = Object.entries(this.main)
-		var sel = this.selected
+		let allItems = Object.entries(this.main)
+		let sel = this.selected
 		if (this.main[sel].id == item) {
-			var newcount = this.main[sel].count-count
+			let newcount = this.main[sel].count-count
 			count = count - this.main[sel].count
 			if (newcount > 0) this.main[sel] = {id: item, count: newcount, data: this.main[sel].data}
 			else this.main[sel] = {}
 			this.event.emit('slot-update', {data: this.main[sel], slot: sel, type: 'main'})
 			if (count <= 0) return true
 		}
-		for (var [slot, data] of allItems) {
+		for (let [slot, data] of allItems) {
 			if (count <= 0) return true
 			if (data.id == item) {
-				var newcount = data.count-count
+				let newcount = data.count-count
 				count = count - data.count
 				if (newcount > 0) this.main[slot] = {id: item, count: newcount, data: data.data}
 				else this.main[slot] = {}
@@ -72,9 +72,9 @@ class Inventory {
 	}
 
 	contains(item, count) {
-		var items = Object.entries(this.main)
+		let items = Object.entries(this.main)
 	
-		for (var [slot, data] of items) {
+		for (let [slot, data] of items) {
 			if (data.id == item && data.count >= count) return slot
 		}
 
@@ -111,15 +111,15 @@ class PlayerInventory extends Inventory {
 	}
 
 	getTool() {
-		var sel = this.selected
+		let sel = this.selected
 		return this.main[sel]
 	}
 
 	action_switch(x, y) {
 		this.lastUpdate = Date.now()
 		this.updated = false
-		var tempx = this.main[x]
-		var tempy = this.main[y]
+		let tempx = this.main[x]
+		let tempy = this.main[y]
 		this.main[x] = tempy
 		this.main[y] = tempx
 		this.event.emit('slot-update', {data: this.main[x], slot: x, type: 'main'})
@@ -131,21 +131,21 @@ class PlayerInventory extends Inventory {
 		this.lastUpdate = Date.now()
 		this.updated = false
 		if (x >= 0) { // Normal slots
-			var tempY = {...this.tempslot}
-			var tempX = {...inv.main[x]}
+			let tempY = {...this.tempslot}
+			let tempX = {...inv.main[x]}
 			
 			// If tempslot and target slot have the same itemtype
 			if (tempY.id == tempX.id &&  tempY.id != undefined ) {
-				if ((tempX.count + tempY.count) <= items.getStack(tempX.id) ) {
-					var tempZ = {...tempX}
+				if ((tempX.count + tempY.count) <= items[tempX.id].stack ) {
+					let tempZ = {...tempX}
 					tempZ.count = tempX.count + tempY.count
 					inv.main[x] = tempZ
 					this.tempslot = {}
-				} else if ((tempX.count + tempY.count) > items.getStack(tempX.id) ) { 
-					var tempZ = {...tempX}
-					var tempW = {...tempY}
-					tempZ.count = items.getStack(tempX.id)
-					tempW.count = tempX.count + tempY.count - items.getStack(tempX.id)
+				} else if ((tempX.count + tempY.count) > items[tempX.id].stack ) { 
+					let tempZ = {...tempX}
+					let tempW = {...tempY}
+					tempZ.count = items[tempX.id].stack
+					tempW.count = tempX.count + tempY.count - items[tempX.id].stack
 					inv.main[x] = tempZ
 					this.tempslot = tempW
 				}
@@ -167,27 +167,27 @@ class PlayerInventory extends Inventory {
 		this.updated = false
 		// Normal slots
 		if (x >= 0) {
-			var tempY = {...this.tempslot}
-			var tempX = {...inv.main[x]}
+			let tempY = {...this.tempslot}
+			let tempX = {...inv.main[x]}
 			if (tempY.id == undefined) { // Tempslot slot is empty
-				var tempZ = {...tempX}
-				var tempW = {...tempX}
+				let tempZ = {...tempX}
+				let tempW = {...tempX}
 				tempZ.count = Math.ceil(tempZ.count/2)
 				tempW.count = Math.floor(tempW.count/2)
 				if (tempW.count <= 0) tempW = {}
 				inv.main[x] = {...tempZ}
 				this.tempslot = {...tempW}
 			} else if (tempX.id == undefined) { // Target is empty
-				var tempZ = {...tempY}
-				var tempW = {...tempY}
+				let tempZ = {...tempY}
+				let tempW = {...tempY}
 				tempZ.count = 1
 				tempW.count = tempW.count - 1
 				if (tempW.count <= 0) tempW = {}
 				inv.main[x] = {...tempZ}
 				this.tempslot = {...tempW}
-			} else if (tempX.id == tempY.id && tempX.count+1 <= items.getStack(tempX.id)) { // The same itemtype
-				var tempZ = {...tempX}
-				var tempW = {...tempY}
+			} else if (tempX.id == tempY.id && tempX.count+1 <= items[tempX.id].stack) { // The same itemtype
+				let tempZ = {...tempX}
+				let tempW = {...tempY}
 				tempZ.count = tempZ.count + 1
 				tempW.count = tempW.count - 1
 				if (tempW.count <= 0) tempW = {}

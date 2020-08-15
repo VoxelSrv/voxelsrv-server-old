@@ -1,4 +1,4 @@
-var wss = null
+let wss = null
 const WebSocket = require('ws')
 const protocol = require('./protocol')
 
@@ -7,7 +7,7 @@ module.exports = {
 	broadcast(type, data) {
 		if (wss == null) return
 
-		var msg = protocol.parseToMessage('server', type, data)
+		let msg = protocol.parseToMessage('server', type, data)
 
 		if (msg == null) return
 

@@ -3,7 +3,7 @@ const vec = require('gl-vec3')
 const event = new EventEmiter()
 const entity = require('./entity')
 const worldManager = require('./worlds')
-const items = require('./items')
+const items = require('./items').registry
 const blockIDs = require('./blocks').getIDs()
 const blocks = require('./blocks').get()
 const compressChunk = require("voxel-crunch")
@@ -205,7 +205,7 @@ class Player {
 		var pos = this.entity.data.position
 
 		if (vec.dist(pos, action.data) < 14 && item != undefined && item.id != undefined) {
-			if (items.get()[item.id].type == 'block' || items.get()[item.id].type == 'block-flat') {
+			if (items[item.id].type == 'block' || items[item.id].type == 'block-flat') {
 				//player.inv.remove(id, item.id, 1, {})
 				worldManager.get(this.world).setBlock(action.data, blockIDs[item.id])
 				prothelper.broadcast('worldBlockUpdate', {

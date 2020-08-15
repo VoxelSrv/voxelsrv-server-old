@@ -21,7 +21,7 @@ try {
 }
 
 require('./src/blocks').init()
-require('./src/items').init()
+require('./src/items').initDefaultItems()
 
 if (!fs.existsSync('./plugins') ) fs.mkdirSync('./plugins')
 if (!fs.existsSync('./players') ) fs.mkdirSync('./players')

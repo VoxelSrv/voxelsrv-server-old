@@ -56,8 +56,9 @@ const api = {
 		getAll: entity.getAll
 	},
 	items: {
+		registry: items.registry,
 		get: items.get,
-		getStack: items.getStack
+		create: items.createItem
 	},
 	inventories: inventory,
 	protocol: {

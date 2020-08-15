@@ -5,9 +5,9 @@ const blockIDs = blocks.getIDs()
 
 function give(id, arg) {
 	var player = players.get(id)
-	if (items.get()[ arg[0] ] != undefined) {
-		var amount = items.getStack(arg[0])
-		if (arg[1] != undefined && 1 <= Math.round( arg[1] ) <= items.getStack(arg[0]) ) amount = Math.round(arg[1])
+	if (items.registry[ arg[0] ] != undefined) {
+		var amount = items.registry[ arg[0] ].stack
+		if (arg[1] != undefined && 1 <= Math.round( arg[1] ) <= items.registry[ arg[0] ].stack ) amount = Math.round(arg[1])
 		
 		player.inventory.add(arg[0], amount, {})
 		chat.send(id, 'Given ' + amount + ' of ' + arg[0] + ' to you')
@@ -17,16 +17,16 @@ function give(id, arg) {
 
 function giveAll(id, arg) {
 	var player = players.get(id)
-	Object.keys( items.get() ).forEach(function(item) {
-		player.inventory.add(item, items.getStack(item) , {})
+	Object.keys( items.registry ).forEach(function(item) {
+		player.inventory.add(item, items.registry[ item ].stack , {})
 	})
 	chat.send(id, 'Given all items to player')
 }
 
 function clear(id, arg) {
 	var player = players.get(id)
-	Object.keys( items.get() ).forEach(function(item) {
-		player.inventory.remove(item, items.getStack(item) , {})
+	Object.keys( items.registry ).forEach(function(item) {
+		player.inventory.remove(item, items.registry[ item ].stack , {})
 	})
 	chat.send(id, 'Inventory cleared')
 }
