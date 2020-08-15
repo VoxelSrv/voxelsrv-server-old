@@ -21,8 +21,6 @@ let cfg = require('../config.json')
 var players = {}
 var chunksToSend = []
 
-var io
-
 commands.setPlayer(players)
 
 function sendChat(id, msg) {

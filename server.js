@@ -27,10 +27,12 @@ if (!fs.existsSync('./plugins') ) fs.mkdirSync('./plugins')
 if (!fs.existsSync('./players') ) fs.mkdirSync('./players')
 if (!fs.existsSync('./worlds') ) fs.mkdirSync('./worlds')
 
-const plugins = fs.readdirSync('./plugins').filter(file => file.endsWith('.js'))
+const pluginFiles = fs.readdirSync('./plugins').filter(file => file.endsWith('.js') || file.endsWith('.ts'))
+const plugins = new Array()
 
-for (const file of plugins) {
-	require('./plugins/' + file)
+for (const file of pluginFiles) {
+	try { plugins.push( require('./plugins/' + file) ) }
+	catch(e) { console.error(`Can't load plugin ${file}! Reason: ` + e) }
 }
 
 

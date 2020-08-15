@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "description": "Simple voxel game",
   "scripts": {
-    "start": "node server.js"
+    "start": "ts-node server.js"
   },
   "keywords": [
     "voxel",
@@ -20,6 +20,8 @@
     "open-simplex-noise": "^2.3.1",
     "protobufjs": "^6.10.1",
     "terminal-kit": "^1.36.0",
+    "ts-node": "^8.10.2",
+    "typescript": "^3.9.7",
     "uuid": "^8.3.0",
     "voxel-crunch": "^0.2.1",
     "ws": "^7.3.1"
