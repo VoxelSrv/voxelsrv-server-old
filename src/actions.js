@@ -42,27 +42,30 @@ function init(wss) {
 			socket.send( protocol.parseToMessage('server', type, data) )
 		}
 
-		if (playerCount >= cfg.maxplayers) {
-			send( 'playerKick', { reason: 'Server is full' })
-			socket.close()
-		}
-
+		send('loginRequest', {
+			name: cfg.name,
+			motd: cfg.motd,
+			protocol: protocolVer,
+			maxplayers: cfg.maxplayers,
+			numberplayers: playerCount,
+			software: 'VoxelSrv-Server'
+		})
 		var packetEvent = new EventEmitter()
 		socket.on('message', (m) => {
 			var packet = protocol.parseToObject('client', new Uint8Array(m))
 			packetEvent.emit(packet.type, packet.data)
 		})
 
-		send('loginRequest', {
-			name: cfg.name,
-			protocol: protocolVer,
-			maxplayers: cfg.maxplayers
-		})
-
 		var loginTimeout = true
 
 		packetEvent.on('loginResponse', function(data) { 
 			loginTimeout = false
+
+			if (playerCount >= cfg.maxplayers) {
+				send( 'playerKick', { reason: 'Server is full' })
+				socket.close()
+				return
+			}
 
 			var check = verifyLogin(data)
 			if (data.username == '' || data.username == null || data.username == undefined ) data.username = 'Player' + Math.round(Math.random()*100000)

@@ -2,10 +2,9 @@ import * as fs from 'fs';
 
 import * as console from './console';
 import * as types from './types';
-
 import * as crunch from 'voxel-crunch';
 
-const ndarray = require('ndarray');
+import ndarray = require('ndarray');
 
 
 const blockIDs = require('./blocks').getIDs();

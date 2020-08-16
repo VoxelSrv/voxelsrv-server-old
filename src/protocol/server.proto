@@ -7,8 +7,12 @@ syntax = "proto3";
 message loginRequest {
     string name = 1;           // Server's name
     int32 protocol = 2;
-    int32 maxplayers = 3;
+	int32 maxplayers = 3;
+	int32 numberplayers = 4;
+	string motd = 5;
+	string software = 6;
 }
+
 
 /* 
  * loginSuccess is send after successful login.
@@ -64,9 +68,9 @@ message playerSlotUpdate {
 	int32 slot = 1;
 
 	enum SlotType {
-		main = 0;
-		temp = 1;
-		hook = 2;
+		MAIN = 0;
+		TEMP = 1;
+		HOOK = 2;
 	}
 
     string type = 2;

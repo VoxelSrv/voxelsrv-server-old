@@ -4,8 +4,8 @@ const WebSocket = require('ws')
 
 const fs = require('fs')
 
-var version = '0.2.0'
-var protocol = 2
+const version = '0.2.0'
+const protocol = 2
 
 const console = require('./src/console')
 
@@ -48,14 +48,6 @@ require('./src/actions').init(wss)
 require('./src/player').setIO(wss)
 require('./src/protocol-helper').setWS(wss)
 
-
-
-if (cfg.public) {
-	fetch('http://pb4.eu:9000/update?ip=' + cfg.address + '&motd=' + cfg.motd + '&name=' + cfg.name + 'protocol=' + protocol)
-	setInterval(function() {
-		fetch('http://pb4.eu:9000/update?ip=' + cfg.address + '&motd=' + cfg.motd + '&name=' + cfg.name  + 'protocol=' + protocol)
-	}, 30000)
-}	
 console.log('^yServer started on port: ^:' + cfg.port)
 
 require('./src/commands').register('/stop', (id, args) => {
@@ -74,6 +66,37 @@ require('./src/commands').register('/stop', (id, args) => {
 }, 'Stops the server (console only)')
 
 require('./src/console-exec')
+
+const heartbeat = 'pb4.eu:9001'
+let id = 0
+
+function heartbeatPing() {
+	fetch(`http://${ heartbeat }/addServer?ip=${ cfg.address }`)
+	.then(res => res.json())
+	.then(json => {
+		console.log(`^bSended request to heartbeat: ^w${ heartbeat }`)
+		id = json.id
+	})
+}
+
+setTimeout( () => {
+	if (cfg.public) {
+		heartbeatPing()
+
+		setInterval(() => {
+			fetch(`http://${ heartbeat }`)
+				.then(res => res.json())
+				.then(json => {
+					console.obj(json)
+					if (json[id] == undefined) {
+						heartbeatPing()
+					}
+				})
+		}, 30000);
+
+	}	
+}, 1000)
+
 
 
 

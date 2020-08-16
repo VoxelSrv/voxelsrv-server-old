@@ -13,6 +13,18 @@
         "maxplayers": {
           "type": "int32",
           "id": 3
+        },
+        "numberplayers": {
+          "type": "int32",
+          "id": 4
+        },
+        "motd": {
+          "type": "string",
+          "id": 5
+        },
+        "software": {
+          "type": "string",
+          "id": 6
         }
       }
     },
@@ -98,9 +110,9 @@
       "nested": {
         "SlotType": {
           "values": {
-            "main": 0,
-            "temp": 1,
-            "hook": 2
+            "MAIN": 0,
+            "TEMP": 1,
+            "HOOK": 2
           }
         }
       }

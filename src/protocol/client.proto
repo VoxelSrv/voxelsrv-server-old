@@ -67,11 +67,11 @@ message actionBlockBreak {
 message actionInventoryClick {
 	int32 slot = 1;
 	enum ClickType {
-		left = 0;
-		right = 1;
-		select = 2;
-		leftshift = 3;
-		rightshift = 4;
+		LEFT = 0;
+		RIGHT = 1;
+		SELECT = 2;
+		LEFTSHIFT = 3;
+		RIGHTSHIFT = 4;
 	}
 
 	string type = 2;
