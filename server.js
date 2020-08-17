@@ -20,12 +20,17 @@ try {
 	return
 }
 
-require('./src/blocks').init()
-require('./src/items').initDefaultItems()
-
 if (!fs.existsSync('./plugins') ) fs.mkdirSync('./plugins')
 if (!fs.existsSync('./players') ) fs.mkdirSync('./players')
 if (!fs.existsSync('./worlds') ) fs.mkdirSync('./worlds')
+
+
+require('./src/registry').loadPalette()
+
+require('./src/definitions/blocks')
+require('./src/definitions/items')
+
+require('./src/registry').finalize()
 
 const pluginFiles = fs.readdirSync('./plugins').filter(file => file.endsWith('.js') || file.endsWith('.ts'))
 const plugins = new Array()

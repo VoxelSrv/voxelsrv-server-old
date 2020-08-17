@@ -3,11 +3,10 @@ import * as fs from 'fs';
 import * as console from './console';
 import * as types from './types';
 import * as crunch from 'voxel-crunch';
+import { Block, blockIDmap, blockPalette, blockRegistry } from './registry';
+
 
 import ndarray = require('ndarray');
-
-
-const blockIDs = require('./blocks').getIDs();
 
 const chunkWitdh = 24;
 const chunkHeight = 120;
@@ -31,14 +30,18 @@ export function create(name: string, seed: number, generator: string): World | n
 }
 
 export function load(name: string): World | null  {
+	try {
+		if ( exist(name) == true && worlds[name] == undefined ) {
+			const readed = fs.readFileSync('./worlds/' + name + '/world.json')
+			const data = JSON.parse( readed.toString() );
+			worlds[name] = new World(name, data.seed, data.generator, data.version);
 
-	if ( exist(name) == true && worlds[name] == undefined ) {
-		const readed = fs.readFileSync('./worlds/' + name + '/world.json')
-		const data = JSON.parse( readed.toString() );
-		worlds[name] = new World(name, data.seed, data.generator, data.version);
-
-		return worlds[name];
-	} else { return null; }
+			return worlds[name];
+		} else { return null; }
+	} catch(e) {
+		console.error(`Can't load world ${name}! Trying to recreate it...`)
+		create(name, 0, 'normal')
+	}
 }
 
 export function unload(name: string): void {
@@ -78,6 +81,10 @@ export function globalToChunk(pos: types.XYZ): {id: types.XZ, pos: types.XYZ} {
 	};
 }
 
+function getRandomSeed(): number {
+	return Math.random() * (9007199254740990 + 9007199254740990) - 9007199254740991
+}
+
 export class World {
 	name: string;
 	seed: number;
@@ -93,8 +100,8 @@ export class World {
 
 	constructor(name: string, seed: number, generator: string, ver: number) {
 		this.name = name;
-		this.seed = seed;
-		this.generator = new worldgen[generator](seed, blockIDs);
+		this.seed = (seed != 0) ? seed : getRandomSeed();
+		this.generator = new worldgen[generator](seed);
 		if (ver == null) this.version = 1;
 		else this.version = ver;
 		this.chunks = {};
@@ -220,13 +227,23 @@ export class World {
 	}
 
 
-	getBlock(data: types.XYZ, bool: boolean) {
+	getBlock(data: types.XYZ, bool: boolean): Block {
 		const local = globalToChunk(data);
-		if (this.chunks[ local.id.toString() ] != undefined) return this.chunks[ local.id.toString() ].data.get(local.pos[0], local.pos[1], local.pos[2]);
+		if (this.chunks[ local.id.toString() ] != undefined) { 
+			const id = this.chunks[ local.id.toString() ].data.get(local.pos[0], local.pos[1], local.pos[2])
+
+			return blockRegistry[ blockIDmap[ id ] ]
+		};
 	}
 
-	setBlock(data: types.XYZ, block: string, bool: boolean) {
+	setBlock(data: types.XYZ, block: string | number | Block, bool: boolean): void {
 		const local = globalToChunk(data);
+		let id = 0
+
+		if (typeof block == 'number') id = block
+		else if (typeof block == 'string') id = blockPalette[ block ]
+		else id = block.rawid
+
 		if (this.chunks[ local.id.toString() ] != undefined) this.chunks[ local.id.toString() ].data.set(local.pos[0], local.pos[1], local.pos[2], block);
 	}
 

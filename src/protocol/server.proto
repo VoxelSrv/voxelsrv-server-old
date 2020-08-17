@@ -27,8 +27,7 @@ message loginSuccess {
     double z_pos = 3;
     string items_def = 4;
     string blocks_def = 5;
-    string blockids_def = 6;
-    string inventory = 7;
+    string inventory = 6;
 }
 
 /* 

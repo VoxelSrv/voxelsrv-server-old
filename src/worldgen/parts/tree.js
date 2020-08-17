@@ -1,6 +1,6 @@
 var hash = require('murmur-numbers')
 var ndarray = require('ndarray')
-var blockIDs = require('../../blocks').getIDs()
+var blockIDs = require('../../registry').blockPalette
 
 function generateOakTree(seed) {
 	var gen = new ndarray( new Uint16Array(16 * 16 * 16), [16, 16, 16])

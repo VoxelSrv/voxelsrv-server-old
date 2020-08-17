@@ -8,10 +8,10 @@ const EventEmitter = require('events')
 const illegalCharacters = new RegExp('[^a-zA-Z0-9]')
 const players = require('./player')
 
-const itemsRegistry = require('./items').registry
+const items = require('./registry').itemRegistryObject
 
-const blockIDs = require('./blocks').getIDs()
-const blocks = require('./blocks').get()
+const blockIDs = require('./registry').blockPalette
+const blocks = require('./registry').blockRegistryObject
 const console = require('./console')
 const protocol = require('./protocol')
 const prothelper = require('./protocol-helper')
@@ -84,20 +84,13 @@ function init(wss) {
 				players.event.emit('connection', id)
 				var player = players.create(id, data, socket, packetEvent)
 
-				const legacyItems = {}
-				Object.entries(itemsRegistry).forEach( (x) => {
-					legacyItems[x[0]] = x[1].getLegacyObject()
-				} )
-
-
 				send('loginSuccess', {
 					xPos: player.entity.data.position[0],
 					yPos: player.entity.data.position[1],
 					zPos: player.entity.data.position[2],
 					inventory: JSON.stringify(player.inventory),
 					blocksDef: JSON.stringify(blocks),
-					blockidsDef: JSON.stringify(blockIDs),
-					itemsDef: JSON.stringify(legacyItems)
+					itemsDef: JSON.stringify(items)
 				})
 				connections[id] = socket
 

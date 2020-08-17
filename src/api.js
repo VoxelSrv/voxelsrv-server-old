@@ -1,18 +1,17 @@
-const actions = require('./actions')
-const blocks = require('./blocks')
+const EventEmitter = require('events')
+
 const commands = require('./commands')
 const console = require('./console')
 const entity = require('./entity')
 const hooks = require('./hooks')
 const inventory = require('./inventory')
-const items = require('./items')
 const player = require('./player')
 const protocol = require('./protocol')
 const prothelper = require('./protocol-helper')
 const worlds = require('./worlds')
+const registry = require('./registry')
 
-const EventEmiter = require('events')
-const eventChat = new EventEmiter()
+const eventChat = new EventEmitter()
 
 function sendChatMessage(id, msg) {
 	if (id == -1 || id == '#console') console.log(msg)
@@ -27,16 +26,16 @@ function sendChatMessage(id, msg) {
 	eventChat.emit('message', {id: id, msg: msg})
 }
 
+player.event.on('chat-message', (id, msg) => {
+	eventChat.emit('message', {id: id, msg: msg})
+})
+
 const api = {
 	hooks: hooks,
 	players: {
 		get: player.get,
 		getAll: player.getAll,
 		event: player.event
-	},
-	blocks: {
-		get: blocks.get,
-		getIDs: blocks.getIDs
 	},
 	chat: {
 		send(id, msg) { sendChatMessage(id, msg) },
@@ -55,11 +54,6 @@ const api = {
 		get: entity.get,
 		getAll: entity.getAll
 	},
-	items: {
-		registry: items.registry,
-		get: items.get,
-		create: items.createItem
-	},
 	inventories: inventory,
 	protocol: {
 		server: prothelper.wss,
@@ -67,6 +61,17 @@ const api = {
 		broadcast: prothelper.broadcast,
 		...protocol
 	},
+	registry: {
+		addItem: registry.addItem,
+		addBlock: registry.addBlock,
+		itemRegistry: registry.itemRegistry,
+		blockRegistry: registry.blockRegistry,
+		Block: registry.Block,
+		ItemBlock: registry.ItemBlock,
+		Item: registry.Item,
+		ItemStack: registry.ItemStack
+	},
+
 	worlds: worlds
 }
 

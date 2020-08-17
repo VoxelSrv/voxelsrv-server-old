@@ -1,16 +1,16 @@
+const block = require('../registry').blockPalette
+
 module.exports = class {
-	constructor(seed, blocks) {
-		this.blockIDs = {}
+	constructor(seed) {
 		this.chunkWitdh = 24
 		this.chunkHeight = 120
-		this.blockIDs = blocks
 		this.seed = seed
 	}
 
 	getBlock(x, y, z) {
-		if (y == 40) return blockIDs.grass
-		else if (35 < y && y < 40) return blockIDs.dirt
-		else if (y <= 35) return blockIDs.stone
+		if (y == 40) return block.grass
+		else if (35 < y && y < 40) return block.dirt
+		else if (y <= 35) return block.stone
 		else return 0
 	}
 

@@ -2,6 +2,7 @@
 const { makeNoise2D, makeNoise3D } = require('open-simplex-noise')
 const tree = require('./parts/tree')
 var hash = require('murmur-numbers')
+const blockIDs = require('../registry').blockPalette
 
 function getHighestBlock(chunk, x, z) {
 	for (var y = 120 - 1; y >= 0; y = y - 1) {
@@ -13,9 +14,8 @@ function getHighestBlock(chunk, x, z) {
 
 
 module.exports = class {
-	constructor(seed, blocks) {
+	constructor(seed) {
 		this.name = 'normal'
-		this.blockIDs = blocks
 		this.seed = seed
 		this.heightNoise = makeNoise2D(Math.round(seed * Math.sin(seed^1) * 10000))
 		this.caveNoise = makeNoise3D(Math.round(seed * Math.sin(seed^2) * 10000))
@@ -34,8 +34,8 @@ module.exports = class {
 	getBlock(x, y, z) {
 		var m = this.biomeNoise2((x)/180, (z)/180)
 		var r = this.getHeightMap(x, y, z, m)
-		if (y <= r) return this.blockIDs.stone
-		else if (y <= this.waterLevel) return this.blockIDs.water
+		if (y <= r) return blockIDs.stone
+		else if (y <= this.waterLevel) return blockIDs.water
 		else return 0
 	}
 
@@ -67,16 +67,16 @@ module.exports = class {
 					var biome = 'plants'
 					if (block != 0) {
 						if (0 < y < 50 && this.getBlock(x+xoff, y, z+zoff) == 1 && this.getBlock(x+xoff, y+1, z+zoff) == 0 ) {
-							if (biome == 'plants' || biome == 'forest') chunk.set(x, y, z, this.blockIDs.grass)
-							else if (biome == 'iceland') chunk.set(x, y, z, this.blockIDs.grass_snow)
-							else if (biome == 'desert') chunk.set(x, y, z, this.blockIDs.sand)
+							if (biome == 'plants' || biome == 'forest') chunk.set(x, y, z, blockIDs.grass)
+							else if (biome == 'iceland') chunk.set(x, y, z, blockIDs.grass_snow)
+							else if (biome == 'desert') chunk.set(x, y, z, blockIDs.sand)
 						}
-						else if (this.getBlock(x+xoff, y+1, z+zoff) != 0 && this.getBlock(x+xoff, y, z+zoff) != this.blockIDs.water && this.getBlock(x+xoff, y+3, z+zoff) == 0) {
-							if (biome == 'plants' || biome == 'forest' || biome == 'iceland') chunk.set(x, y, z, this.blockIDs.dirt)
-							else if (biome == 'desert') chunk.set(x, y, z, this.blockIDs.sand)
+						else if (this.getBlock(x+xoff, y+1, z+zoff) != 0 && this.getBlock(x+xoff, y, z+zoff) != blockIDs.water && this.getBlock(x+xoff, y+3, z+zoff) == 0) {
+							if (biome == 'plants' || biome == 'forest' || biome == 'iceland') chunk.set(x, y, z, blockIDs.dirt)
+							else if (biome == 'desert') chunk.set(x, y, z, blockIDs.sand)
 						}
-						else if (this.getBlock(x+xoff, y+1, z+zoff) == this.blockIDs.water && this.getBlock(x+xoff, y, z+zoff) != 0 && this.getBlock(x+xoff, y, z+zoff) != this.blockIDs.water) {
-							chunk.set(x, y, z, this.blockIDs.gravel)
+						else if (this.getBlock(x+xoff, y+1, z+zoff) == blockIDs.water && this.getBlock(x+xoff, y, z+zoff) != 0 && this.getBlock(x+xoff, y, z+zoff) != blockIDs.water) {
+							chunk.set(x, y, z, blockIDs.gravel)
 						}
 						else chunk.set(x, y, z, block)
 					}
@@ -89,26 +89,26 @@ module.exports = class {
 			for (var z = 0; z < chunk.shape[2]; z++) {
 				if ( hash( (x+xoff), (z+zoff), this.plantSeed) < 0.1 ) {
 					var high = {...getHighestBlock(chunk, x, z)}
-					if (high.block == this.blockIDs.grass) {
-						chunk.set(x, high.level+1, z, this.blockIDs.grass_plant)
+					if (high.block == blockIDs.grass) {
+						chunk.set(x, high.level+1, z, blockIDs.grass_plant)
 					}
 				}
 				else if ( hash( (x+xoff), (z+zoff), this.plantSeed*2) < 0.1 ) {
 					var high = {...getHighestBlock(chunk, x, z)}
-					if (high.block == this.blockIDs.grass) {
-						chunk.set(x, high.level+1, z, ( ( hash( x+xoff, y, z+zoff, this.plantSeed) <= 0.5 ) ? this.blockIDs.red_flower : this.blockIDs.yellow_flower ) )
+					if (high.block == blockIDs.grass) {
+						chunk.set(x, high.level+1, z, ( ( hash( x+xoff, y, z+zoff, this.plantSeed) <= 0.5 ) ? blockIDs.red_flower : blockIDs.yellow_flower ) )
 					}
 				}
 				else if ( 5 < x && x < 17 && 5 < z && z < 17) { //Temp
 					if ( hash( (x+xoff), (z+zoff), this.seed) < 0.02 ) {
 						var high = {...getHighestBlock(chunk, x, z)}
-						if (high.block == this.blockIDs.grass) {
+						if (high.block == blockIDs.grass) {
 							var gen = tree.oakTree( hash( (x+xoff), (z+zoff), this.seed)*1000 )
 							this.pasteStructure(chunk, gen, x, high.level + 1, z)
 						}
 					} else if ( hash( (x+xoff), (z+zoff), this.seed*5) < 0.007 ) {
 						var high = {...getHighestBlock(chunk, x, z)}
-						if (high.block == this.blockIDs.grass) {
+						if (high.block == blockIDs.grass) {
 							var gen = tree.birchTree( hash( (x+xoff), (z+zoff), this.seed)*5834 )
 							this.pasteStructure(chunk, gen, x, high.level + 1, z)
 						}

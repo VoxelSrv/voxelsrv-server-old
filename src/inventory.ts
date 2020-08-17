@@ -1,4 +1,4 @@
-import { registry as items } from './items';
+import { IItemStack, ItemStack, itemRegistry } from './registry';
 const EventEmitter = require('events')
 
 // Generic Inventory for mobs/block like chest, etc
@@ -6,24 +6,11 @@ const EventEmitter = require('events')
 interface InventoryObject {
 	main: any;
 	maxslot: number;
-	tempslot?: Slot;
+	tempslot?: IItemStack;
 	selected?: number;
 }
 
-export type InventoryType = PlayerInventory | Inventory
-
-export class Slot {
-	id: string;
-	count: number;
-	data: object;
-
-	constructor(id: string, count: number, data: object) {
-		this.id = id
-		this.count = count
-		this.data = data
-
-	}
-}
+export type InventoryTypes = PlayerInventory | Inventory
 
 export class Inventory {
 	main: object;
@@ -37,7 +24,7 @@ export class Inventory {
 		this.maxslot = size * 9-1;
 		if (data != undefined && data != null) {
 			for (const prop in data.main) {
-				if (data.main[prop] != null && data.main[prop] != {}) this.main[prop] = new Slot(data.main[prop].id, data.main[prop].count, data.main[prop].data)
+				if (data.main[prop] != null && data.main[prop] != {}) this.main[prop] = new ItemStack(data.main[prop].id, data.main[prop].count, data.main[prop].data)
 			}
 		}
 
@@ -50,12 +37,12 @@ export class Inventory {
 	}
 
 	add(item: string, count: number): boolean {
-		if (items[item] == undefined) return false;
+		if (itemRegistry[item] == undefined) return false;
 
 		this.lastUpdate = Date.now();
 		let invItems = Object.entries(this.main);
 		for (let [slot, data] of invItems) {
-			if (data != null && data.id == item && (data.count+count) < items[item].stack + 1) {
+			if (data != null && data.id == item && (data.count+count) < itemRegistry[item].stack + 1) {
 				this.main[slot].count = count+data.count;
 				this.event.emit('slot-update', {data: this.main[slot], slot: slot, type: 'main'});
 				return true;
@@ -63,7 +50,7 @@ export class Inventory {
 		}
 		for (let [slot, data] of invItems) {
 			if (data == null) {
-				this.main[slot] = new Slot(item, count, data);
+				this.main[slot] = new ItemStack(item, count, data);
 				this.event.emit('slot-update', {data: this.main[slot], slot: slot, type: 'main'});
 				return true;
 			}
@@ -72,7 +59,7 @@ export class Inventory {
 	}
 
 	remove(item: string, count: number): boolean {
-		if (items[item] == undefined) return false;
+		if (itemRegistry[item] == undefined) return false;
 
 		this.lastUpdate = Date.now();
 		let allItems = Object.entries(this.main);
@@ -90,7 +77,7 @@ export class Inventory {
 			if (data != null && data.id == item) {
 				let newcount = data.count-count;
 				count = count - data.count;
-				if (newcount > 0) this.main[slot] = new Slot(item, newcount, data.data);
+				if (newcount > 0) this.main[slot] = new ItemStack(item, newcount, data.data);
 				else this.main[slot] = null;
 				this.event.emit('slot-update', {data: this.main[slot], slot: slot, type: 'main'});
 			}
@@ -101,8 +88,8 @@ export class Inventory {
 	set(slot: number, item: string | null, count: number | null, data: object | null): void {
 		this.lastUpdate = Date.now();
 
-		if (items[item] == undefined || item == null || count == null || data == null) this.main[slot] = null;
-		else this.main[slot] = new Slot(item, count, data);
+		if (itemRegistry[item] == undefined || item == null || count == null || data == null) this.main[slot] = null;
+		else this.main[slot] = new ItemStack(item, count, data);
 
 		this.event.emit('slot-update', {data: this.main[slot], slot: slot, type: 'main'});
 
@@ -112,7 +99,7 @@ export class Inventory {
 		let items = Object.entries(this.main);
 	
 		for (let x = 0; x < items.length; x++) {
-			let item2: Slot = this.main[x];
+			let item2: ItemStack = this.main[x];
 			if (item2.id == item && item2.count >= count) return x;
 		}
 
@@ -125,7 +112,7 @@ export class Inventory {
 
 export class PlayerInventory extends Inventory {
 	selected: number;
-	tempslot: Slot | null;
+	tempslot: IItemStack | null;
 	updated: boolean;
 
 	constructor(size: number, data: InventoryObject) {
@@ -170,7 +157,7 @@ export class PlayerInventory extends Inventory {
 
 	}
 
-	action_left(inv: InventoryType, x: number): void {
+	action_left(inv: InventoryTypes, x: number): void {
 		this.lastUpdate = Date.now();
 		this.updated = false;
 		if (x >= 0) { // Normal slots
@@ -179,16 +166,16 @@ export class PlayerInventory extends Inventory {
 			
 			// If tempslot and target slot have the same itemtype
 			if (tempY.id == tempX.id &&  tempY.id != undefined ) {
-				if ((tempX.count + tempY.count) <= items[tempX.id].stack ) {
+				if ((tempX.count + tempY.count) <= itemRegistry[tempX.id].stack ) {
 					let tempZ = {...tempX};
 					tempZ.count = tempX.count + tempY.count;
 					inv.main[x] = tempZ;
 					this.tempslot = null;
-				} else if ((tempX.count + tempY.count) > items[tempX.id].stack ) { 
+				} else if ((tempX.count + tempY.count) > itemRegistry[tempX.id].stack ) { 
 					let tempZ = {...tempX};
 					let tempW = {...tempY};
-					tempZ.count = items[tempX.id].stack;
-					tempW.count = tempX.count + tempY.count - items[tempX.id].stack;
+					tempZ.count = itemRegistry[tempX.id].stack;
+					tempW.count = tempX.count + tempY.count - itemRegistry[tempX.id].stack;
 					inv.main[x] = tempZ;
 					this.tempslot = tempW;
 				}
@@ -205,7 +192,7 @@ export class PlayerInventory extends Inventory {
 		}
 	}
 
-	action_right(inv: InventoryType, x: number): void {
+	action_right(inv: InventoryTypes, x: number): void {
 		this.lastUpdate = Date.now();
 		this.updated = false;
 		// Normal slots
@@ -228,7 +215,7 @@ export class PlayerInventory extends Inventory {
 				if (tempW.count <= 0) tempW = null;
 				inv.main[x] = {...tempZ};
 				this.tempslot = {...tempW};
-			} else if (tempX.id == tempY.id && tempX.count+1 <= items[tempX.id].stack) { // The same itemtype
+			} else if (tempX.id == tempY.id && tempX.count+1 <= itemRegistry[tempX.id].stack) { // The same itemtype
 				let tempZ = {...tempX};
 				let tempW = {...tempY};
 				tempZ.count = tempZ.count + 1;

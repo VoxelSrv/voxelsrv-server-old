@@ -3,9 +3,7 @@ const vec = require('gl-vec3')
 const event = new EventEmiter()
 const entity = require('./entity')
 const worldManager = require('./worlds')
-const items = require('./items').registry
-const blockIDs = require('./blocks').getIDs()
-const blocks = require('./blocks').get()
+const registry = require('./registry')
 const compressChunk = require("voxel-crunch")
 const commands = require('./commands')
 const hook = require('./hooks')
@@ -31,6 +29,8 @@ function sendChat(id, msg) {
 
 	}
 	else if (players[id] != undefined) players[id].send(msg)
+
+	event.emit('chat-message', id, msg)
 }
 
 
@@ -180,8 +180,8 @@ class Player {
 			var block = worldManager.get(this.world).getBlock(action.data)
 			var pos = this.entity.data.position
 
-			if (vec.dist(pos, action.data) < 14 && block != undefined && block != 0 && blocks[block].data.unbreakable != true) {
-				//player.inv.add(id, blocks[block].data.drop, 1, {})
+			if (vec.dist(pos, action.data) < 14 && block != undefined && block.unbreakable != true) {
+
 				worldManager.get(this.world).setBlock(data, 0)
 				prothelper.broadcast('worldBlockUpdate', {
 					id: 0,
@@ -201,15 +201,15 @@ class Player {
 
 
 		var inv = this.inventory
-		var item = inv.main[inv.selected]
+		var itemstack = inv.main[inv.selected]
 		var pos = this.entity.data.position
 
-		if (vec.dist(pos, action.data) < 14 && item != undefined && item.id != undefined) {
-			if (items[item.id].type == 'block' || items[item.id].type == 'block-flat') {
+		if (vec.dist(pos, action.data) < 14 && itemstack != undefined && itemstack.id != undefined) {
+			if (itemstack != null && itemstack.item.block != undefined) {
 				//player.inv.remove(id, item.id, 1, {})
-				worldManager.get(this.world).setBlock(action.data, blockIDs[item.id])
+				worldManager.get(this.world).setBlock(action.data, itemstack.item.block.getRawID() )
 				prothelper.broadcast('worldBlockUpdate', {
-					id: blockIDs[item.id],
+					id: registry.blockPalette[ itemstack.item.block.id ],
 					x: action.data[0],
 					y: action.data[1],
 					z: action.data[2]
