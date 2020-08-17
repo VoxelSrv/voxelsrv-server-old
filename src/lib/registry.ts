@@ -1,25 +1,28 @@
-import * as fs from 'fs'
+import * as fs from 'fs';
+import { EventEmitter } from 'events';
 
-export const itemRegistry: { [index: string]: any} = {};
-export const blockRegistry: { [index: string]: any} = {};
-export let blockPalette: { [index: string]: number} = {};
-export const blockIDmap: { [index: number]: string} = {};
+export const itemRegistry: { [index: string]: any } = {};
+export const blockRegistry: { [index: string]: any } = {};
+export let blockPalette: { [index: string]: number } = {};
+export const blockIDmap: { [index: number]: string } = {};
 
-export const blockRegistryObject: { [index: string]: object} = {};
-export const itemRegistryObject: { [index: string]: object} = {};
+export const blockRegistryObject: { [index: string]: object } = {};
+export const itemRegistryObject: { [index: string]: object } = {};
 
-
-const freeIDs: number[] = []
+export const event = new EventEmitter();
+const freeIDs: number[] = [];
 let lastID = 0;
 
 let finalized: boolean = false;
 
-
 export function loadPalette(): void {
-	if ( fs.existsSync('./worlds/blocks.json') ) {
+	if (!finalized && fs.existsSync('./worlds/blocks.json')) {
+		event.emit('palette-preload');
 		try {
 			const file = fs.readFileSync('./worlds/blocks.json');
-			const json = JSON.parse( file.toString() );
+			const json = JSON.parse(file.toString());
+
+			event.emit('palette-loaded', json);
 
 			blockPalette = json;
 
@@ -27,57 +30,71 @@ export function loadPalette(): void {
 
 			if (usedIDs.length == 0) return;
 
-			lastID = usedIDs[ usedIDs.length - 1 ];
+			lastID = usedIDs[usedIDs.length - 1];
 
 			let x = 0;
 			for (let y = 0; y < usedIDs.length; y++) {
-				x = usedIDs[ y ];
+				x = usedIDs[y];
 				for (; x <= lastID; x++) {
-					if ( usedIDs[ y ] > x ) {
+					if (usedIDs[y] > x) {
 						freeIDs.push(x);
 					} else break;
 				}
 			}
 
-		} catch(e) {}
+			event.emit('palette-finished', blockPalette);
+		} catch (e) {
+			event.emit('palette-error', e);
+		}
 	}
 }
 
-
 export function addItem(item: Item): void {
-	if (!finalized) itemRegistry[ item.id ] = item;
+	if (!finalized) {
+		event.emit('item-predefine', item);
+		itemRegistry[item.id] = item;
+		event.emit('item-define', item);
+	}
 }
 
 export function addBlock(block: Block): void {
-	if (!finalized) blockRegistry[ block.id ] = block;
+	if (!finalized) {
+		event.emit('block-predefine', block);
+		blockRegistry[block.id] = block;
+		event.emit('block-define', block);
+	}
 }
 
 export function finalize(): void {
 	if (finalized) return;
 
+	event.emit('registry-prefinalize');
+
 	const items = Object.keys(itemRegistry);
 	const blocks = Object.keys(blockRegistry);
 
-	items.forEach( (name) => { 
-		itemRegistry[ name ].finalize();
-		itemRegistryObject[ name ] = itemRegistry[ name ].getObject();
+	items.forEach((name) => {
+		itemRegistry[name].finalize();
+		itemRegistryObject[name] = itemRegistry[name].getObject();
 	});
-	blocks.forEach( (name) => { 
+	blocks.forEach((name) => {
 		blockRegistry[name].finalize();
-		blockRegistryObject[ name ] = blockRegistry[ name ].getObject();
-	 });
+		blockRegistryObject[name] = blockRegistry[name].getObject();
+	});
 
 	finalized = true;
 
 	const list = Object.entries(blockPalette);
-	list.forEach( (x) => { blockIDmap[ x[1] ] = x[0] });
+	list.forEach((x) => {
+		blockIDmap[x[1]] = x[0];
+	});
 
-	fs.writeFile( './worlds/blocks.json', JSON.stringify( blockPalette ), function (err) {
-		if (err) console.error ('Cant save block palette! Reason: ' + err);
-	})
+	fs.writeFile('./worlds/blocks.json', JSON.stringify(blockPalette), function (err) {
+		if (err) console.error('Cant save block palette! Reason: ' + err);
+	});
 
+	event.emit('registry-finalize');
 }
-
 
 export interface IItemStack {
 	id: string;
@@ -105,7 +122,7 @@ export class ItemStack {
 		return {
 			id: this.id,
 			count: this.count,
-			data: this.data
+			data: this.data,
 		};
 	}
 }
@@ -129,12 +146,11 @@ export class Item {
 		this.name = name;
 		this.texture = texture;
 		this.stack = stack;
-		
 	}
 
 	getItemStack(count?: number): ItemStack {
-		const number = (count != undefined) ? count : 1;
-		return new ItemStack(this.id, number, {})
+		const number = count != undefined ? count : 1;
+		return new ItemStack(this.id, number, {});
 	}
 
 	getObject(): object {
@@ -143,19 +159,15 @@ export class Item {
 			name: this.name,
 			texture: this.texture,
 			stack: this.stack,
-			type: this.constructor.name
+			type: this.constructor.name,
 		};
 	}
 
 	finalize() {
 		if (!finalized) {
-		
 		}
 	}
 }
-
-
-
 
 export interface IBlock {
 	id: string;
@@ -175,8 +187,16 @@ export class Block {
 	miningtime: number;
 	tool: string;
 
-	constructor(id: string, type: number, texture: string | string[], options: object, hardness: number, miningtime: number, tool: string ) {
-		if ( blockPalette[ id ] != undefined ) this.rawid = blockPalette[ id ]
+	constructor(
+		id: string,
+		type: number,
+		texture: string | string[],
+		options: object,
+		hardness: number,
+		miningtime: number,
+		tool: string
+	) {
+		if (blockPalette[id] != undefined) this.rawid = blockPalette[id];
 
 		this.id = id;
 		this.texture = texture;
@@ -185,12 +205,11 @@ export class Block {
 		this.miningtime = miningtime;
 		this.tool = tool;
 		this.type = type;
-
 	}
 
 	getItemStack(count?: number): ItemStack {
-		const number = (count != undefined) ? count : 1;
-		return new ItemStack(this.id, number, {})
+		const number = count != undefined ? count : 1;
+		return new ItemStack(this.id, number, {});
 	}
 
 	getObject(): object {
@@ -203,13 +222,13 @@ export class Block {
 			miningtime: this.miningtime,
 			tool: this.tool,
 			type: this.type,
-			unbreakable: this.unbreakable
+			unbreakable: this.unbreakable,
 		};
 	}
 
 	getRawID(object: object): number {
 		return this.rawid;
-	} 
+	}
 
 	finalize(): void {
 		if (!finalized) {
@@ -217,24 +236,22 @@ export class Block {
 				if (freeIDs.length > 0) {
 					this.rawid = freeIDs[0];
 					freeIDs.shift();
-					blockPalette[ this.id ] = this.rawid
+					blockPalette[this.id] = this.rawid;
 				} else {
 					lastID++;
 					this.rawid = lastID;
-					blockPalette[ this.id ] = this.rawid
+					blockPalette[this.id] = this.rawid;
 				}
 			}
 		}
 	}
 }
 
-
-
 export class ItemBlock extends Item {
 	block: any;
 	blockID: string;
 	flat: boolean;
-	constructor(id: string, name: string, texture: string | string[], stack: number, block: string, flat: boolean ) {
+	constructor(id: string, name: string, texture: string | string[], stack: number, block: string, flat: boolean) {
 		super(id, name, texture, stack);
 		this.blockID = block;
 		this.flat = flat;
@@ -248,13 +265,13 @@ export class ItemBlock extends Item {
 			stack: this.stack,
 			type: this.constructor.name,
 			block: this.blockID,
-			flat: this.flat
+			flat: this.flat,
 		};
 	}
 
 	finalize() {
 		if (!finalized) {
-			if ( blockRegistry[ this.blockID ] != undefined ) this.block = blockRegistry[ this.blockID ]
+			if (blockRegistry[this.blockID] != undefined) this.block = blockRegistry[this.blockID];
 		}
 	}
 }

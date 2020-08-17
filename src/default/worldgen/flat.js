@@ -1,4 +1,4 @@
-const block = require('../registry').blockPalette
+const block = require('../../lib/registry').blockPalette
 
 module.exports = class {
 	constructor(seed) {

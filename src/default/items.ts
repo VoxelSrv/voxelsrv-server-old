@@ -1,4 +1,4 @@
-import { addItem, Item, ItemBlock } from '../registry'
+import { addItem, Item, ItemBlock } from '../lib/registry'
 
 addItem( new ItemBlock('stone', 'Stone', 'block/stone', 64, 'stone', false) );
 addItem( new ItemBlock('dirt', 'Dirt', 'block/dirt', 64, 'dirt', false) );

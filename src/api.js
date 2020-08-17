@@ -1,15 +1,16 @@
 const EventEmitter = require('events')
 
-const commands = require('./commands')
-const console = require('./console')
-const entity = require('./entity')
-const hooks = require('./hooks')
-const inventory = require('./inventory')
-const player = require('./player')
-const protocol = require('./protocol')
-const prothelper = require('./protocol-helper')
-const worlds = require('./worlds')
-const registry = require('./registry')
+const commands = require('./lib/commands')
+const console = require('./lib/console')
+const entity = require('./lib/entity')
+const hooks = require('./lib/hooks')
+const inventory = require('./lib/inventory')
+const player = require('./lib/player')
+const protocol = require('./lib/protocol')
+const prothelper = require('./lib/protocol-helper')
+const worlds = require('./lib/worlds')
+const registry = require('./lib/registry')
+const values = require('./values')
 
 const eventChat = new EventEmitter()
 
@@ -72,7 +73,8 @@ const api = {
 		ItemStack: registry.ItemStack
 	},
 
-	worlds: worlds
+	worlds: worlds,
+	values: values
 }
 
 module.exports = api

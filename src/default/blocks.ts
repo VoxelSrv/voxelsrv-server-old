@@ -1,4 +1,4 @@
-import { addBlock, Block } from '../registry'
+import { addBlock, Block } from '../lib/registry'
 
 addBlock( new Block('stone', 0, ['block/stone'], {}, 0, 0, 'any') );
 addBlock( new Block('dirt', 0, ['block/dirt'], {}, 0, 0, 'any') ); 

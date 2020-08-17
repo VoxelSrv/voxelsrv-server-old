@@ -2,7 +2,7 @@
 const { makeNoise2D, makeNoise3D } = require('open-simplex-noise')
 const tree = require('./parts/tree')
 var hash = require('murmur-numbers')
-const blockIDs = require('../registry').blockPalette
+const blockIDs = require('../../lib/registry').blockPalette
 
 function getHighestBlock(chunk, x, z) {
 	for (var y = 120 - 1; y >= 0; y = y - 1) {
