@@ -92,8 +92,7 @@ setTimeout( () => {
 			fetch(`http://${ heartbeat }`)
 				.then(res => res.json())
 				.then(json => {
-					console.obj(json)
-					if (json[id] == undefined) {
+					if (json[ id.toString() ] == undefined) {
 						heartbeatPing()
 					}
 				})
