@@ -1,32 +1,34 @@
-const { chat, registry, players, commands} = require('../')
+module.exports = {
+	name: 'Give',
+	version: '0.0.1',
+	api: '0.2.0-dev'
+}
 
-function give(id, arg) {
-	var player = players.get(id)
+const { chat, registry, commands} = require('../')
+
+function give(executor, arg) {
 	if (registry.itemRegistry[ arg[0] ] != undefined) {
 		var amount = registry.itemRegistry[ arg[0] ].stack
 		if (arg[1] != undefined && 1 <= Math.round( arg[1] ) <= registry.itemRegistry[ arg[0] ].stack ) amount = Math.round(arg[1])
 		
-		player.inventory.add(arg[0], amount, {})
-		chat.send(id, 'Given ' + amount + ' of ' + arg[0] + ' to you')
+		executor.inventory.add(arg[0], amount, {})
+		executor.send('Given ' + amount + ' of ' + arg[0] + ' to you')
 	}
-	else chat.send(id, arg[0] + ' isn\'t defined item on this server!')
+	else executor.send(arg[0] + ' isn\'t defined item on this server!')
 }
 
-function giveAll(id, arg) {
-	var player = players.get(id)
-
+function giveAll(executor, arg) {
 	Object.keys( registry.itemRegistry ).forEach(function(item) {
-		player.inventory.add(item, registry.itemRegistry[ item ].stack , {})
+		executor.inventory.add(item, registry.itemRegistry[ item ].stack , {})
 	})
-	chat.send(id, 'Given all items to player')
+	executor.send('Given all items to player')
 }
 
-function clear(id, arg) {
-	var player = players.get(id)
-	for (let x = 0; x <= player.inventory.maxslot; x++) {
-		player.inventory.set(x, null, null, null)
+function clear(executor, arg) {
+	for (let x = 0; x <= executor.inventory.maxslot; x++) {
+		executor.inventory.set(x, null, null, null)
 	}
-	chat.send(id, 'Inventory cleared')
+	executor.send(id, 'Inventory cleared')
 }
 
 commands.register('/give', give, 'Gives item to a player')

@@ -1,12 +1,11 @@
 import { players, commands, console } from '../src/api';
 
+export const name = 'Typescript'
+export const version = '0.0.1'
+export const api = '0.2.0-dev'
 
-function testCommand(id: string, arg: Array<string>) {
-	if (id == '#console') console.log('It works!');
-	else {
-		let player = players.get(id);
-		player.send('It works!');
-	}
+function testCommand(executor: any, arg: Array<string>) {
+	executor.send('It works!');
 }
 
 

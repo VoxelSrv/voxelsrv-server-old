@@ -5,7 +5,6 @@ import * as commands from './commands';
 let running = true;
 
 const history = [];
-let input = null;
 
 const executor = {
 	name: '#console',
@@ -13,14 +12,14 @@ const executor = {
 };
 
 const x = async () => {
-	var input;
+	let input;
 	while (running) {
 		input = await term.inputField({
 			history: history,
 			autoComplete: [],
 			autoCompleteMenu: false,
 		}).promise;
-		if (input != '') { 
+		if (input != '') {
 			term('\n');
 			commands.execute(executor, '/' + input);
 		}

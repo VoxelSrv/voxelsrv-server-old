@@ -9,10 +9,14 @@ import * as prothelper from './lib/protocol-helper';
 import * as entity from './lib/entity';
 import * as worldManager from './lib/worlds';
 import startHeartbeat from './lib/heartbeat';
+import { loadPlugins } from './lib/plugins'
 
 import { serverVersion, serverProtocol, serverConfig, invalidNicknameRegex, setConfig } from './values';
 
 export function startServer(wss: any, config: object): void {
+
+	const event = new EventEmitter();
+
 	console.log(`^yStarting VoxelSRV server version^: ${serverVersion} ^y[Protocol:^: ${serverProtocol}^y]`);
 	['./plugins', './players', './worlds'].forEach((element) => {
 		if (!fs.existsSync(element)) {
@@ -27,6 +31,9 @@ export function startServer(wss: any, config: object): void {
 	});
 
 	setConfig(config);
+	event.emit('config-update', config)
+
+	loadPlugins()
 
 	registry.loadPalette();
 
@@ -36,8 +43,8 @@ export function startServer(wss: any, config: object): void {
 	registry.event.emit('registry-define');
 	registry.finalize();
 
-	worldManager.addGenerator('normal', require('./default/worldgen/normal') )
-	worldManager.addGenerator('flat', require('./default/worldgen/flat') )
+	worldManager.addGenerator('normal', require('./default/worldgen/normal'));
+	worldManager.addGenerator('flat', require('./default/worldgen/flat'));
 
 	if (worldManager.exist('default') == false)
 		worldManager.create('default', serverConfig.world.seed, serverConfig.world.generator);
@@ -51,7 +58,6 @@ export function startServer(wss: any, config: object): void {
 	require('./lib/protocol-helper').setWS(wss);
 
 	console.log('^yServer started on port: ^:' + serverConfig.port);
-
 
 	// v Move it somewhere else
 

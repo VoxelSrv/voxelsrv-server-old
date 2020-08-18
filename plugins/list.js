@@ -1,8 +1,13 @@
-const { chat, players, commands } = require('../src/api')
+module.exports = {
+	name: 'PlayerList',
+	version: '0.0.1',
+	api: '0.2.0-dev'
+}
 
+const { players, commands } = require('../src/api')
 
-async function list(id, arg) {
-	chat.send(id, 'Player\s online:')
+async function list(executor, arg) {
+	executor.send('Player\s online:')
 	var list = '`'
 	var playerList = Object.values( players.getAll() )
 	console.log(playerList)
@@ -14,7 +19,7 @@ async function list(id, arg) {
 
 	if (x == playerList.length-1) list = list + playerList[x].nickname
 	
-	chat.send(id, list + '`')
+	executor.send(id, list + '`')
 
 }
 

@@ -1,29 +1,33 @@
-const { chat, players, commands } = require('../src/api')
+module.exports = {
+	name: 'Teleport',
+	version: '0.0.1',
+	api: '0.2.0-dev'
+}
+
+const { players, commands } = require('../src/api')
 
 const vec = require('gl-vec3')
 
 
-
-function teleport(id, arg) {
-	var player = players.get(id)
+function teleport(executor, arg) {
 	if (arg.length == 1) {
 		var plID = Object.values ( players.getAll() )
 		for (var x = 0; x < plID.length; x++) {
 			if (arg[0].toLowerCase() == plID[x].nickname.toLowerCase() ) {
-				player.teleport(plID[x].entity.data.position, plID[x].entity.world)
-				chat.send(id, 'Teleported to player ' + plID[x].nickname )
+				executor.teleport(plID[x].entity.data.position, plID[x].entity.world)
+				executor.send('Teleported to player ' + plID[x].nickname )
 				return
 			}
 		}
 
-		chat.send(id, 'There is nobody online with this nickname')
+		executor.send('There is nobody online with this nickname')
 	}
 	else if (arg.length == 3 ) {
-		player.teleport([ parseFloat(arg[0]), parseFloat(arg[1]), parseFloat(arg[2]) ], player.entity.world)
-		chat.send(id, 'Teleported to player ' + JSON.stringify(arg) )
+		executor.teleport([ parseFloat(arg[0]), parseFloat(arg[1]), parseFloat(arg[2]) ], executor.entity.world)
+		executor.send('Teleported to player ' + JSON.stringify(arg) )
 	}
 
-	else chat.send(id, 'Usage: */tp [playername]* or */tp [x] [y] [z]*')
+	else executor.send('Usage: */tp [playername]* or */tp [x] [y] [z]*')
 
 }
 

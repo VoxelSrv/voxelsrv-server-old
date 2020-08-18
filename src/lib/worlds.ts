@@ -99,7 +99,7 @@ export class World {
 	constructor(name: string, seed: number, generator: string, ver: number) {
 		this.name = name;
 		this.seed = seed != 0 ? seed : getRandomSeed();
-		this.generator = new worldgen[ generator ](this.seed);
+		this.generator = new worldgen[generator](this.seed);
 		if (ver == null) this.version = 1;
 		else this.version = ver;
 		this.chunks = {};
@@ -287,5 +287,5 @@ export function getAll() {
 }
 export const toChunk = globalToChunk;
 export function addGenerator(name: string, gen: any) {
-	worldgen[ name ] = gen;
+	worldgen[name] = gen;
 }
