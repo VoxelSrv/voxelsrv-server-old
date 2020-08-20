@@ -12,13 +12,12 @@ const console = require('./console');
 const protocol = require('./protocol');
 const prothelper = require('./protocol-helper');
 
-const { PlayerInventory } = require('./inventory');
+const { PlayerInventory, ArmorInventory } = require('./inventory');
 
 let cfg = require('../values').serverConfig;
 
 var players = {};
 var chunksToSend = [];
-
 
 function sendChat(id, msg) {
 	if (id == '#console') console.log(msg);
@@ -82,6 +81,7 @@ class Player {
 					position: cfg.world.spawn,
 					rotation: 0,
 					hitbox: [0.55, 1.9, 0.55],
+					armor: new ArmorInventory(),
 				},
 				'default'
 			);
@@ -89,6 +89,7 @@ class Player {
 			this.world = 'default';
 
 			this.inventory = new PlayerInventory(10);
+			this.hookInventory = null;
 		} else {
 			this.entity = entity.recreate(
 				data.entity.id,
@@ -103,6 +104,7 @@ class Player {
 					position: data.entity.data.position,
 					rotation: data.entity.data.rotation,
 					hitbox: [0.55, 1.9, 0.55],
+					armor: new ArmorInventory(data.entity.data.armor)
 				},
 				data.world
 			);
@@ -121,7 +123,7 @@ class Player {
 			this.sendPacket('playerSlotUpdate', {
 				slot: parseInt(data.slot),
 				data: JSON.stringify(data.data),
-				type: data.type,
+				type: data.type
 			});
 		});
 	}
@@ -203,7 +205,7 @@ class Player {
 		if (r == 1) return;
 
 		var inv = this.inventory;
-		var itemstack = inv.main[inv.selected];
+		var itemstack = inv.items[inv.selected];
 		var pos = this.entity.data.position;
 
 		if (vec.dist(pos, action.data) < 14 && itemstack != undefined && itemstack.id != undefined) {
@@ -221,14 +223,31 @@ class Player {
 	}
 
 	action_invclick(data) {
-		if (data.inventory == undefined) data.inventory = this.inventory;
+		if (data.inventory == undefined) data.inventory = 'main';
 		var action = { id: this.id, data: data };
 		var r = hook.execute('player-inventoryclick', action);
 		if (r == 1) return;
 
+		let inventory;
+		let type = 'main';
+		switch (action.data.inventory) {
+			case 'main':
+				inventory = this.inventory;
+				type = 'main';
+				break;
+			case 'hook':
+				inventory = (this.hookInventory != null) ? this.hookInventory : this.inventory;
+				type = 'hook';
+				break;
+			case 'armor':
+				inventory = this.entity.data.armor;
+				type = 'armor';
+				break;
+		}
+
 		if (-2 < action.data.slot < 35) {
-			if (action.data.type == 'left') this.inventory.action_left(action.data.inventory, action.data.slot);
-			else if (action.data.type == 'right') this.inventory.action_right(action.data.inventory, action.data.slot);
+			if (action.data.type == 'left') this.inventory.action_left(inventory, action.data.slot, type);
+			else if (action.data.type == 'right') this.inventory.action_right(inventory, action.data.slot, type);
 			else if (action.data.type == 'switch') this.inventory.action_switch(action.data.slot, action.data.slot2);
 			else if (-1 < action.data.slot < 9 && action.data.type == 'select') this.inventory.select(action.data.slot);
 		}
@@ -318,8 +337,10 @@ function sendChunkToPlayer(id, cid) {
 					chunk.keepAlive();
 					players[id].sendPacket('worldChunk', {
 						x: cid[0],
+						y: 0,
 						z: cid[1],
-						data: compressChunk.encode(chunk.data.data),
+						data: chunk.data.data,
+						type: true,
 					});
 				}
 			});

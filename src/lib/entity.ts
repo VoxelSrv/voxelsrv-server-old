@@ -1,6 +1,7 @@
 import * as worldManager from './worlds';
 import * as prothelper from './protocol-helper';
 import * as types from './types';
+import { ArmorInventory } from './inventory'
 
 import { v4 as uuid } from 'uuid';
 
@@ -39,6 +40,7 @@ export interface EntityData {
 	nametag: boolean;
 	type: string;
 	hitbox: types.XYZ;
+	armor?: ArmorInventory
 }
 
 export class Entity {
@@ -64,11 +66,7 @@ export class Entity {
 	}
 
 	getObject(): { id: string; data: EntityData; chunk: Array<number> } {
-		return {
-			id: this.id,
-			data: this.data,
-			chunk: this.chunk,
-		};
+		return {...this};
 	}
 
 	teleport(pos: types.XYZ, eworld: string): void {
@@ -112,10 +110,10 @@ export class Entity {
 			let id = this.id;
 			prothelper.broadcast('entityRemove', { uuid: this.id });
 
-			if (this.data.type != 'player') {
+			setTimeout(() => {
 				let world = worldManager.get(this.world);
 				if (world.entities[id] != undefined) delete world.entities[id];
-			}
+			}, 10);
 		} catch (e) {
 			console.log("Server tried to remove entity, but it didn't work! Error: ", e);
 		}

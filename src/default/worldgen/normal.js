@@ -5,7 +5,7 @@ var hash = require('murmur-numbers')
 const blockIDs = require('../../lib/registry').blockPalette
 
 function getHighestBlock(chunk, x, z) {
-	for (var y = 120 - 1; y >= 0; y = y - 1) {
+	for (var y = 256 - 1; y >= 0; y = y - 1) {
 		var val = chunk.get(x, y, z)
 		if (val != 0) return {level: y, block: val}
 	}
@@ -26,8 +26,8 @@ module.exports = class {
 
 		this.biomeSpacing = 100 // Size of biomes
 
-		this.chunkWitdh = 24
-		this.chunkHeight = 120
+		this.chunkWitdh = 32
+		this.chunkHeight = 256
 		this.waterLevel = 40
 	}
 
@@ -62,7 +62,7 @@ module.exports = class {
 
 		for (var x = 0; x < this.chunkWitdh; x++) {
 			for (var z = 0; z < this.chunkWitdh; z++) {
-				for (var y = 0; y < this.chunkHeight; y++) {
+				for (var y = 0; y < 150; y++) {
 					var block = this.getBlock(x+xoff, y, z+zoff)
 					var biome = 'plants'
 					if (block != 0) {

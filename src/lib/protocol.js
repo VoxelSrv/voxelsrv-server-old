@@ -4,8 +4,8 @@ const EventEmitter = require('events')
 const eventServer = new EventEmitter()
 const eventClient = new EventEmitter()
 
-const serverDesc = require('../protocol/server.json')
-const clientDesc = require('../protocol/client.json')
+const serverDesc = require('voxelsrv-protocol/json/server.json')
+const clientDesc = require('voxelsrv-protocol/json/client.json')
 
 const server = protobuf.Root.fromJSON(serverDesc)
 const client = protobuf.Root.fromJSON(clientDesc)

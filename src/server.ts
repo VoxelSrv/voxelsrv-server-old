@@ -140,7 +140,17 @@ export function startServer(wss: any, config: object): void {
 					inventory: JSON.stringify(player.inventory),
 					blocksDef: JSON.stringify(registry.blockRegistryObject),
 					itemsDef: JSON.stringify(registry.itemRegistryObject),
+					armor: JSON.stringify(player.entity.data.armor),
 				});
+
+				player.entity.data.armor.set(0, 'stone', 9)
+				player.entity.data.armor.set(1, 'cobblestone', 15)
+				player.entity.data.armor.set(2, 'white_wool', 18)
+				player.entity.data.armor.set(3, 'glass', 100)
+
+
+
+
 				connections[id] = socket;
 
 				send('playerEntity', { uuid: player.entity.id });

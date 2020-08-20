@@ -7,8 +7,8 @@ import { Block, blockIDmap, blockPalette, blockRegistry } from './registry';
 
 import ndarray = require('ndarray');
 
-const chunkWitdh = 24;
-const chunkHeight = 120;
+const chunkWitdh = 32;
+const chunkHeight = 256;
 
 const lastChunk = 5000;
 
@@ -64,15 +64,15 @@ export function validateID(id: number[]): boolean {
 }
 
 export function globalToChunk(pos: types.XYZ): { id: types.XZ; pos: types.XYZ } {
-	const xc = Math.floor(pos[0] / 24);
-	const zc = Math.floor(pos[2] / 24);
+	const xc = Math.floor(pos[0] / chunkWitdh);
+	const zc = Math.floor(pos[2] / chunkWitdh);
 
-	let xl = pos[0] % 24;
+	let xl = pos[0] % chunkWitdh;
 	let yl = pos[1];
-	let zl = pos[2] % 24;
+	let zl = pos[2] % chunkWitdh;
 
-	if (xl < 0) xl = xl + 24;
-	if (zl < 0) zl = zl + 24;
+	if (xl < 0) xl = xl + chunkWitdh;
+	if (zl < 0) zl = zl + chunkWitdh;
 
 	return {
 		id: [xc, zc],
@@ -206,8 +206,8 @@ export class World {
 		let meta = null;
 		if (exist.chunk) {
 			const data = fs.readFileSync(this.chunkFolder + '/' + idS + '.chk');
-			const array = crunch.decode([...data], new Uint16Array(24 * 120 * 24));
-			chunk = new ndarray(array, [24, 120, 24]);
+			const array = crunch.decode([...data], new Uint16Array(chunkWitdh * chunkHeight * chunkWitdh));
+			chunk = new ndarray(array, [chunkWitdh, chunkHeight, chunkWitdh]);
 		}
 		if (exist.metadata) {
 			let data = fs.readFileSync(this.chunkFolder + '/' + idS + '.json');
