@@ -2,6 +2,7 @@ node_modules
 /worlds
 /players
 /config.json
+/plugins
 
 Thumbs.db
 ehthumbs.db

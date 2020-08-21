@@ -127,6 +127,12 @@ export class ItemStack {
 	}
 }
 
+/*
+ *
+ * Items
+ *
+ */
+
 export interface IItem {
 	id: string;
 	name: string;
@@ -169,6 +175,115 @@ export class Item {
 	}
 }
 
+export class ItemBlock extends Item {
+	block: any;
+	blockID: string;
+	flat: boolean;
+	constructor(id: string, name: string, texture: string | string[], stack: number, block: string, flat: boolean) {
+		super(id, name, texture, stack);
+		this.blockID = block;
+		this.flat = flat;
+	}
+
+	getObject(): object {
+		return {
+			id: this.id,
+			name: this.name,
+			texture: this.texture,
+			stack: this.stack,
+			type: this.constructor.name,
+			block: this.blockID,
+			flat: this.flat,
+		};
+	}
+
+	finalize() {
+		if (!finalized) {
+			if (blockRegistry[this.blockID] != undefined) this.block = blockRegistry[this.blockID];
+		}
+	}
+}
+
+export class ItemTool extends Item {
+	type: string;
+	durability: number;
+	power: number;
+	speed: number;
+
+	constructor(id: string, name: string, texture: string, type: string, durability: number, power: number, speed: number) {
+		super(id, name, texture, 1);
+		this.type = type;
+		this.durability = durability;
+	}
+
+	getObject(): object {
+		return {
+			id: this.id,
+			name: this.name,
+			texture: this.texture,
+			stack: this.stack,
+			type: this.constructor.name,
+			toolType: this.type,
+			durability: this.durability,
+		};
+	}
+
+	canMine(b: Block | string) {
+		let block: Block;
+		if (typeof b == 'string') {
+			if (blockRegistry[b] != undefined) block = blockRegistry[b];
+			else return false;
+		}
+
+		if (block.unbreakable) return false;
+
+		let tool: boolean;
+		let power: boolean;
+
+		if (Array.isArray(block.tool)) tool = block.tool.includes(this.type);
+		else if (block.tool == this.type) tool = true;
+
+		if (block.hardness <= this.power) power = true;
+		else power = false;
+
+		return tool && power;
+	}
+}
+
+export class ItemArmor extends Item {
+	type: string;
+	durability: number;
+	reduction: number;
+
+	constructor(id: string, name: string, texture: string, type: string, durability: number, reduction: number) {
+		super(id, name, texture, 1);
+		this.type = type;
+		this.durability = durability;
+	}
+
+	getReducedDamage(x: number): number {
+		return x - (x * this.reduction) / 100;
+	}
+
+	getObject(): object {
+		return {
+			id: this.id,
+			name: this.name,
+			texture: this.texture,
+			stack: this.stack,
+			type: this.constructor.name,
+			armorType: this.type,
+			durability: this.durability,
+		};
+	}
+}
+
+/*
+ *
+ * Blocks
+ *
+ */
+
 export interface IBlock {
 	id: string;
 	name: string;
@@ -185,17 +300,9 @@ export class Block {
 	hardness: number;
 	unbreakable: boolean;
 	miningtime: number;
-	tool: string;
+	tool: string | string[];
 
-	constructor(
-		id: string,
-		type: number,
-		texture: string | string[],
-		options: object,
-		hardness: number,
-		miningtime: number,
-		tool: string
-	) {
+	constructor(id: string, type: number, texture: string | string[], options: object, hardness: number, miningtime: number, tool: string | string[]) {
 		if (blockPalette[id] != undefined) this.rawid = blockPalette[id];
 
 		this.id = id;
@@ -243,35 +350,6 @@ export class Block {
 					blockPalette[this.id] = this.rawid;
 				}
 			}
-		}
-	}
-}
-
-export class ItemBlock extends Item {
-	block: any;
-	blockID: string;
-	flat: boolean;
-	constructor(id: string, name: string, texture: string | string[], stack: number, block: string, flat: boolean) {
-		super(id, name, texture, stack);
-		this.blockID = block;
-		this.flat = flat;
-	}
-
-	getObject(): object {
-		return {
-			id: this.id,
-			name: this.name,
-			texture: this.texture,
-			stack: this.stack,
-			type: this.constructor.name,
-			block: this.blockID,
-			flat: this.flat,
-		};
-	}
-
-	finalize() {
-		if (!finalized) {
-			if (blockRegistry[this.blockID] != undefined) this.block = blockRegistry[this.blockID];
 		}
 	}
 }

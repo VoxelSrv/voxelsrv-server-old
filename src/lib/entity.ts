@@ -1,6 +1,6 @@
 import * as worldManager from './worlds';
 import * as prothelper from './protocol-helper';
-import * as types from './types';
+import * as types from '../types';
 import { ArmorInventory } from './inventory'
 
 import { v4 as uuid } from 'uuid';

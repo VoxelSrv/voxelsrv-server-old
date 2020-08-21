@@ -1,7 +1,25 @@
+import * as types from './types';
+
 export const serverVersion = '0.2.0-dev';
 export const serverProtocol = 2;
 
-export const serverDefaultConfig = {
+export interface IServerConfig {
+	port: number;
+	address: string;
+	name: string;
+	motd: string;
+	public: boolean;
+	maxplayers: number;
+	world: {
+		seed: number;
+		border: number;
+		spawn: types.XYZ;
+		generator: string;
+	};
+	[index: string]: any;
+}
+
+export const serverDefaultConfig: IServerConfig = {
 	port: 3000,
 	address: '0.0.0.0',
 	name: 'Server',
@@ -16,7 +34,7 @@ export const serverDefaultConfig = {
 	},
 };
 
-export let serverConfig = serverDefaultConfig;
+export let serverConfig: IServerConfig = serverDefaultConfig;
 
 export function setConfig(config: object) {
 	serverConfig = { ...serverDefaultConfig, ...config };

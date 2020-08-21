@@ -1,4 +1,6 @@
 import { serverConfig } from '../values';
+import fetch from 'node-fetch';
+import * as console from './console';
 
 const heartbeat = 'pb4.eu:9001';
 let id = 0;

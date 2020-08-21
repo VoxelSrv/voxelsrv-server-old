@@ -297,7 +297,7 @@ export class PlayerInventory extends Inventory {
 }
 
 export class ArmorInventory extends Inventory {
-	constructor(data: InventoryObject) {
+	constructor(data: InventoryObject | null) {
 		super( 0.55 , data);
 		
 	}

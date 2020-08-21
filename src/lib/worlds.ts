@@ -1,7 +1,7 @@
 import * as fs from 'fs';
 
 import * as console from './console';
-import * as types from './types';
+import * as types from '../types';
 import * as crunch from 'voxel-crunch';
 import { Block, blockIDmap, blockPalette, blockRegistry } from './registry';
 
@@ -154,8 +154,7 @@ export class World {
 					chunkWitdh,
 				]);
 
-				const chunk = this.generator.generateChunk(id, data);
-				this.chunks[idS] = new Chunk(id, chunk, { ...baseMetadata }, false);
+				this.chunks[idS] = new Chunk(id, await this.generator.generateChunk(id, data), { ...baseMetadata }, false);
 
 				return this.chunks[idS];
 			}
@@ -198,7 +197,7 @@ export class World {
 		});
 	}
 
-	readChunk(id: types.XZ): { chunk: Uint16Array; metadata: object } {
+	readChunk(id: types.XZ): { chunk: types.IView3duint16; metadata: object } {
 		const idS = id.toString();
 
 		const exist = this.existChunk(id);
@@ -264,12 +263,12 @@ export class World {
 
 export class Chunk {
 	id: types.XZ;
-	data: Uint16Array;
+	data: types.IView3duint16;
 	metadata: object;
 	lastUse: number;
 	forceload: boolean;
 
-	constructor(id: types.XZ, blockdata: Uint16Array, metadata: object, bool: boolean) {
+	constructor(id: types.XZ, blockdata: types.IView3duint16, metadata: object, bool: boolean) {
 		this.id = id;
 		this.data = blockdata;
 		this.metadata = metadata;

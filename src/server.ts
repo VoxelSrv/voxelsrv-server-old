@@ -11,6 +11,10 @@ import * as worldManager from './lib/worlds';
 import startHeartbeat from './lib/heartbeat';
 import { loadPlugins } from './lib/plugins'
 
+import normalGenerator from './default/worldgen/normal';
+import flatGenerator from './default/worldgen/flat';
+
+
 import { serverVersion, serverProtocol, serverConfig, invalidNicknameRegex, setConfig } from './values';
 
 export function startServer(wss: any, config: object): void {
@@ -43,8 +47,8 @@ export function startServer(wss: any, config: object): void {
 	registry.event.emit('registry-define');
 	registry.finalize();
 
-	worldManager.addGenerator('normal', require('./default/worldgen/normal'));
-	worldManager.addGenerator('flat', require('./default/worldgen/flat'));
+	worldManager.addGenerator('normal', normalGenerator);
+	worldManager.addGenerator('flat', flatGenerator);
 
 	if (worldManager.exist('default') == false)
 		worldManager.create('default', serverConfig.world.seed, serverConfig.world.generator);
@@ -69,7 +73,7 @@ export function startServer(wss: any, config: object): void {
 		else if (id == '#all') {
 			console.chat(msg);
 			prothelper.broadcast('chatMessage', { message: msg });
-		} else players.get('id').send(msg);
+		} else players.get(id).send(msg);
 	}
 
 	function verifyLogin(data) {
@@ -100,7 +104,7 @@ export function startServer(wss: any, config: object): void {
 
 		socket.on('message', (m) => {
 			var packet = protocol.parseToObject('client', new Uint8Array(m));
-			packetEvent.emit(packet.type, packet.data);
+			if (packet != undefined) packetEvent.emit(packet.type, packet.data);
 		});
 
 		let loginTimeout = true;
@@ -143,10 +147,10 @@ export function startServer(wss: any, config: object): void {
 					armor: JSON.stringify(player.entity.data.armor),
 				});
 
-				player.entity.data.armor.set(0, 'stone', 9)
-				player.entity.data.armor.set(1, 'cobblestone', 15)
-				player.entity.data.armor.set(2, 'white_wool', 18)
-				player.entity.data.armor.set(3, 'glass', 100)
+				player.entity.data.armor.set(0, 'stone', 9, null)
+				player.entity.data.armor.set(1, 'cobblestone', 15, null)
+				player.entity.data.armor.set(2, 'white_wool', 18, null)
+				player.entity.data.armor.set(3, 'glass', 100, null)
 
 
 
@@ -173,15 +177,15 @@ export function startServer(wss: any, config: object): void {
 					playerCount = playerCount - 1;
 				});
 				packetEvent.on('actionMessage', function (data) {
-					player.action_chatsend(data.message);
+					player.action_chatsend(data);
 				});
 
 				packetEvent.on('actionBlockBreak', function (data) {
-					player.action_blockbreak([data.x, data.y, data.z]);
+					player.action_blockbreak(data);
 				});
 
 				packetEvent.on('actionBlockPlace', function (data) {
-					player.action_blockplace([data.x, data.y, data.z]);
+					player.action_blockplace(data);
 				});
 
 				packetEvent.on('actionMove', function (data) {

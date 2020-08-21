@@ -3,7 +3,6 @@ const EventEmitter = require('events');
 const commands = require('./lib/commands');
 const console = require('./lib/console');
 const entity = require('./lib/entity');
-const hooks = require('./lib/hooks');
 const inventory = require('./lib/inventory');
 const player = require('./lib/player');
 const protocol = require('./lib/protocol');
@@ -32,7 +31,6 @@ player.event.on('chat-message', (id, msg) => {
 });
 
 const api = {
-	hooks: hooks,
 	players: {
 		get: player.get,
 		getAll: player.getAll,
