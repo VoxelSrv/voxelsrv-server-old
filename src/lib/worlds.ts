@@ -2,8 +2,10 @@ import * as fs from 'fs';
 
 import * as console from './console';
 import * as types from '../types';
-import * as crunch from 'voxel-crunch';
 import { Block, blockIDmap, blockPalette, blockRegistry } from './registry';
+import * as format from '../format/world';
+
+import * as pako from 'pako';
 
 import ndarray = require('ndarray');
 
@@ -16,7 +18,7 @@ const worlds: { [index: string]: World } = {};
 
 let worldgen = {};
 
-const baseMetadata = { gen: true, ver: 1 };
+const baseMetadata = { gen: true, ver: 2 };
 
 export function create(name: string, seed: number, generator: string): World | null {
 	if (exist(name) == false && worlds[name] == undefined) {
@@ -121,8 +123,7 @@ export class World {
 		this.chunkUnloadInterval = setInterval(async () => {
 			const chunklist = Object.keys(this.chunks);
 			chunklist.forEach((id) => {
-				if (Date.now() - this.chunks[id].lastUse >= 5000 && !!this.chunks[id].forceload)
-					this.unloadChunk(this.stringToID(id));
+				if (Date.now() - this.chunks[id].lastUse >= 5000 && !!this.chunks[id].forceload) this.unloadChunk(this.stringToID(id));
 			});
 		}, 1000);
 	}
@@ -137,36 +138,23 @@ export class World {
 		const idS = id.toString();
 		if (this.chunks[idS] != undefined) {
 			return this.chunks[idS];
-		} else if (this.existChunk(id).metadata) {
+		} else if (this.existChunk(id)) {
 			const data = this.readChunk(id);
 			this.chunks[idS] = new Chunk(id, data.chunk, data.metadata, false);
 			return this.chunks[idS];
 		}
 		if (bool) {
-			if (this.existChunk(id).chunk) {
-				const data = this.readChunk(id);
-				this.chunks[idS] = new Chunk(id, data.chunk, { ...baseMetadata }, false);
-				return this.chunks[idS];
-			} else {
-				const data = new ndarray(new Uint16Array(chunkWitdh * chunkHeight * chunkWitdh), [
-					chunkWitdh,
-					chunkHeight,
-					chunkWitdh,
-				]);
-
-				this.chunks[idS] = new Chunk(id, await this.generator.generateChunk(id, data), { ...baseMetadata }, false);
-
-				return this.chunks[idS];
-			}
+			const data = new ndarray(new Uint16Array(chunkWitdh * chunkHeight * chunkWitdh), [chunkWitdh, chunkHeight, chunkWitdh]);
+			this.chunks[idS] = new Chunk(id, await this.generator.generateChunk(id, data), { ...baseMetadata }, false);
+			return this.chunks[idS];
 		}
 	}
 
-	existChunk(id: types.XZ): { chunk: boolean; metadata: boolean } {
+	existChunk(id: types.XZ): boolean {
 		const idS = id.toString();
 
 		const chk = fs.existsSync(this.chunkFolder + '/' + idS + '.chk');
-		const meta = fs.existsSync(this.chunkFolder + '/' + idS + '.json');
-		return { chunk: chk, metadata: meta };
+		return chk;
 	}
 
 	saveAll(): void {
@@ -181,19 +169,22 @@ export class World {
 		});
 	}
 
-	saveChunk(id: types.XZ) {
+	async saveChunk(id: types.XZ) {
 		const idS = id.toString();
 
 		const chunk = this.chunks[idS];
 
-		const data = Buffer.from(crunch.encode(chunk.data.data));
+		if (chunk == undefined || chunk.metadata == undefined || chunk.data == undefined) return;
+		const message = format.chunk.create({
+			blocks: chunk.data.data,
+			version: chunk.metadata.ver,
+			generated: chunk.metadata.gen,
+		});
+		const buffer = format.chunk.encode(message).finish();
+		const data = pako.deflate(buffer);
 
 		fs.writeFile(this.chunkFolder + '/' + idS + '.chk', data, function (err) {
 			if (err) console.error('Cant save chunk ' + id + '! Reason: ' + err);
-		});
-
-		fs.writeFile(this.chunkFolder + '/' + idS + '.json', JSON.stringify(chunk.metadata), function (err) {
-			if (err) console.error('Cant save chunkdata ' + id + '! Reason: ' + err);
 		});
 	}
 
@@ -203,14 +194,12 @@ export class World {
 		const exist = this.existChunk(id);
 		let chunk = null;
 		let meta = null;
-		if (exist.chunk) {
+		if (exist) {
 			const data = fs.readFileSync(this.chunkFolder + '/' + idS + '.chk');
-			const array = crunch.decode([...data], new Uint16Array(chunkWitdh * chunkHeight * chunkWitdh));
-			chunk = new ndarray(array, [chunkWitdh, chunkHeight, chunkWitdh]);
-		}
-		if (exist.metadata) {
-			let data = fs.readFileSync(this.chunkFolder + '/' + idS + '.json');
-			meta = JSON.parse(data.toString());
+			const array = pako.inflate(data, new Uint16Array(chunkWitdh * chunkHeight * chunkWitdh));
+			const decoded = format.chunk.decode(array);
+
+			chunk = new ndarray(decoded.blocks, [chunkWitdh, chunkHeight, chunkWitdh]);
 		}
 		return { chunk: chunk, metadata: meta };
 	}
@@ -246,8 +235,7 @@ export class World {
 		else if (typeof block == 'string') id = blockPalette[block];
 		else id = block.rawid;
 
-		if (this.chunks[local.id.toString()] != undefined)
-			this.chunks[local.id.toString()].data.set(local.pos[0], local.pos[1], local.pos[2], block);
+		if (this.chunks[local.id.toString()] != undefined) this.chunks[local.id.toString()].data.set(local.pos[0], local.pos[1], local.pos[2], block);
 	}
 
 	unload() {

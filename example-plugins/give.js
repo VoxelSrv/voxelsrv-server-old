@@ -1,10 +1,10 @@
 module.exports = {
 	name: 'Give',
 	version: '0.0.1',
-	api: '0.2.0-dev'
+	supported: '>=0.2.0-alpha'
 }
 
-const { chat, registry, commands} = require('../')
+const { registry, commands} = require('../')
 
 function give(executor, arg) {
 	if (registry.itemRegistry[ arg[0] ] != undefined) {

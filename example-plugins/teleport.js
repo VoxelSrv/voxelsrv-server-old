@@ -1,10 +1,10 @@
 module.exports = {
 	name: 'Teleport',
 	version: '0.0.1',
-	api: '0.2.0-dev'
+	supported: '>=0.2.0-alpha'
 }
 
-const { players, commands } = require('../src/api')
+const { players, commands } = require('../')
 
 const vec = require('gl-vec3')
 

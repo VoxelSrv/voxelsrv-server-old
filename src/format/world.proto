@@ -1,0 +1,15 @@
+syntax = "proto3";
+
+
+message entity {
+	string uuid = 1;
+	string type = 2;
+	string data = 3;
+}
+
+message chunk {
+	uint32 version = 1;
+	bool generated = 2;
+	bytes blocks = 3;
+	map<string, entity> entities = 4;
+}

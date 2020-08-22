@@ -3,22 +3,29 @@ import { terminal as term } from 'terminal-kit';
 export function log(...args: any[]) {
 	for (var i = 0; i < arguments.length; i++) {
 		term('[' + hourNow() + '] ' + arguments[i]);
+		term('\n');
 	}
-	term('\n');
 }
 
 export function chat(...args: any[]) {
 	for (var i = 0; i < arguments.length; i++) {
 		term('[' + hourNow() + ' - ^yChat^:] ' + arguments[i]);
+		term('\n');
 	}
-	term('\n');
+}
+
+export function warn(...args: any[]) {
+	for (var i = 0; i < arguments.length; i++) {
+		term('[' + hourNow() + ' - ^RWarning^:] ^R' + arguments[i]);
+		term('\n');
+	}
 }
 
 export function error(...args: any[]) {
 	for (var i = 0; i < arguments.length; i++) {
 		term('[' + hourNow() + ' - ^rError!^:] ^r' + arguments[i]);
+		term('\n');
 	}
-	term('\n');
 }
 
 function hourNow(): string {

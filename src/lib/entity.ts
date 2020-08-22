@@ -1,14 +1,14 @@
 import * as worldManager from './worlds';
 import * as prothelper from './protocol-helper';
 import * as types from '../types';
-import { ArmorInventory } from './inventory'
+import { ArmorInventory } from './inventory';
 
 import { v4 as uuid } from 'uuid';
 
-export function create(data: EntityData, worldName: string, tick: Function | null) {
+export function create(type: string, data: EntityData, worldName: string, tick: Function | null) {
 	let id = uuid();
 
-	worldManager.get(worldName).entities[id] = new Entity(id, data, worldName, tick);
+	worldManager.get(worldName).entities[id] = new Entity(id, type, data, worldName, tick);
 
 	prothelper.broadcast('entityCreate', {
 		uuid: id,
@@ -18,8 +18,8 @@ export function create(data: EntityData, worldName: string, tick: Function | nul
 	return worldManager.get(worldName).entities[id];
 }
 
-export function recreate(id: string, data: EntityData, worldName: string, tick: Function | null) {
-	worldManager.get(worldName).entities[id] = new Entity(id, data, worldName, tick);
+export function recreate(id: string, type: string, data: EntityData, worldName: string, tick: Function | null) {
+	worldManager.get(worldName).entities[id] = new Entity(id, type, data, worldName, tick);
 
 	prothelper.broadcast('entityCreate', {
 		uuid: id,
@@ -38,9 +38,9 @@ export interface EntityData {
 	texture: string;
 	name: string;
 	nametag: boolean;
-	type: string;
 	hitbox: types.XYZ;
-	armor?: ArmorInventory
+	armor?: ArmorInventory;
+	[index: string]: any;
 }
 
 export class Entity {
@@ -49,8 +49,9 @@ export class Entity {
 	world: string;
 	chunk: types.XZ;
 	tick: Function | null;
+	type: string;
 
-	constructor(id: string, data: EntityData, world: string, tick: Function | null) {
+	constructor(id: string, type: string, data: EntityData, world: string, tick: Function | null) {
 		this.data = data;
 		if (data.position == undefined) {
 			this.data.position = [0, 0, 0];
@@ -58,6 +59,7 @@ export class Entity {
 		if (data.rotation == undefined) {
 			this.data.rotation = 0;
 		}
+		this.type = type;
 		this.id = id;
 		this.world = world;
 		this.chunk = worldManager.toChunk(this.data.position).id;
@@ -66,7 +68,7 @@ export class Entity {
 	}
 
 	getObject(): { id: string; data: EntityData; chunk: Array<number> } {
-		return {...this};
+		return { ...this };
 	}
 
 	teleport(pos: types.XYZ, eworld: string): void {

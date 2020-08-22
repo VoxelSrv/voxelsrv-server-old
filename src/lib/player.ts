@@ -43,7 +43,7 @@ export function read(id: string): object | null {
 		let r = null;
 		const name = id + '.json';
 		const data = fs.readFileSync('./players/' + name);
-		r = JSON.parse( data.toString() );
+		r = JSON.parse(data.toString());
 
 		return r;
 	} catch (e) {
@@ -68,7 +68,7 @@ export function get(id: string): Player | null {
 	else return null;
 }
 
-export function getAll(): { [index:string]: Player } {
+export function getAll(): { [index: string]: Player } {
 	return players;
 }
 
@@ -81,7 +81,7 @@ export class Player {
 	hookInventory: any;
 	socket: any;
 	packetRecived: EventEmitter;
-	chunks: types.anyobject
+	chunks: types.anyobject;
 
 	constructor(id, name, socket, packetEvent) {
 		this.id = id;
@@ -90,11 +90,10 @@ export class Player {
 		if (exist(this.id)) data = read(this.id);
 
 		if (data == null) {
-			this.entity = entity.create(
+			this.entity = entity.create('player',
 				{
 					name: name,
 					nametag: true,
-					type: 'player',
 					health: 20,
 					maxHealth: 20,
 					model: 'player',
@@ -114,11 +113,10 @@ export class Player {
 			this.hookInventory = null;
 		} else {
 			this.entity = entity.recreate(
-				data.entity.id,
+				data.entity.id, 'player',
 				{
 					name: data.entity.data.name,
 					nametag: data.entity.data.nametag,
-					type: 'player',
 					health: data.entity.data.health,
 					maxHealth: data.entity.data.maxhealth,
 					model: 'player',
@@ -206,7 +204,7 @@ export class Player {
 			if (data.cancel) return;
 		}
 
-		const blockpos: types.XYZ = [data.x, data.y, data.z]
+		const blockpos: types.XYZ = [data.x, data.y, data.z];
 		const block = worldManager.get(this.world).getBlock(blockpos, false);
 		const pos = this.entity.data.position;
 
@@ -283,7 +281,7 @@ export class Player {
 	action_chatsend(data) {
 		data.cancel = false;
 		for (let x = 0; x <= 5; x++) {
-			event.emit(`player-move-${x}`, this, data);
+			event.emit(`player-message-${x}`, this, data);
 			if (data.cancel) return;
 		}
 
@@ -298,7 +296,11 @@ export class Player {
 		data.cancel = false;
 		for (let x = 0; x <= 5; x++) {
 			event.emit(`player-move-${x}`, this, data);
-			if (data.cancel) return;
+			if (data.cancel) {
+				const apos = this.entity.data.position;
+				this.sendPacket('playerTeleport', { x: apos[0], y: apos[1], z: apos[2] });
+				return;
+			}
 		}
 
 		var pos = this.entity.data.position;
@@ -324,11 +326,12 @@ setInterval(async function () {
 			for (let x = 0 - w; x <= 0 + w; x++) {
 				for (let z = 0 - w; z <= 0 + w; z++) {
 					const tempid = [chunk[0] + x, chunk[1] + z];
-					if (loadedchunks[ tempid.toString() ] == undefined) {
+					if (loadedchunks[tempid.toString()] == undefined) {
 						players[id].chunks[tempid] = true;
 						chunksToSend.push([id, tempid]);
 					}
-					if (worldManager.get(players[id].world).chunks[tempid.toString()] != undefined) worldManager.get(players[id].world).chunks[tempid.toString()].keepAlive();
+					if (worldManager.get(players[id].world).chunks[tempid.toString()] != undefined)
+						worldManager.get(players[id].world).chunks[tempid.toString()].keepAlive();
 					loadedchunks[tempid.toString()] = false;
 				}
 			}
@@ -351,7 +354,7 @@ setInterval(async function () {
 async function sendChunkToPlayer(id: string, cid: types.XZ) {
 	event.emit('sendChunk', id, cid);
 	if (players[id] != undefined) {
-		const chunk = await worldManager.get(players[id].world).getChunk(cid, true)
+		const chunk = await worldManager.get(players[id].world).getChunk(cid, true);
 		if (chunk != undefined && players[id] != undefined) {
 			chunk.keepAlive();
 			players[id].sendPacket('worldChunk', {

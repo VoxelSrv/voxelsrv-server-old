@@ -1,10 +1,10 @@
 module.exports = {
 	name: 'Tab',
 	version: '0.0.1',
-	api: '0.2.0-dev'
+	supported: '>=0.2.0-alpha'
 }
 
-const { players, protocol } = require('../src/api')
+const { players, protocol } = require('../')
 
 const cfg = require('../config.json')
 

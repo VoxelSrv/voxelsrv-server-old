@@ -64,7 +64,7 @@ const api = {
 		broadcast: prothelper.broadcast,
 		...protocol,
 	},
-	registry: {
+	registry: { 
 		addItem: registry.addItem,
 		addBlock: registry.addBlock,
 		itemRegistry: registry.itemRegistry,
@@ -72,7 +72,10 @@ const api = {
 		Block: registry.Block,
 		ItemBlock: registry.ItemBlock,
 		Item: registry.Item,
+		ItemTool: registry.ItemTool,
+		ItemArmor: registry.ItemArmor,
 		ItemStack: registry.ItemStack,
+		event: registry.event
 	},
 
 	worlds: worlds,

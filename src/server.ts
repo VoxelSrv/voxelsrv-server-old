@@ -9,16 +9,14 @@ import * as prothelper from './lib/protocol-helper';
 import * as entity from './lib/entity';
 import * as worldManager from './lib/worlds';
 import startHeartbeat from './lib/heartbeat';
-import { loadPlugins } from './lib/plugins'
+import { loadPlugins } from './lib/plugins';
 
 import normalGenerator from './default/worldgen/normal';
 import flatGenerator from './default/worldgen/flat';
 
-
 import { serverVersion, serverProtocol, serverConfig, invalidNicknameRegex, setConfig } from './values';
 
 export function startServer(wss: any, config: object): void {
-
 	const event = new EventEmitter();
 
 	console.log(`^yStarting VoxelSRV server version^: ${serverVersion} ^y[Protocol:^: ${serverProtocol}^y]`);
@@ -35,9 +33,9 @@ export function startServer(wss: any, config: object): void {
 	});
 
 	setConfig(config);
-	event.emit('config-update', config)
+	event.emit('config-update', config);
 
-	loadPlugins()
+	loadPlugins();
 
 	registry.loadPalette();
 
@@ -50,8 +48,7 @@ export function startServer(wss: any, config: object): void {
 	worldManager.addGenerator('normal', normalGenerator);
 	worldManager.addGenerator('flat', flatGenerator);
 
-	if (worldManager.exist('default') == false)
-		worldManager.create('default', serverConfig.world.seed, serverConfig.world.generator);
+	if (worldManager.exist('default') == false) worldManager.create('default', serverConfig.world.seed, serverConfig.world.generator);
 	else worldManager.load('default');
 
 	if (serverConfig.public) startHeartbeat();
@@ -78,8 +75,7 @@ export function startServer(wss: any, config: object): void {
 
 	function verifyLogin(data) {
 		if (data == undefined) return 'No data!';
-		else if (data.username == undefined || invalidNicknameRegex.test(data.username))
-			return 'Illegal username - ' + data.username;
+		else if (data.username == undefined || invalidNicknameRegex.test(data.username)) return 'Illegal username - ' + data.username;
 		else if (data.protocol == undefined || data.protocol != serverProtocol) return 'Unsupported protocol';
 
 		return 0;
@@ -119,8 +115,7 @@ export function startServer(wss: any, config: object): void {
 			}
 
 			const check = verifyLogin(data);
-			if (data.username == '' || data.username == null || data.username == undefined)
-				data.username = 'Player' + Math.round(Math.random() * 100000);
+			if (data.username == '' || data.username == null || data.username == undefined) data.username = 'Player' + Math.round(Math.random() * 100000);
 
 			const id = data.username.toLowerCase();
 
@@ -147,13 +142,10 @@ export function startServer(wss: any, config: object): void {
 					armor: JSON.stringify(player.entity.data.armor),
 				});
 
-				player.entity.data.armor.set(0, 'stone', 9, null)
-				player.entity.data.armor.set(1, 'cobblestone', 15, null)
-				player.entity.data.armor.set(2, 'white_wool', 18, null)
-				player.entity.data.armor.set(3, 'glass', 100, null)
-
-
-
+				player.entity.data.armor.set(0, 'stone', 9, null);
+				player.entity.data.armor.set(1, 'cobblestone', 15, null);
+				player.entity.data.armor.set(2, 'white_wool', 18, null);
+				player.entity.data.armor.set(3, 'glass', 100, null);
 
 				connections[id] = socket;
 

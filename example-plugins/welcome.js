@@ -1,10 +1,10 @@
 module.exports = {
 	name: 'Welcome',
 	version: '0.0.1',
-	api: '0.2.0-dev'
+	supports: '>=0.2.0-alpha'
 }
 
-const { chat, players } = require('../src/api')
+const { chat, players } = require('../')
 
 const cfg = require('../config.json')
 
