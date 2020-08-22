@@ -4,7 +4,7 @@ export const supported = '>=0.2.0-alpha';
 
 import { registry, console } from '../';
 
-let enabled = true;
+let enabled = false;
 
 registry.event.on('palette-loaded', (json) => shuffle(json));
 
