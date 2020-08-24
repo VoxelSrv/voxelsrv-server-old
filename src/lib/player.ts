@@ -1,5 +1,6 @@
 import { EventEmitter } from 'events';
 import * as vec from 'gl-vec3';
+import * as pako from 'pako';
 
 export const event = new EventEmitter();
 
@@ -12,6 +13,7 @@ import * as console from './console';
 import * as protocol from './protocol';
 import * as prothelper from './protocol-helper';
 import * as types from '../types';
+import * as chat from './chat'
 
 import { PlayerInventory, ArmorInventory } from './inventory';
 
@@ -24,7 +26,7 @@ function sendChat(id: string, msg: string) {
 	if (id == '#console') console.log(msg);
 	else if (id == '#all') {
 		console.chat(msg);
-		prothelper.broadcast('chatMessage', { message: msg });
+		prothelper.broadcast('chatMessage', { message: chat.convertOldFormat(msg) });
 	} else if (players[id] != undefined) players[id].send(msg);
 
 	event.emit('chat-message', id, msg);
@@ -90,7 +92,8 @@ export class Player {
 		if (exist(this.id)) data = read(this.id);
 
 		if (data == null) {
-			this.entity = entity.create('player',
+			this.entity = entity.create(
+				'player',
 				{
 					name: name,
 					nametag: true,
@@ -113,7 +116,8 @@ export class Player {
 			this.hookInventory = null;
 		} else {
 			this.entity = entity.recreate(
-				data.entity.id, 'player',
+				data.entity.id,
+				'player',
 				{
 					name: data.entity.data.name,
 					nametag: data.entity.data.nametag,
@@ -183,7 +187,8 @@ export class Player {
 	}
 
 	send(msg) {
-		this.sendPacket('chatMessage', { message: msg });
+		if (typeof msg == 'string') msg = chat.convertOldFormat(msg)
+		this.sendPacket('chatMessage', { message: msg, time: Date.now() });
 	}
 
 	rotate(rot) {
@@ -270,7 +275,7 @@ export class Player {
 				break;
 		}
 
-		if (-2 < data.slot && data.slot < 35) {
+		if (-2 < data.slot && data.slot <= this.inventory.size) {
 			if (data.type == 'left') this.inventory.action_left(inventory, data.slot, type);
 			else if (data.type == 'right') this.inventory.action_right(inventory, data.slot, type);
 			else if (data.type == 'switch') this.inventory.action_switch(data.slot, data.slot2);
@@ -285,7 +290,7 @@ export class Player {
 			if (data.cancel) return;
 		}
 
-		if (data.charAt(0) == '/') {
+		if (data.message.charAt(0) == '/') {
 			commands.execute(this, data.message);
 		} else if (data.message != '') sendChat('#all', this.nickname + ' » ' + data.message);
 	}
@@ -294,6 +299,8 @@ export class Player {
 		if (data.pos[0] == undefined || data.pos[1] == undefined || data.pos[2] == undefined) return;
 
 		data.cancel = false;
+		if (worldManager.get(this.world).chunks[this.entity.chunk.toString()] == undefined) data.cancel = true;
+
 		for (let x = 0; x <= 5; x++) {
 			event.emit(`player-move-${x}`, this, data);
 			if (data.cancel) {
@@ -357,12 +364,15 @@ async function sendChunkToPlayer(id: string, cid: types.XZ) {
 		const chunk = await worldManager.get(players[id].world).getChunk(cid, true);
 		if (chunk != undefined && players[id] != undefined) {
 			chunk.keepAlive();
+
+			const data = serverConfig.chunkTransportCompression ? pako.deflate(chunk.data.data) : chunk.data.data;
 			players[id].sendPacket('worldChunk', {
 				x: cid[0],
 				y: 0,
 				z: cid[1],
-				data: chunk.data.data,
+				data: data,
 				type: true,
+				compressed: serverConfig.chunkTransportCompression,
 			});
 		}
 	}

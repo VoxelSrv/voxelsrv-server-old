@@ -3,7 +3,7 @@ import * as fs from 'fs';
 import * as console from './console';
 import * as types from '../types';
 import { Block, blockIDmap, blockPalette, blockRegistry } from './registry';
-import * as format from '../format/world';
+import * as format from '../formats/world';
 
 import * as pako from 'pako';
 

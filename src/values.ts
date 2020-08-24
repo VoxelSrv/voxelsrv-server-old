@@ -10,12 +10,14 @@ export interface IServerConfig {
 	motd: string;
 	public: boolean;
 	maxplayers: number;
+	chunkTransportCompression: boolean;
 	world: {
 		seed: number;
 		border: number;
 		spawn: types.XYZ;
 		generator: string;
 	};
+
 	[index: string]: any;
 }
 
@@ -26,6 +28,7 @@ export const serverDefaultConfig: IServerConfig = {
 	motd: 'Another VoxelSRV server',
 	public: false,
 	maxplayers: 10,
+	chunkTransportCompression: false,
 	world: {
 		seed: 0,
 		border: 24,

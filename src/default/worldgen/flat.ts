@@ -1,9 +1,12 @@
-const block = require('../../lib/registry').blockPalette;
+import { blockPalette as block } from '../../lib/registry';
 
-module.exports = class {
+export default class flatGenerator {
+	chunkWitdh = 32;
+	chunkHeight = 256;
+	seed: number;
+
 	constructor(seed) {
-		this.chunkWitdh = 32;
-		this.chunkHeight = 256;
+
 		this.seed = seed;
 	}
 

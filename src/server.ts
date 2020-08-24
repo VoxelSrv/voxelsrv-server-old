@@ -8,6 +8,7 @@ import * as protocol from './lib/protocol';
 import * as prothelper from './lib/protocol-helper';
 import * as entity from './lib/entity';
 import * as worldManager from './lib/worlds';
+import * as chat from './lib/chat';
 import startHeartbeat from './lib/heartbeat';
 import { loadPlugins } from './lib/plugins';
 
@@ -69,7 +70,7 @@ export function startServer(wss: any, config: object): void {
 		if (id == '#console') console.log(msg);
 		else if (id == '#all') {
 			console.chat(msg);
-			prothelper.broadcast('chatMessage', { message: msg });
+			prothelper.broadcast('chatMessage', { message: chat.convertOldFormat(msg) });
 		} else players.get(id).send(msg);
 	}
 
@@ -109,7 +110,7 @@ export function startServer(wss: any, config: object): void {
 			loginTimeout = false;
 
 			if (playerCount >= serverConfig.maxplayers) {
-				send('playerKick', { reason: 'Server is full' });
+				send('playerKick', { reason: 'Server is full', time: Date.now() });
 				socket.close();
 				return;
 			}
@@ -120,12 +121,13 @@ export function startServer(wss: any, config: object): void {
 			const id = data.username.toLowerCase();
 
 			if (check != 0) {
-				send('playerKick', { reason: check });
+				send('playerKick', { reason: check, time: Date.now()});
 				socket.close();
 			}
 			if (connections[id] != undefined) {
 				send('playerKick', {
 					reason: 'Player with that nickname is already online!',
+					time: Date.now()
 				});
 				socket.close();
 			} else {
@@ -141,11 +143,6 @@ export function startServer(wss: any, config: object): void {
 					itemsDef: JSON.stringify(registry.itemRegistryObject),
 					armor: JSON.stringify(player.entity.data.armor),
 				});
-
-				player.entity.data.armor.set(0, 'stone', 9, null);
-				player.entity.data.armor.set(1, 'cobblestone', 15, null);
-				player.entity.data.armor.set(2, 'white_wool', 18, null);
-				player.entity.data.armor.set(3, 'glass', 100, null);
 
 				connections[id] = socket;
 

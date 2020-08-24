@@ -9,7 +9,8 @@ const { registry, commands} = require('../')
 function give(executor, arg) {
 	if (registry.itemRegistry[ arg[0] ] != undefined) {
 		var amount = registry.itemRegistry[ arg[0] ].stack
-		if (arg[1] != undefined && 1 <= Math.round( arg[1] ) <= registry.itemRegistry[ arg[0] ].stack ) amount = Math.round(arg[1])
+		const arg1 = parseInt(arg[1])
+		if (arg1 != undefined && 1 <= arg1 && arg1 <= registry.itemRegistry[ arg[0] ].stack ) amount = Math.round( parseInt(arg[1]) )
 		
 		executor.inventory.add(arg[0], amount, {})
 		executor.send('Given ' + amount + ' of ' + arg[0] + ' to you')
@@ -25,10 +26,10 @@ function giveAll(executor, arg) {
 }
 
 function clear(executor, arg) {
-	for (let x = 0; x <= executor.inventory.maxslot; x++) {
+	for (let x = 0; x <= executor.inventory.size; x++) {
 		executor.inventory.set(x, null, null, null)
 	}
-	executor.send(id, 'Inventory cleared')
+	executor.send('Inventory cleared')
 }
 
 commands.register('/give', give, 'Gives item to a player')

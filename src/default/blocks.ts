@@ -25,7 +25,7 @@ addBlock(new Block('snow', 0, ['block/snow'], {}, 0, 0, 'any'));
 addBlock(new Block('coal_ore', 0, ['block/coal_ore'], {}, 0, 0, 'any'));
 addBlock(new Block('iron_ore', 0, ['block/iron_ore'], {}, 0, 0, 'any'));
 addBlock(new Block('cactus', 2, ['block/cactus_top', 'block/cactus_side'], { opaque: false }, 0, 0, 'any'));
-addBlock(new Block('deadbush', 1, ['block/deadbush'], { solid: false, opaque: false }, 0, 0, 'any'));
+addBlock(new Block('deadbush', 1, ['block/dead_bush'], { solid: false, opaque: false }, 0, 0, 'any'));
 addBlock(new Block('gravel', 0, ['block/gravel'], {}, 0, 0, 'any'));
 
 addBlock(new Block('crafting', 0, ['block/crafting_table_top', 'block/oak_planks', 'block/crafting_table_side'], {}, 0, 0, 'any'));
@@ -72,3 +72,20 @@ addBlock(new Block('gold_block', 0, ['block/gold_block'], {}, 0, 0, 'any'));
 const bedrock = new Block('bedrock', 0, ['block/bedrock'], {}, 0, 0, 'none');
 bedrock.unbreakable = true;
 addBlock(bedrock);
+
+addBlock(new Block('sandstone', 0, ['block/sandstone'], {}, 0, 0, 'any'));
+addBlock(new Block('diamond_ore', 0, ['block/diamond_ore'], {}, 0, 0, 'any'));
+addBlock(new Block('diamond_block', 0, ['block/diamond_block'], {}, 0, 0, 'any'));
+addBlock(new Block('lapis_ore', 0, ['block/lapis_ore'], {}, 0, 0, 'any'));
+addBlock(new Block('lapis_block', 0, ['block/lapis_block'], {}, 0, 0, 'any'));
+addBlock(new Block('mossy_cobblestone', 0, ['block/mossy_cobblestone'], {}, 0, 0, 'any'));
+addBlock(new Block('obsidian', 0, ['block/obsidian'], {}, 0, 0, 'any'));
+addBlock(new Block('mossy_stonebricks', 0, ['block/mossy_stone_bricks'], {}, 0, 0, 'any'));
+
+colors.forEach((color) => {
+	addBlock(new Block(color + '_concrete', 0, ['block/' + color + '_concrete'], {}, 0, 0, 'any'));
+});
+
+addBlock(new Block('tnt', 0, ['block/tnt_top', 'block/tnt_bottom', 'block/tnt_side'], {}, 0, 0, 'any'));
+addBlock(new Block('pumpkin', 0, ['block/pumpkin_top', 'block/pumpkin_side', 'block/pumpkin_side'], {}, 0, 0, 'any'));
+addBlock(new Block('oak_sapling', 1, ['block/oak_sapling'], { solid: false, opaque: false }, 0, 0, 'any'));

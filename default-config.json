@@ -5,21 +5,11 @@
 	"motd": "VoxelSRV server",
 	"public": true,
 	"maxplayers": 5,
+	"chunkTransportCompression": false,
 	"world": {
 		"seed": 0,
 		"border": 24,
 		"spawn": [0, 100, 0],
 		"generator": "normal"
-	},
-
-	"plugins": {
-		"discord": {
-			"token": "xxxxxxxxxxxxx",
-			"channel": "yyyyyyyyyyyyyyyy"
-		},
-		"welcome": [
-			"Welcome on server!",
-			"Next line"
-		]
 	}
 }

@@ -1,5 +1,5 @@
 import { makeNoise2D, makeNoise3D, Noise2D, Noise3D } from 'open-simplex-noise';
-import tree from './parts/tree';
+import * as tree  from './parts/tree';
 import hash from 'murmur-numbers';
 import { blockPalette } from '../../lib/registry';
 import * as types from '../../types';
@@ -12,7 +12,7 @@ function getHighestBlock(chunk: types.IView3duint16, x: number, z: number) {
 	return null;
 }
 
-export default class normal {
+export default class normalGenerator {
 	name: string = 'normal';
 	chunkWitdh: number = 32;
 	chunkHeight: number = 256;
