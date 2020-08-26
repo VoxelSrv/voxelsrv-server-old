@@ -6,11 +6,6 @@ let running = true;
 
 const history = [];
 
-const executor = {
-	name: '#console',
-	send: console.log,
-};
-
 const x = async () => {
 	let input;
 	while (running) {
@@ -21,7 +16,7 @@ const x = async () => {
 		}).promise;
 		if (input != '') {
 			term('\n');
-			commands.execute(executor, '/' + input);
+			commands.execute(console.executor, '/' + input);
 		}
 	}
 };

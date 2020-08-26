@@ -1,5 +1,6 @@
 import { EventEmitter } from 'events';
 import * as console from './console';
+import * as chat from './chat';
 
 export const event = new EventEmitter();
 export const commands: { [index: string]: Command } = {};
@@ -23,12 +24,12 @@ export function execute(executor: any, args: string) {
 				commands[command].execute(executor, arg);
 			} catch (e) {
 				console.error(`User ^R${executor.name}^r tried to execute command ^R${command}^r and it failed! \n ^R`, e);
-				executor.send('{color:red}An error occurred during the execution of this command!{color}');
+				executor.send([new chat.ChatComponent('An error occurred during the execution of this command!', 'red')]);
 			}
 			return;
 		}
 	}
-	executor.send("{color:red}This command doesn't exist! Check /help for list of available commands.{color}");
+	executor.send([new chat.ChatComponent("This command doesn't exist! Check /help for list of available commands.", 'red')]);
 }
 
 export function register(command: string, func: Function, description: string) {

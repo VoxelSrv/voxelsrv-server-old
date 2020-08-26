@@ -2,28 +2,60 @@ import { terminal as term } from 'terminal-kit';
 
 export function log(...args: any[]) {
 	for (var i = 0; i < arguments.length; i++) {
-		term('[' + hourNow() + '] ' + arguments[i]);
+		term('[' + hourNow() + '] ');
+		const msg = arguments[i];
+		if (Array.isArray(msg)) {
+			msg.forEach((el) => {
+				if (el.color.startsWith('#')) term.colorRgbHex(el.color, el.text);
+				else if (term[el.color] != undefined) term[el.color](el.text);
+				else term(el.text);
+			});
+		} else term(msg);
 		term('\n');
 	}
 }
 
 export function chat(...args: any[]) {
 	for (var i = 0; i < arguments.length; i++) {
-		term('[' + hourNow() + ' - ^yChat^:] ' + arguments[i]);
+		term('[' + hourNow() + ' - ^yChat^:] ');
+		const msg = arguments[i];
+		if (Array.isArray(msg)) {
+			msg.forEach((el) => {
+				if (el.color.startsWith('#')) term.colorRgbHex(el.color, el.text);
+				else if (term[el.color] != undefined) term[el.color](el.text);
+				else term(el.text);
+			});
+		} else term(msg);
 		term('\n');
 	}
 }
 
 export function warn(...args: any[]) {
 	for (var i = 0; i < arguments.length; i++) {
-		term('[' + hourNow() + ' - ^RWarning^:] ^R' + arguments[i]);
+		term('[' + hourNow() + ' - ^RWarning^:] ^R');
+		const msg = arguments[i];
+		if (Array.isArray(msg)) {
+			msg.forEach((el) => {
+				if (el.color.startsWith('#')) term.colorRgbHex(el.color, el.text);
+				else if (term[el.color] != undefined) term[el.color](el.text);
+				else term(el.text);
+			});
+		} else term(msg);
 		term('\n');
 	}
 }
 
 export function error(...args: any[]) {
 	for (var i = 0; i < arguments.length; i++) {
-		term('[' + hourNow() + ' - ^rError!^:] ^r' + arguments[i]);
+		term('[' + hourNow() + ' - ^rError!^:] ^r');
+		const msg = arguments[i];
+		if (Array.isArray(msg)) {
+			msg.forEach((el) => {
+				if (el.color.startsWith('#')) term.colorRgbHex(el.color, el.text);
+				else if (term[el.color] != undefined) term[el.color](el.text);
+				else term(el.text);
+			});
+		} else term(msg);
 		term('\n');
 	}
 }
@@ -42,5 +74,12 @@ function hourNow(): string {
 		(seconds.length == 2 ? seconds : '0' + seconds)
 	);
 }
+
+export const executor = {
+	name: '#console',
+	send: log,
+};
+
+export const executorchat = { ...executor, send: chat };
 
 export const obj = console.log;

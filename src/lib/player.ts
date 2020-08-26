@@ -22,15 +22,6 @@ import { serverConfig } from '../values';
 const players = {};
 const chunksToSend = [];
 
-function sendChat(id: string, msg: string) {
-	if (id == '#console') console.log(msg);
-	else if (id == '#all') {
-		console.chat(msg);
-		prothelper.broadcast('chatMessage', { message: chat.convertOldFormat(msg) });
-	} else if (players[id] != undefined) players[id].send(msg);
-
-	event.emit('chat-message', id, msg);
-}
 
 export function create(id: string, data: any, socket: any, packetEvent: EventEmitter): Player {
 	players[id] = new Player(id, data.username, socket, packetEvent);
@@ -77,6 +68,7 @@ export function getAll(): { [index: string]: Player } {
 export class Player {
 	id: string;
 	nickname: string;
+	displayName: string;
 	entity: entity.Entity;
 	world: string;
 	inventory: PlayerInventory;
@@ -88,6 +80,7 @@ export class Player {
 	constructor(id, name, socket, packetEvent) {
 		this.id = id;
 		this.nickname = name;
+		this.displayName = name;
 		let data: types.anyobject | null;
 		if (exist(this.id)) data = read(this.id);
 
@@ -292,7 +285,15 @@ export class Player {
 
 		if (data.message.charAt(0) == '/') {
 			commands.execute(this, data.message);
-		} else if (data.message != '') sendChat('#all', this.nickname + ' » ' + data.message);
+		} else if (data.message != '') {
+			const msg = [
+				new chat.ChatComponent(this.displayName, 'white'),
+				new chat.ChatComponent(' » ', '#eeeeee'),
+				new chat.ChatComponent(data.message, 'white')
+			]
+
+			chat.sendMlt([console.executorchat, ...( Object.values( getAll() ) )], msg)
+		} 
 	}
 
 	action_move(data) {

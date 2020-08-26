@@ -66,12 +66,8 @@ export function startServer(wss: any, config: object): void {
 	const connections = {};
 	let playerCount = 0;
 
-	function sendChat(id, msg) {
-		if (id == '#console') console.log(msg);
-		else if (id == '#all') {
-			console.chat(msg);
-			prothelper.broadcast('chatMessage', { message: chat.convertOldFormat(msg) });
-		} else players.get(id).send(msg);
+	function sendChat(msg) {
+		chat.sendMlt([console.executorchat, ...( Object.values( players.getAll() ) )], msg)
 	}
 
 	function verifyLogin(data) {
@@ -95,7 +91,7 @@ export function startServer(wss: any, config: object): void {
 			protocol: serverProtocol,
 			maxplayers: serverConfig.maxplayers,
 			numberplayers: playerCount,
-			software: 'VoxelSrv-Server',
+			software: `VoxelSrv-Server ${serverVersion}`,
 		});
 		const packetEvent = new EventEmitter();
 
@@ -155,12 +151,12 @@ export function startServer(wss: any, config: object): void {
 					});
 				});
 
-				sendChat('#all', player.nickname + ' joined the game!');
+				sendChat([new chat.ChatComponent(`${player.displayName} joined the game!`, '#b5f598')]);
 				playerCount = playerCount + 1;
 
 				socket.on('close', function () {
 					players.event.emit('disconnect', id);
-					sendChat('#all', player.nickname + ' left the game!');
+					sendChat([new chat.ChatComponent(`${player.displayName} left the game!`, '#f59898')]);
 					player.remove();
 					delete connections[id];
 					playerCount = playerCount - 1;
