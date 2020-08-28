@@ -45,11 +45,11 @@ export interface EntityData {
 
 export class Entity {
 	data: EntityData;
-	id: string;
+	readonly id: string;
 	world: string;
 	chunk: types.XZ;
 	tick: Function | null;
-	type: string;
+	readonly type: string;
 
 	constructor(id: string, type: string, data: EntityData, world: string, tick: Function | null) {
 		this.data = data;

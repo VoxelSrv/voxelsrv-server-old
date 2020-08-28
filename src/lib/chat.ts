@@ -1,3 +1,6 @@
+import { EventEmitter } from 'events';
+export const event = new EventEmitter();
+
 export interface IChatComponent {
 	text: string;
 	color?: string;
@@ -9,11 +12,11 @@ export interface IChatComponent {
 export type ChatMessage = Array<IChatComponent>;
 
 export class ChatComponent implements IChatComponent {
-	text: string;
-	font: string;
-	color: string = 'white';
-	linethrough: boolean = false;
-	underline: boolean = false;
+	public text: string;
+	public font: string;
+	public color: string = 'white';
+	public linethrough: boolean = false;
+	public underline: boolean = false;
 
 	constructor(text: string, color: string = 'white', font: string = 'lato', linethrough: boolean = false, underline: boolean = false) {
 		this.text = text;
@@ -28,7 +31,13 @@ export function convertOldFormat(text: string) {
 	return [new ChatComponent(text)];
 }
 
+export function convertToPlain(msg: ChatMessage) {
+	let plain = '';
+	msg.forEach((x) => plain + x.text);
+}
+
 export function sendMlt(array: Array<{ send: Function }>, msg: ChatMessage) {
+	event.emit('send-message-mlt', array, msg);
 	array.forEach((x) => x.send(msg));
 }
 

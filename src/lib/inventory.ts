@@ -14,9 +14,9 @@ export type InventoryTypes = PlayerInventory | Inventory | ArmorInventory;
 
 export class Inventory {
 	items: object;
-	size: number;
+	readonly size: number;
 	lastUpdate: number;
-	event: EventEmitter;
+	readonly event: EventEmitter;
 	selected: number = 0;
 
 	constructor(size: number, data: InventoryObject | null) {

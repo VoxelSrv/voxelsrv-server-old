@@ -13,15 +13,15 @@ import * as console from './console';
 import * as protocol from './protocol';
 import * as prothelper from './protocol-helper';
 import * as types from '../types';
-import * as chat from './chat'
+import * as chat from './chat';
 
 import { PlayerInventory, ArmorInventory } from './inventory';
+import { PermissionHolder } from './permissions';
 
 import { serverConfig } from '../values';
 
 const players = {};
 const chunksToSend = [];
-
 
 export function create(id: string, data: any, socket: any, packetEvent: EventEmitter): Player {
 	players[id] = new Player(id, data.username, socket, packetEvent);
@@ -66,15 +66,16 @@ export function getAll(): { [index: string]: Player } {
 }
 
 export class Player {
-	id: string;
-	nickname: string;
+	readonly id: string;
+	readonly nickname: string;
 	displayName: string;
 	entity: entity.Entity;
 	world: string;
 	inventory: PlayerInventory;
 	hookInventory: any;
-	socket: any;
-	packetRecived: EventEmitter;
+	readonly socket: any;
+	readonly packetRecived: EventEmitter;
+	permissions: PermissionHolder;
 	chunks: types.anyobject;
 
 	constructor(id, name, socket, packetEvent) {
@@ -107,6 +108,7 @@ export class Player {
 
 			this.inventory = new PlayerInventory(10, null);
 			this.hookInventory = null;
+			this.permissions = new PermissionHolder();
 		} else {
 			this.entity = entity.recreate(
 				data.entity.id,
@@ -130,6 +132,8 @@ export class Player {
 			this.world = data.world;
 
 			this.inventory = new PlayerInventory(10, data.inventory);
+			if (!!data.permissions) this.permissions = new PermissionHolder(data.permissions);
+			else this.permissions = new PermissionHolder();
 		}
 
 		this.socket = socket;
@@ -153,6 +157,7 @@ export class Player {
 			entity: this.entity.getObject(),
 			inventory: this.inventory.getObject(),
 			world: this.world,
+			permissions: this.permissions.permissions,
 		};
 	}
 
@@ -180,7 +185,7 @@ export class Player {
 	}
 
 	send(msg) {
-		if (typeof msg == 'string') msg = chat.convertOldFormat(msg)
+		if (typeof msg == 'string') msg = chat.convertOldFormat(msg);
 		this.sendPacket('chatMessage', { message: msg, time: Date.now() });
 	}
 
@@ -190,7 +195,7 @@ export class Player {
 	}
 
 	kick(reason) {
-		this.sendPacket('playerKick', {reason: reason, date: Date.now()})
+		this.sendPacket('playerKick', { reason: reason, date: Date.now() });
 	}
 
 	get getID() {
@@ -293,11 +298,13 @@ export class Player {
 			const msg = [
 				new chat.ChatComponent(this.displayName, 'white'),
 				new chat.ChatComponent(' » ', '#eeeeee'),
-				new chat.ChatComponent(data.message, 'white')
-			]
+				new chat.ChatComponent(data.message, 'white'),
+			];
 
-			chat.sendMlt([console.executorchat, ...( Object.values( getAll() ) )], msg)
-		} 
+			chat.event.emit('chat-message', msg)
+
+			chat.sendMlt([console.executorchat, ...Object.values(getAll())], msg);
+		}
 	}
 
 	action_move(data) {

@@ -1,4 +1,5 @@
 import { terminal as term } from 'terminal-kit';
+import { PermissionHolder } from './permissions';
 
 export function log(...args: any[]) {
 	for (var i = 0; i < arguments.length; i++) {
@@ -78,6 +79,7 @@ function hourNow(): string {
 export const executor = {
 	name: '#console',
 	send: log,
+	permissions: new PermissionHolder({'*': true, server: {stop: true}})
 };
 
 export const executorchat = { ...executor, send: chat };

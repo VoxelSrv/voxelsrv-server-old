@@ -14,8 +14,8 @@ async function helpCommand(executor, arg) {
 registerCommand('/help', helpCommand, 'Displays list of all commands');
 
 function stopCommand(executor, args) {
-	if (executor.name != '#console') {
-		executor.send([new chat.ChatComponent('This command can by only used from console!', 'red')]);
+	if (!executor.permissions.check('server.stop')) {
+		executor.send([new chat.ChatComponent(`You don't have required permission to use this command!`, 'red')]);
 		return;
 	}
 

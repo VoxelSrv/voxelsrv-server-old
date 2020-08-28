@@ -57,8 +57,10 @@ import * as libchat from './lib/chat';
 export const chat = {
 	ChatComponent: libchat.ChatComponent,
 	convertOld: libchat.convertOldFormat,
+	convertToPlain: libchat.convertToPlain,
 	validate: libchat.validate,
 	sendMlt: libchat.sendMlt,
+	event: libchat.event,
 };
 
 export * as console from './lib/console';

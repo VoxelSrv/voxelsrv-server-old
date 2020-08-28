@@ -5,7 +5,6 @@ import * as players from './lib/player';
 import * as registry from './lib/registry';
 import * as console from './lib/console';
 import * as protocol from './lib/protocol';
-import * as prothelper from './lib/protocol-helper';
 import * as entity from './lib/entity';
 import * as worldManager from './lib/worlds';
 import * as chat from './lib/chat';
@@ -67,7 +66,7 @@ export function startServer(wss: any, config: object): void {
 	let playerCount = 0;
 
 	function sendChat(msg) {
-		chat.sendMlt([console.executorchat, ...( Object.values( players.getAll() ) )], msg)
+		chat.sendMlt([console.executorchat, ...Object.values(players.getAll())], msg);
 	}
 
 	function verifyLogin(data) {
@@ -117,13 +116,13 @@ export function startServer(wss: any, config: object): void {
 			const id = data.username.toLowerCase();
 
 			if (check != 0) {
-				send('playerKick', { reason: check, time: Date.now()});
+				send('playerKick', { reason: check, time: Date.now() });
 				socket.close();
 			}
 			if (connections[id] != undefined) {
 				send('playerKick', {
 					reason: 'Player with that nickname is already online!',
-					time: Date.now()
+					time: Date.now(),
 				});
 				socket.close();
 			} else {
@@ -151,12 +150,16 @@ export function startServer(wss: any, config: object): void {
 					});
 				});
 
-				sendChat([new chat.ChatComponent(`${player.displayName} joined the game!`, '#b5f598')]);
+				const joinMsg = [new chat.ChatComponent(`${player.displayName} joined the game!`, '#b5f598')];
+				sendChat(joinMsg);
+				chat.event.emit('system-message', joinMsg);
 				playerCount = playerCount + 1;
 
 				socket.on('close', function () {
 					players.event.emit('disconnect', id);
-					sendChat([new chat.ChatComponent(`${player.displayName} left the game!`, '#f59898')]);
+					const leaveMsg = [new chat.ChatComponent(`${player.displayName} left the game!`, '#f59898')];
+					sendChat(leaveMsg);
+					chat.event.emit('system-message', leaveMsg);
 					player.remove();
 					delete connections[id];
 					playerCount = playerCount - 1;
