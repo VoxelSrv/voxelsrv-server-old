@@ -189,6 +189,10 @@ export class Player {
 		this.entity.rotate(rot);
 	}
 
+	kick(reason) {
+		this.sendPacket('playerKick', {reason: reason, date: Date.now()})
+	}
+
 	get getID() {
 		return this.id;
 	}

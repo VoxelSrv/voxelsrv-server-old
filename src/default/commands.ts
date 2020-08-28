@@ -22,7 +22,7 @@ function stopCommand(executor, args) {
 	console.log('^rStopping server...');
 
 	Object.values(players.getAll()).forEach((player) => {
-		player.remove();
+		player.kick('Server close')
 	});
 
 	Object.values(worldManager.getAll()).forEach((world) => {

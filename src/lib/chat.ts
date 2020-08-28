@@ -2,6 +2,8 @@ export interface IChatComponent {
 	text: string;
 	color?: string;
 	font?: string;
+	linethrough?: boolean;
+	underline?: boolean;
 }
 
 export type ChatMessage = Array<IChatComponent>;
@@ -10,10 +12,15 @@ export class ChatComponent implements IChatComponent {
 	text: string;
 	font: string;
 	color: string = 'white';
-	constructor(text: string, color: string = 'white', font: string = 'lato') {
+	linethrough: boolean = false;
+	underline: boolean = false;
+
+	constructor(text: string, color: string = 'white', font: string = 'lato', linethrough: boolean = false, underline: boolean = false) {
 		this.text = text;
 		this.font = font;
 		this.color = color;
+		this.linethrough = linethrough;
+		this.underline = underline;
 	}
 }
 
