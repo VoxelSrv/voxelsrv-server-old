@@ -16,7 +16,7 @@ import * as types from '../types';
 import * as chat from './chat';
 
 import { PlayerInventory, ArmorInventory } from './inventory';
-import { PermissionHolder } from './permissions';
+import { PlayerPermissionHolder } from './permissions';
 
 import { serverConfig } from '../values';
 
@@ -75,7 +75,7 @@ export class Player {
 	hookInventory: any;
 	readonly socket: any;
 	readonly packetRecived: EventEmitter;
-	permissions: PermissionHolder;
+	permissions: PlayerPermissionHolder;
 	chunks: types.anyobject;
 
 	constructor(id, name, socket, packetEvent) {
@@ -108,7 +108,7 @@ export class Player {
 
 			this.inventory = new PlayerInventory(10, null);
 			this.hookInventory = null;
-			this.permissions = new PermissionHolder();
+			this.permissions = new PlayerPermissionHolder({}, ['default']);
 		} else {
 			this.entity = entity.recreate(
 				data.entity.id,
@@ -132,8 +132,8 @@ export class Player {
 			this.world = data.world;
 
 			this.inventory = new PlayerInventory(10, data.inventory);
-			if (!!data.permissions) this.permissions = new PermissionHolder(data.permissions);
-			else this.permissions = new PermissionHolder();
+			if (!!data.permissions) this.permissions = new PlayerPermissionHolder(data.permissions, data.permissionsparents);
+			else this.permissions = new PlayerPermissionHolder({}, ['default']);
 		}
 
 		this.socket = socket;
@@ -158,6 +158,7 @@ export class Player {
 			inventory: this.inventory.getObject(),
 			world: this.world,
 			permissions: this.permissions.permissions,
+			permissionparents: Object.keys(this.permissions.parents),
 		};
 	}
 
@@ -301,7 +302,7 @@ export class Player {
 				new chat.ChatComponent(data.message, 'white'),
 			];
 
-			chat.event.emit('chat-message', msg)
+			chat.event.emit('chat-message', msg);
 
 			chat.sendMlt([console.executorchat, ...Object.values(getAll())], msg);
 		}

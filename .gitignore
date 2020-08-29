@@ -8,6 +8,7 @@ Thumbs.db
 ehthumbs.db
 database.json
 /plugins/auth
+/config
 *.cab
 *.msi
 *.msm

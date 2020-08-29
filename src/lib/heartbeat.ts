@@ -6,7 +6,7 @@ const heartbeat = 'pb4.eu:9001';
 let id = 0;
 
 function heartbeatPing() {
-	fetch(`http://${heartbeat}/addServer?ip=${serverConfig.address}`)
+	fetch(`http://${heartbeat}/addServer?ip=${serverConfig.address}:${serverConfig.port}`)
 		.then((res) => res.json())
 		.then((json) => {
 			console.log(`^bSended request to heartbeat: ^w${heartbeat}`);

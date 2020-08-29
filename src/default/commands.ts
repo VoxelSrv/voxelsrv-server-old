@@ -3,6 +3,8 @@ import * as console from '../lib/console';
 import * as worldManager from '../lib/worlds';
 import * as players from '../lib/player';
 import * as chat from '../lib/chat';
+import * as configs from '../lib/configs';
+import { groups } from '../lib/permissions';
 
 async function helpCommand(executor, arg) {
 	executor.send([new chat.ChatComponent('List of all commands:', '#9ed0ff', 'Lato-Bold')]);
@@ -20,9 +22,10 @@ function stopCommand(executor, args) {
 	}
 
 	console.log('^rStopping server...');
+	configs.save('', 'permissions', groups);
 
 	Object.values(players.getAll()).forEach((player) => {
-		player.kick('Server close')
+		player.kick('Server close');
 	});
 
 	Object.values(worldManager.getAll()).forEach((world) => {

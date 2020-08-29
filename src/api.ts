@@ -63,9 +63,19 @@ export const chat = {
 	event: libchat.event,
 };
 
+import * as libpermissions from './lib/permissions';
+export const permissions = {
+	getGroup: libpermissions.getGroup,
+	createGroup: libpermissions.createGroup,
+	removeGroup: libpermissions.removeGroup,
+	getAllGroups: libpermissions.getAllGroups,
+};
+
 export * as console from './lib/console';
 export * as inventories from './lib/inventory';
 export * as worlds from './lib/worlds';
+export * as configs from './lib/configs';
+
 export * as values from './values';
 
 export const version = values.serverVersion;

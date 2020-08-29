@@ -8,6 +8,8 @@ import * as protocol from './lib/protocol';
 import * as entity from './lib/entity';
 import * as worldManager from './lib/worlds';
 import * as chat from './lib/chat';
+import * as permissions from './lib/permissions';
+import * as configs from './lib/configs';
 import startHeartbeat from './lib/heartbeat';
 import { loadPlugins } from './lib/plugins';
 
@@ -16,11 +18,11 @@ import flatGenerator from './default/worldgen/flat';
 
 import { serverVersion, serverProtocol, serverConfig, invalidNicknameRegex, setConfig } from './values';
 
-export function startServer(wss: any, config: object): void {
+export function startServer(wss: any): void {
 	const event = new EventEmitter();
 
 	console.log(`^yStarting VoxelSRV server version^: ${serverVersion} ^y[Protocol:^: ${serverProtocol}^y]`);
-	['./plugins', './players', './worlds'].forEach((element) => {
+	['./plugins', './players', './worlds', './config'].forEach((element) => {
 		if (!fs.existsSync(element)) {
 			try {
 				fs.mkdirSync(element);
@@ -32,8 +34,15 @@ export function startServer(wss: any, config: object): void {
 		}
 	});
 
+	const config = configs.load('', 'config');
 	setConfig(config);
+
+	permissions.loadGroups(configs.load('', 'permissions'));
+	configs.save('', 'config', serverConfig);
+
 	event.emit('config-update', config);
+
+	permissions.load();
 
 	loadPlugins();
 
