@@ -18,4 +18,4 @@ To install plugins you need to copy them to `plugins` folder.
 You can find plugins here: https://github.com/VoxelSrv/server-plugins
 Hovewer most stuff you will need probably write your own.
 
-## [Information about API can be found here](API.md)
+## [Information about API can be found here](https://voxelsrv.github.io/voxelsrv-server/)
