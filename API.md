@@ -1,11 +1,7 @@
 ## Plugin API
 They might be incomplete, so it's better to just check the source code!
-To use it, you need to use require('../src/api')
+To use it, you need to import `server`.
 
-### hooks:
-* `create(name, size)` - Create hooks (used internally). Size changes number of priorities. Server uses by default size of 5 (0 - 4)
-* `execute(name, data)` - Executes hooks, from priority 0 to X
-* `add(name, priority, func)` - Add function *func* to hooks execution, based on priority. You can add multiple functions to each priority
 
 ### players:
 * `get(id)` - Returns player object
@@ -32,6 +28,7 @@ To use it, you need to use require('../src/api')
 * `getAll()` - Returns all entities
 
 #### Entity [Object/Class]
+* `id`
 * `teleport(pos, eworld)` - Teleports entity to pos (array) in eworld (string)
 * `move(pos)` - Moves entity to pos (array)
 * `rotate(rot)` - Rotates entity

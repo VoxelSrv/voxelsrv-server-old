@@ -2,6 +2,7 @@ import * as fs from 'fs';
 import * as semver from 'semver';
 
 import * as console from './console';
+import { ChatComponent } from './chat'
 
 import { serverVersion } from '../values';
 
@@ -21,9 +22,10 @@ export function loadPlugins() {
 		try {
 			let plugin: IPlugin;
 			if (file.endsWith('.ts') || file.endsWith('.js')) plugin = require(`../../plugins/${file}`);
-			else plugin = require(`../../plugins/${file}/`);
+			else if (fs.existsSync(`./plugins/${file}/index.ts`) || fs.existsSync(`./plugins/${file}/index.js`)) plugin = require(`../../plugins/${file}/`);
+			else continue;
 			if (!semver.satisfies(serverVersion, plugin.supported)) {
-				console.warn(`Plugin ${file} might not support this version of server!`);
+				console.warn([new ChatComponent('Plugin ', 'orange'), new ChatComponent(file, 'yellow'),  new ChatComponent(' might not support this version of server!', 'orange')]);
 				const min = semver.minVersion(plugin.supported);
 				const max = semver.maxSatisfying(plugin.supported);
 				if (!!min && !!max && (semver.gt(serverVersion, max) || semver.lt(serverVersion, min)))
@@ -34,7 +36,8 @@ export function loadPlugins() {
 
 			plugins[plugin.name] = plugin;
 		} catch (e) {
-			console.error(`Can't load plugin ${file}! Reason: ` + e);
+			console.error(`Can't load plugin ${file}!`);
+			console.obj(e)
 		}
 	}
 }

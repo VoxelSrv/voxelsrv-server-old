@@ -1,5 +1,7 @@
-Hello! Welcome on repository of VoxelSrv Server. It's really incomplete for now, but basic things will work. API and structure of this project will change in a future (as for now it's really raw).
-I'm open to any PR/suggestions about functionality, API, fixes, etc
+Official server software of VoxelSrv.
+For game client, check this repo: https://github.com/VoxelSrv/voxelsrv
+
+If you are interested with the project check out our [Discord server](https://discord.gg/K9PdsDh)!
 
 ## Requirements
 - NodeJS 12+
@@ -8,11 +10,12 @@ I'm open to any PR/suggestions about functionality, API, fixes, etc
 
 ## Instalation
 * Clone/Download this repository
-* Rename `default-config.json` to `config.json` and change it to your needs
 * Install dependencies (`npm install`) and start it with `npm start`.
 * Warning! If you close terminal/console, server will stop. If you want to host it in background, use `screen`, `tmux` or similar software.
 
 ## Plugins
-For now all plugins are in `plugins` folder. For most stuff you will need probably write your own.
+To install plugins you need to copy them to `plugins` folder.
+You can find plugins here: https://github.com/VoxelSrv/server-plugins
+Hovewer most stuff you will need probably write your own.
 
-## [Information about API can be found here](https://github.com/Patbox/voxelsrv-server/blob/master/API.md)
+## [Information about API can be found here](API.md)

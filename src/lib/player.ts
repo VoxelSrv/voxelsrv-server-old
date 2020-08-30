@@ -132,7 +132,7 @@ export class Player {
 			this.world = data.world;
 
 			this.inventory = new PlayerInventory(10, data.inventory);
-			if (!!data.permissions) this.permissions = new PlayerPermissionHolder(data.permissions, data.permissionsparents);
+			if (!!data.permissions) this.permissions = new PlayerPermissionHolder(data.permissions, [...data.permissionsparents, 'default']);
 			else this.permissions = new PlayerPermissionHolder({}, ['default']);
 		}
 
@@ -186,7 +186,7 @@ export class Player {
 	}
 
 	send(msg) {
-		if (typeof msg == 'string') msg = chat.convertOldFormat(msg);
+		if (typeof msg == 'string') msg = chat.convertFromPlain(msg);
 		this.sendPacket('chatMessage', { message: msg, time: Date.now() });
 	}
 

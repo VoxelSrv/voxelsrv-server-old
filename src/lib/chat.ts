@@ -27,20 +27,33 @@ export class ChatComponent implements IChatComponent {
 	}
 }
 
-export function convertOldFormat(text: string) {
+/*
+ * Convers plain string to ChatMessage
+ */
+export function convertFromPlain(text: string) {
 	return [new ChatComponent(text)];
 }
 
+/*
+ * Convers ChatMessage to string
+ */
 export function convertToPlain(msg: ChatMessage) {
 	let plain = '';
 	msg.forEach((x) => plain + x.text);
+	return plain;
 }
 
-export function sendMlt(array: Array<{ send: Function }>, msg: ChatMessage) {
-	event.emit('send-message-mlt', array, msg);
-	array.forEach((x) => x.send(msg));
+/*
+ * Sends ChatMessage to multiple players (and console)
+ */
+export function sendMlt(readders: Array<{ send: Function }>, msg: ChatMessage) {
+	event.emit('send-message-mlt', readders, msg);
+	readders.forEach((x) => x.send(msg));
 }
 
+/*
+ * Validates message
+ */
 export function validate(msg: ChatMessage): boolean {
 	if (!Array.isArray(msg)) return false;
 
