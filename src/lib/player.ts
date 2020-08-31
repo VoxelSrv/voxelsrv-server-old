@@ -132,7 +132,7 @@ export class Player {
 			this.world = data.world;
 
 			this.inventory = new PlayerInventory(10, data.inventory);
-			if (!!data.permissions) this.permissions = new PlayerPermissionHolder(data.permissions, [...data.permissionsparents, 'default']);
+			if (!!data.permissions) this.permissions = new PlayerPermissionHolder(data.permissions, [...data.permissionparents, 'default']);
 			else this.permissions = new PlayerPermissionHolder({}, ['default']);
 		}
 

@@ -1,1 +1,1 @@
-export { get, getAll, event } from '../lib/player';
+export { get, getAll, event, Player } from '../lib/player';

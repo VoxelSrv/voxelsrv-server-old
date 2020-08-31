@@ -78,6 +78,7 @@ function hourNow(): string {
 
 export const executor = {
 	name: '#console',
+	id: '#console',
 	send: log,
 	permissions: new PermissionHolder({'*': true, server: {stop: true}})
 };

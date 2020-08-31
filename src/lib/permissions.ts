@@ -4,7 +4,10 @@ type Parents = { [index: string]: PermissionHolder };
 export let groups = {};
 
 export function loadGroups(groups2) {
-	groups = groups2;
+
+	Object.entries(groups2).forEach((group: [string, any]) => {
+		groups[group[0]] = new PermissionHolder(group[1].permissions);
+	});
 }
 
 export function createGroup(name: string, group: PermissionHolder) {
@@ -94,36 +97,45 @@ export class PlayerPermissionHolder extends PermissionHolder {
 		const path: Array<string> = Array.isArray(perm) ? perm : perm.split('.');
 
 		let returned: null | boolean = null;
+		let local: null | boolean = null;
 		Object.values(this.parents).forEach((parent) => {
-			const r = parent.check(path);
-			returned = r != null ? r : returned;
+			returned = parent.check(path);
 		});
 
 		let currientNode: NestedPermission = this.permissions;
 
 		for (let x = 0; x < path.length - 1; x++) {
-			if (!!currientNode['*']) return currientNode['*'] == true;
-			else if (currientNode[path[x]] == undefined) return null;
+			if (!!currientNode['*']) {
+				local = currientNode['*'];
+				break;
+			}
+			else if (currientNode[path[x]] == undefined) {
+				local = null;
+				break;
+			}
 			currientNode = currientNode[path[x]];
 		}
 
-		if (typeof currientNode[path[path.length - 1]] == 'boolean') return currientNode[path[path.length - 1]];
-		else return returned;
+		if (typeof currientNode[path[path.length - 1]] == 'boolean') local = currientNode[path[path.length - 1]];
+		return (local == null) ? returned : local;
 	}
 
 	checkStrict(perm: string | string[]): null | boolean {
 		const path: Array<string> = Array.isArray(perm) ? perm : perm.split('.');
 
 		let returned: null | boolean = null;
+		let local: null | boolean = null;
 		Object.values(this.parents).forEach((parent) => {
-			const r = parent.checkStrict(path);
-			returned = r != null ? r : returned;
+			returned = parent.checkStrict(path);
 		});
 
 		let currientNode: NestedPermission = this.permissions;
 
 		for (let x = 0; x < path.length - 1; x++) {
-			if (currientNode[path[x]] == undefined) return null;
+			if (currientNode[path[x]] == undefined) {
+				local = null;
+				break;
+			}
 			currientNode = currientNode[path[x]];
 		}
 

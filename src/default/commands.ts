@@ -97,7 +97,7 @@ function give(executor, arg) {
 
 function giveAll(executor, arg) {
 	if (executor.id == '#console') return;
-	if (!executor.permissions.check('server.giveall')) {
+	if (!executor.permissions.check(['server', 'giveall'])) {
 		executor.send([new ChatComponent(`You don't have required permission to use this command!`, 'red')]);
 		return;
 	}

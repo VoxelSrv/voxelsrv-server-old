@@ -9,6 +9,7 @@ export * as console from './console';
 export * as inventories from './inventory';
 export * as worlds from './worlds';
 export * as configs from './configs';
+export * as players from './players'
 
 export * as values from '../values';
 
