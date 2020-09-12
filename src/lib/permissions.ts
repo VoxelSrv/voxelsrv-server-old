@@ -22,7 +22,7 @@ export function getGroup(name: string) {
 	if (groups[name] != undefined) return groups[name];
 }
 
-export function getAllGroups(name: string) {
+export function getAllGroups() {
 	return groups;
 }
 

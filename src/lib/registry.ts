@@ -12,7 +12,6 @@ export const itemRegistryObject: { [index: string]: object } = {};
 export const event = new EventEmitter();
 const freeIDs: number[] = [];
 let lastID = 0;
-
 let finalized: boolean = false;
 
 export function loadPalette(): void {
@@ -65,8 +64,8 @@ export function addBlock(block: Block): void {
 	}
 }
 
-export function finalize(): void {
-	if (finalized) return;
+export function finalize(force: boolean = false): void {
+	if (finalized && !force) return;
 
 	event.emit('registry-prefinalize');
 
@@ -81,6 +80,8 @@ export function finalize(): void {
 		blockRegistry[name].finalize();
 		blockRegistryObject[name] = blockRegistry[name].getObject();
 	});
+
+	delete blockRegistryObject['air'];
 
 	finalized = true;
 
@@ -292,7 +293,7 @@ export interface IBlock {
 }
 
 export class Block {
-	rawid: number = 0;
+	rawid: number = -1;
 	id: string;
 	type: number;
 	texture: string | Array<string>;
@@ -339,7 +340,7 @@ export class Block {
 
 	finalize(): void {
 		if (!finalized) {
-			if (this.rawid == 0) {
+			if (this.rawid == -1) {
 				if (freeIDs.length > 0) {
 					this.rawid = freeIDs[0];
 					freeIDs.shift();
@@ -353,3 +354,6 @@ export class Block {
 		}
 	}
 }
+
+blockRegistry['air'] = new Block('air', -1, '', {}, 0, 0, 'any');
+blockRegistry['air'].rawid = 0;

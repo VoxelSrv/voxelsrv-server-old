@@ -218,24 +218,47 @@ export class World {
 		};
 	}
 
-	getBlock(data: types.XYZ, bool: boolean): Block {
+	getBlock(data: types.XYZ, allowgen: boolean): Block {
 		const local = globalToChunk(data);
+		const cid: string = local.id.toString();
+
 		if (this.chunks[local.id.toString()] != undefined) {
 			const id = this.chunks[local.id.toString()].data.get(local.pos[0], local.pos[1], local.pos[2]);
 
 			return blockRegistry[blockIDmap[id]];
+		} else if (this.existChunk(local.id)) {
+			const data = this.readChunk(local.id);
+			this.chunks[cid] = new Chunk(local.id, data.chunk, data.metadata, false);
+			this.chunks[cid].keepAlive();
+			return this.chunks[cid].data.get(local.pos[0], local.pos[1], local.pos[2]);
+		} else if (allowgen) {
+			return this.generator.getBlock(data[0], data[1], data[2])
 		}
 	}
 
-	setBlock(data: types.XYZ, block: string | number | Block, bool: boolean): void {
+	async setBlock(data: types.XYZ, block: string | number | Block, allowgen: boolean) {
 		const local = globalToChunk(data);
 		let id = 0;
+		const cid: string = local.id.toString();
 
 		if (typeof block == 'number') id = block;
 		else if (typeof block == 'string') id = blockPalette[block];
 		else id = block.rawid;
 
-		if (this.chunks[local.id.toString()] != undefined) this.chunks[local.id.toString()].data.set(local.pos[0], local.pos[1], local.pos[2], block);
+		if (this.chunks[cid] != undefined) {
+			this.chunks[cid].data.set(local.pos[0], local.pos[1], local.pos[2], block);
+			this.chunks[cid].keepAlive();
+		} else if (this.existChunk(local.id)) {
+			const data = this.readChunk(local.id);
+			this.chunks[cid] = new Chunk(local.id, data.chunk, data.metadata, false);
+			this.chunks[cid].data.set(local.pos[0], local.pos[1], local.pos[2], block);
+			this.chunks[cid].keepAlive();
+		} else if (allowgen) {
+			const data = new ndarray(new Uint16Array(chunkWitdh * chunkHeight * chunkWitdh), [chunkWitdh, chunkHeight, chunkWitdh]);
+			this.chunks[cid] = new Chunk(local.id, await this.generator.generateChunk(id, data), { ...baseMetadata }, false);
+			this.chunks[cid].data.set(local.pos[0], local.pos[1], local.pos[2], block);
+			this.chunks[cid].keepAlive();
+		}
 	}
 
 	unload() {

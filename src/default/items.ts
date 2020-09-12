@@ -83,3 +83,7 @@ colors.forEach(function (color) {
 
 addItem(new ItemBlock('tnt', 'TNT', 'block/tnt_side', 64, 'tnt', false));
 addItem(new ItemBlock('pumpkin', 'Pumpkin', 'block/pumpkin_side', 64, 'pumpkin', false));
+
+addItem(new ItemBlock('water_bucket', 'Water bucket', 'item/water_bucket', 1, 'water', false));
+addItem(new ItemBlock('bucket', 'Bucket', 'item/bucket', 1, 'air', false));
+

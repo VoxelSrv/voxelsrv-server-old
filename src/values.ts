@@ -1,6 +1,6 @@
 import * as types from './types';
 
-export const serverVersion = '0.2.0-beta.1';
+export const serverVersion = '0.2.0-beta.2';
 export const serverProtocol = 2;
 
 export interface IServerConfig {
@@ -10,6 +10,7 @@ export interface IServerConfig {
 	motd: string;
 	public: boolean;
 	maxplayers: number;
+	viewDistance: number;
 	chunkTransportCompression: boolean;
 	world: {
 		seed: number;
@@ -28,6 +29,7 @@ export const serverDefaultConfig: IServerConfig = {
 	motd: 'Another VoxelSRV server',
 	public: false,
 	maxplayers: 10,
+	viewDistance: 5,
 	chunkTransportCompression: false,
 	world: {
 		seed: 0,

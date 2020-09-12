@@ -223,7 +223,7 @@ export class Player {
 
 		data.cancel = false;
 		for (let x = 0; x <= 5; x++) {
-			event.emit(`player-breakplace-${x}`, this, data);
+			event.emit(`player-blockbreak-${x}`, this, data);
 			if (data.cancel) return;
 		}
 
@@ -352,12 +352,11 @@ export class Player {
 
 setInterval(async function () {
 	const list = Object.keys(players);
-	const viewDistance = 3;
 
 	list.forEach(async function (id) {
 		const chunk = players[id].entity.chunk;
 		const loadedchunks = { ...players[id].chunks };
-		for (let w = 0; w <= viewDistance; w++) {
+		for (let w = 0; w <= serverConfig.viewDistance; w++) {
 			for (let x = 0 - w; x <= 0 + w; x++) {
 				for (let z = 0 - w; z <= 0 + w; z++) {
 					const tempid = [chunk[0] + x, chunk[1] + z];

@@ -6,7 +6,7 @@ import { ChatComponent } from './chat'
 
 import { serverVersion } from '../values';
 
-export const plugins: {} = {};
+export const plugins: {[index: string]: IPlugin} = {};
 
 export interface IPlugin {
 	name: string;
