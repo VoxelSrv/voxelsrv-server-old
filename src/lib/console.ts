@@ -7,7 +7,7 @@ export function log(...args: any[]) {
 		const msg = arguments[i];
 		if (Array.isArray(msg)) {
 			msg.forEach((el) => {
-				if (el.color.startsWith('#')) term.colorRgbHex(el.color, el.text);
+				if (!!el.color && el.color.startsWith('#')) term.colorRgbHex(el.color, el.text);
 				else if (term[el.color] != undefined) term[el.color](el.text);
 				else term(el.text);
 			});
@@ -22,7 +22,7 @@ export function chat(...args: any[]) {
 		const msg = arguments[i];
 		if (Array.isArray(msg)) {
 			msg.forEach((el) => {
-				if (el.color.startsWith('#')) term.colorRgbHex(el.color, el.text);
+				if (!!el.color && el.color.startsWith('#')) term.colorRgbHex(el.color, el.text);
 				else if (term[el.color] != undefined) term[el.color](el.text);
 				else term(el.text);
 			});
@@ -37,7 +37,7 @@ export function warn(...args: any[]) {
 		const msg = arguments[i];
 		if (Array.isArray(msg)) {
 			msg.forEach((el) => {
-				if (el.color.startsWith('#')) term.colorRgbHex(el.color, el.text);
+				if (!!el.color && el.color.startsWith('#')) term.colorRgbHex(el.color, el.text);
 				else if (term[el.color] != undefined) term[el.color](el.text);
 				else term(el.text);
 			});
@@ -52,7 +52,7 @@ export function error(...args: any[]) {
 		const msg = arguments[i];
 		if (Array.isArray(msg)) {
 			msg.forEach((el) => {
-				if (el.color.startsWith('#')) term.colorRgbHex(el.color, el.text);
+				if (!!el.color && el.color.startsWith('#')) term.colorRgbHex(el.color, el.text);
 				else if (term[el.color] != undefined) term[el.color](el.text);
 				else term(el.text);
 			});

@@ -18,7 +18,7 @@ import flatGenerator from './default/worldgen/flat';
 
 import { serverVersion, serverProtocol, serverConfig, invalidNicknameRegex, setConfig } from './values';
 
-export function startServer(wss: any): void {
+export async function startServer(wss: any) {
 	const event = new EventEmitter();
 
 	console.log(`^yStarting VoxelSRV server version^: ${serverVersion} ^y[Protocol:^: ${serverProtocol}^y]`);
@@ -93,13 +93,13 @@ export function startServer(wss: any): void {
 			socket.send(protocol.parseToMessage('server', type, data));
 		}
 
-		send('loginRequest', {
+		send('LoginRequest', {
 			name: serverConfig.name,
 			motd: serverConfig.motd,
 			protocol: serverProtocol,
 			maxplayers: serverConfig.maxplayers,
 			numberplayers: playerCount,
-			software: `VoxelSrv-Server ${serverVersion}`,
+			software: `VoxelSrv-Server`,
 		});
 		const packetEvent = new EventEmitter();
 
@@ -110,11 +110,11 @@ export function startServer(wss: any): void {
 
 		let loginTimeout = true;
 
-		packetEvent.on('loginResponse', function (data) {
+		packetEvent.on('LoginResponse', function (data) {
 			loginTimeout = false;
 
 			if (playerCount >= serverConfig.maxplayers) {
-				send('playerKick', { reason: 'Server is full', time: Date.now() });
+				send('PlayerKick', { reason: 'Server is full', time: Date.now() });
 				socket.close();
 				return;
 			}
@@ -125,11 +125,11 @@ export function startServer(wss: any): void {
 			const id = data.username.toLowerCase();
 
 			if (check != 0) {
-				send('playerKick', { reason: check, time: Date.now() });
+				send('PlayerKick', { reason: check, time: Date.now() });
 				socket.close();
 			}
 			if (connections[id] != undefined) {
-				send('playerKick', {
+				send('PlayerKick', {
 					reason: 'Player with that nickname is already online!',
 					time: Date.now(),
 				});
@@ -138,7 +138,7 @@ export function startServer(wss: any): void {
 				players.event.emit('connection', id);
 				var player = players.create(id, data, socket, packetEvent);
 
-				send('loginSuccess', {
+				send('LoginSuccess', {
 					xPos: player.entity.data.position[0],
 					yPos: player.entity.data.position[1],
 					zPos: player.entity.data.position[2],
@@ -150,10 +150,10 @@ export function startServer(wss: any): void {
 
 				connections[id] = socket;
 
-				send('playerEntity', { uuid: player.entity.id });
+				send('PlayerEntity', { uuid: player.entity.id });
 
 				Object.entries(entity.getAll(player.world)).forEach(function (data: any) {
-					send('entityCreate', {
+					send('EntityCreate', {
 						uuid: data[0],
 						data: JSON.stringify(data[1].data),
 					});
@@ -173,26 +173,26 @@ export function startServer(wss: any): void {
 					delete connections[id];
 					playerCount = playerCount - 1;
 				});
-				packetEvent.on('actionMessage', function (data) {
+				packetEvent.on('ActionMessage', function (data) {
 					player.action_chatsend(data);
 				});
 
-				packetEvent.on('actionBlockBreak', function (data) {
+				packetEvent.on('ActionBlockBreak', function (data) {
 					player.action_blockbreak(data);
 				});
 
-				packetEvent.on('actionBlockPlace', function (data) {
+				packetEvent.on('ActionBlockPlace', function (data) {
 					player.action_blockplace(data);
 				});
 
-				packetEvent.on('actionMove', function (data) {
+				packetEvent.on('ActionMove', function (data) {
 					player.action_move({
 						pos: [data.x, data.y, data.z],
 						rot: data.rotation,
 					});
 				});
 
-				packetEvent.on('actionInventoryClick', function (data) {
+				packetEvent.on('ActionInventoryClick', function (data) {
 					player.action_invclick(data);
 				});
 			}
@@ -200,7 +200,7 @@ export function startServer(wss: any): void {
 
 		setTimeout(function () {
 			if (loginTimeout == true) {
-				send('playerKick', { reason: 'Timeout' });
+				send('PlayerKick', { reason: 'Timeout' });
 				socket.close();
 			}
 		}, 10000);

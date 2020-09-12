@@ -11,7 +11,6 @@ import * as commands from './commands';
 import * as fs from 'fs';
 import * as console from './console';
 import * as protocol from './protocol';
-import * as prothelper from './protocol-helper';
 import * as types from '../types';
 import * as chat from './chat';
 
@@ -142,7 +141,7 @@ export class Player {
 		save(this.id, this.getObject());
 
 		this.inventory.event.on('slot-update', (data) => {
-			this.sendPacket('playerSlotUpdate', {
+			this.sendPacket('PlayerSlotUpdate', {
 				slot: parseInt(data.slot),
 				data: JSON.stringify(data.data),
 				type: data.type,
@@ -177,7 +176,7 @@ export class Player {
 
 	teleport(pos, eworld) {
 		this.entity.teleport(pos, eworld);
-		this.sendPacket('playerTeleport', { x: pos[0], y: pos[1], z: pos[2] });
+		this.sendPacket('PlayerTeleport', { x: pos[0], y: pos[1], z: pos[2] });
 	}
 
 	move(pos) {
@@ -187,7 +186,7 @@ export class Player {
 
 	send(msg) {
 		if (typeof msg == 'string') msg = chat.convertFromPlain(msg);
-		this.sendPacket('chatMessage', { message: msg, time: Date.now() });
+		this.sendPacket('ChatMessage', { message: msg, time: Date.now() });
 	}
 
 	rotate(rot) {
@@ -196,7 +195,7 @@ export class Player {
 	}
 
 	kick(reason) {
-		this.sendPacket('playerKick', { reason: reason, date: Date.now() });
+		this.sendPacket('PlayerKick', { reason: reason, date: Date.now() });
 	}
 
 	get getID() {
@@ -218,11 +217,13 @@ export class Player {
 
 		if (vec.dist(pos, [data.x, data.y, data.z]) < 14 && block != undefined && block.unbreakable != true) {
 			worldManager.get(this.world).setBlock(blockpos, 0, false);
-			prothelper.broadcast('worldBlockUpdate', {
-				id: 0,
-				x: data.x,
-				y: data.y,
-				z: data.z,
+			Object.values(players).forEach((p: Player) => {
+				p.sendPacket('WorldBlockUpdate', {
+					id: 0,
+					x: data.x,
+					y: data.y,
+					z: data.z,
+				});
 			});
 		}
 	}
@@ -242,11 +243,13 @@ export class Player {
 			if (itemstack != null && itemstack.item.block != undefined) {
 				//player.inv.remove(id, item.id, 1, {})
 				worldManager.get(this.world).setBlock([data.x, data.y, data.z], itemstack.item.block.getRawID(), false);
-				prothelper.broadcast('worldBlockUpdate', {
-					id: registry.blockPalette[itemstack.item.block.id],
-					x: data.x,
-					y: data.y,
-					z: data.z,
+				Object.values(players).forEach((p: Player) => {
+					p.sendPacket('WorldBlockUpdate', {
+						id: registry.blockPalette[itemstack.item.block.id],
+						x: data.x,
+						y: data.y,
+						z: data.z,
+					});
 				});
 			}
 		}
@@ -318,14 +321,14 @@ export class Player {
 			event.emit(`player-move-${x}`, this, data);
 			if (data.cancel) {
 				const apos = this.entity.data.position;
-				this.sendPacket('playerTeleport', { x: apos[0], y: apos[1], z: apos[2] });
+				this.sendPacket('PlayerTeleport', { x: apos[0], y: apos[1], z: apos[2] });
 				return;
 			}
 		}
 
 		var pos = this.entity.data.position;
 		if (Math.abs(data.pos[0]) > 120000 || data.pos[1] > 120000 || Math.abs(data.pos[2]) > 120000) {
-			this.sendPacket('playerTeleport', { x: pos[0], y: pos[1], z: pos[2] });
+			this.sendPacket('PlayerTeleport', { x: pos[0], y: pos[1], z: pos[2] });
 			return;
 		}
 
@@ -359,7 +362,16 @@ setInterval(async function () {
 
 		const toRemove = Object.entries(loadedchunks);
 		toRemove.forEach(function (item) {
-			if (item[1] == true) delete players[id].chunks[item[0]];
+			if (item[1] == true) {
+				delete players[id].chunks[item[0]];
+				const cid = item[0].split(',');
+				players[id].sendPacket('WorldChunkUnload', {
+					x: parseInt(cid[0]),
+					y: 0,
+					z: parseInt(cid[1]),
+					type: true,
+				});
+			}
 		});
 	});
 }, 1000);
@@ -379,7 +391,7 @@ async function sendChunkToPlayer(id: string, cid: types.XZ) {
 			chunk.keepAlive();
 
 			const data = serverConfig.chunkTransportCompression ? pako.deflate(chunk.data.data) : chunk.data.data;
-			players[id].sendPacket('worldChunk', {
+			players[id].sendPacket('WorldChunkLoad', {
 				x: cid[0],
 				y: 0,
 				z: cid[1],
