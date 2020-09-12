@@ -1,1 +1,1 @@
-export { get, getAll, event, Player } from '../lib/player';
+export { get, getAll, event, Player, sendPacketAll } from '../lib/player';

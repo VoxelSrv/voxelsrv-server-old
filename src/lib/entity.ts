@@ -1,19 +1,22 @@
+import { EventEmitter } from 'events';
+
 import * as worldManager from './worlds';
-import * as prothelper from './protocol-helper';
 import * as types from '../types';
 import { ArmorInventory } from './inventory';
 
 import { v4 as uuid } from 'uuid';
+
+export const event = new EventEmitter();
 
 export function create(type: string, data: EntityData, worldName: string, tick: Function | null) {
 	let id = uuid();
 
 	worldManager.get(worldName).entities[id] = new Entity(id, type, data, worldName, tick);
 
-	prothelper.broadcast('entityCreate', {
+	event.emit('entity-create', {
 		uuid: id,
 		data: JSON.stringify(worldManager.get(worldName).entities[id].data),
-	});
+	})
 
 	return worldManager.get(worldName).entities[id];
 }
@@ -21,7 +24,7 @@ export function create(type: string, data: EntityData, worldName: string, tick: 
 export function recreate(id: string, type: string, data: EntityData, worldName: string, tick: Function | null) {
 	worldManager.get(worldName).entities[id] = new Entity(id, type, data, worldName, tick);
 
-	prothelper.broadcast('entityCreate', {
+	event.emit('entity-create', {
 		uuid: id,
 		data: JSON.stringify(worldManager.get(worldName).entities[id].data),
 	});
@@ -75,7 +78,7 @@ export class Entity {
 		this.world = eworld;
 		this.data.position = pos;
 		this.chunk = worldManager.toChunk(pos).id;
-		prothelper.broadcast('entityMove', {
+		event.emit('entity-move', {
 			uuid: this.id,
 			x: this.data.position[0],
 			y: this.data.position[1],
@@ -87,7 +90,7 @@ export class Entity {
 	move(pos: types.XYZ): void {
 		this.data.position = pos;
 		this.chunk = worldManager.toChunk(pos).id;
-		prothelper.broadcast('entityMove', {
+		event.emit('entity-move', {
 			uuid: this.id,
 			x: this.data.position[0],
 			y: this.data.position[1],
@@ -98,7 +101,7 @@ export class Entity {
 
 	rotate(rot: number): void {
 		this.data.rotation = rot;
-		prothelper.broadcast('entityMove', {
+		event.emit('entity-move', {
 			uuid: this.id,
 			x: this.data.position[0],
 			y: this.data.position[1],
@@ -110,7 +113,7 @@ export class Entity {
 	remove(): void {
 		try {
 			let id = this.id;
-			prothelper.broadcast('entityRemove', { uuid: this.id });
+			event.emit('entity-remove', { uuid: this.id });
 
 			setTimeout(() => {
 				let world = worldManager.get(this.world);

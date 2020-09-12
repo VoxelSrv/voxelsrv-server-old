@@ -65,7 +65,6 @@ export async function startServer(wss: any) {
 	require('./default/commands');
 
 	require('./lib/console-exec');
-	require('./lib/protocol-helper').setWS(wss);
 
 	console.log('^yServer started on port: ^:' + serverConfig.port);
 

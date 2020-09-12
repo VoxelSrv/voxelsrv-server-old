@@ -64,6 +64,22 @@ export function getAll(): { [index: string]: Player } {
 	return players;
 }
 
+export function sendPacketAll(type: string, data: any) {
+	Object.values(players).forEach((p: Player) => {
+		p.sendPacket(type, data);
+	});
+}
+
+event.on('entity-create', (data) => {
+	sendPacketAll('EntityCreate', data);
+});
+event.on('entity-move', (data) => {
+	sendPacketAll('EntityMove', data);
+});
+event.on('entity-remove', (data) => {
+	sendPacketAll('EntityRemove', data);
+});
+
 export class Player {
 	readonly id: string;
 	readonly nickname: string;
@@ -217,13 +233,11 @@ export class Player {
 
 		if (vec.dist(pos, [data.x, data.y, data.z]) < 14 && block != undefined && block.unbreakable != true) {
 			worldManager.get(this.world).setBlock(blockpos, 0, false);
-			Object.values(players).forEach((p: Player) => {
-				p.sendPacket('WorldBlockUpdate', {
-					id: 0,
-					x: data.x,
-					y: data.y,
-					z: data.z,
-				});
+			sendPacketAll('WorldBlockUpdate', {
+				id: 0,
+				x: data.x,
+				y: data.y,
+				z: data.z,
 			});
 		}
 	}
@@ -243,13 +257,11 @@ export class Player {
 			if (itemstack != null && itemstack.item.block != undefined) {
 				//player.inv.remove(id, item.id, 1, {})
 				worldManager.get(this.world).setBlock([data.x, data.y, data.z], itemstack.item.block.getRawID(), false);
-				Object.values(players).forEach((p: Player) => {
-					p.sendPacket('WorldBlockUpdate', {
-						id: registry.blockPalette[itemstack.item.block.id],
-						x: data.x,
-						y: data.y,
-						z: data.z,
-					});
+				sendPacketAll('WorldBlockUpdate', {
+					id: registry.blockPalette[itemstack.item.block.id],
+					x: data.x,
+					y: data.y,
+					z: data.z,
 				});
 			}
 		}
