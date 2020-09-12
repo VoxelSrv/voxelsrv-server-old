@@ -15,14 +15,14 @@ export interface IPlugin {
 	[index: string]: any;
 }
 
-export function loadPlugins() {
+export async function loadPlugins() {
 	const pluginFiles = fs.readdirSync('./plugins');
 
 	for (const file of pluginFiles) {
 		try {
 			let plugin: IPlugin;
-			if (file.endsWith('.ts') || file.endsWith('.js')) plugin = require(`../../plugins/${file}`);
-			else if (fs.existsSync(`./plugins/${file}/index.ts`) || fs.existsSync(`./plugins/${file}/index.js`)) plugin = require(`../../plugins/${file}/`);
+			if (file.endsWith('.ts') || file.endsWith('.js')) plugin = await import(`../../plugins/${file}`);
+			else if (fs.existsSync(`./plugins/${file}/index.ts`) || fs.existsSync(`./plugins/${file}/index.js`)) plugin = await import(`../../plugins/${file}/`);
 			else continue;
 			if (!semver.satisfies(serverVersion, plugin.supported)) {
 				console.warn([new ChatComponent('Plugin ', 'orange'), new ChatComponent(file, 'yellow'),  new ChatComponent(' might not support this version of server!', 'orange')]);

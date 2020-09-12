@@ -151,5 +151,3 @@ export class PlayerPermissionHolder extends PermissionHolder {
 		if (this.parents[parent] != undefined) delete this.parents[parent];
 	}
 }
-
-export function load() {}
