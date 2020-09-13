@@ -351,7 +351,7 @@ export class Player {
 		if (data.pos[0] == undefined || data.pos[1] == undefined || data.pos[2] == undefined) return;
 
 		data.cancel = false;
-		if (this.entity.chunk == undefined) data.cancel = true;
+		if (this.world.chunks[this.entity.chunkID.toString()] == undefined) data.cancel = true;
 
 		for (let x = 0; x <= 5; x++) {
 			event.emit(`player-move-${x}`, this, data);
