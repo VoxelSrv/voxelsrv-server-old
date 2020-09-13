@@ -125,6 +125,9 @@ export class Player {
 			this.inventory = new PlayerInventory(10, null);
 			this.hookInventory = null;
 			this.permissions = new PlayerPermissionHolder({}, ['default']);
+			event.emit('player-firstjoin', this);
+			event.emit('player-join', this);
+
 		} else {
 			this.entity = entity.recreate(
 				data.entity.id,
@@ -151,6 +154,8 @@ export class Player {
 			this.inventory = new PlayerInventory(10, data.inventory);
 			if (!!data.permissions) this.permissions = new PlayerPermissionHolder(data.permissions, [...data.permissionparents, 'default']);
 			else this.permissions = new PlayerPermissionHolder({}, ['default']);
+			event.emit('player-join', this);
+
 		}
 
 		this.socket = socket;
@@ -165,6 +170,8 @@ export class Player {
 				type: data.type,
 			});
 		});
+
+		event.emit('player-created', this);
 	}
 
 	getObject() {
@@ -184,6 +191,7 @@ export class Player {
 	}
 
 	remove() {
+		event.emit('player-remove', this);
 		save(this.id, this.getObject());
 		this.entity.remove();
 
