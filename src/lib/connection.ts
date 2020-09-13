@@ -7,8 +7,7 @@ import * as protocol from './protocol';
 import * as entity from './entity';
 import * as chat from './chat';
 
-import { serverVersion, serverProtocol, serverConfig, invalidNicknameRegex, } from '../values';
-
+import { serverVersion, serverProtocol, serverConfig, invalidNicknameRegex } from '../values';
 
 export function setupConnectionHandler(wss) {
 	const connections = {};
@@ -92,7 +91,7 @@ export function setupConnectionHandler(wss) {
 
 				send('PlayerEntity', { uuid: player.entity.id });
 
-				Object.entries(entity.getAll(player.world)).forEach(function (data: any) {
+				Object.entries(player.world.entities).forEach(function (data: any) {
 					send('EntityCreate', {
 						uuid: data[0],
 						data: JSON.stringify(data[1].data),
@@ -129,11 +128,20 @@ export function setupConnectionHandler(wss) {
 					player.action_move({
 						pos: [data.x, data.y, data.z],
 						rot: data.rotation,
+						pitch: data.pitch
 					});
 				});
 
 				packetEvent.on('ActionInventoryClick', function (data) {
 					player.action_invclick(data);
+				});
+
+				packetEvent.on('ActionClick', function (data) {
+					player.action_click(data);
+				});
+				
+				packetEvent.on('ActionClickEntity', function (data) {
+					player.action_click(data);
 				});
 			}
 		});

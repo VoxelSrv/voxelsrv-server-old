@@ -1,1 +1,1 @@
-export { create, recreate, get, getAll, EntityData } from '../lib/entity';
+export { create, recreate, get, getAll, EntityData, Entity } from '../lib/entity';

@@ -28,7 +28,7 @@ function teleport(executor, arg) {
 		var plID = Object.values(players.getAll());
 		for (var x = 0; x < plID.length; x++) {
 			if (arg[0].toLowerCase() == plID[x].nickname.toLowerCase()) {
-				executor.teleport(plID[x].entity.data.position, plID[x].entity.world);
+				executor.teleport(plID[x].entity.data.position, plID[x].entity.world.name);
 				executor.send([new ChatComponent('Teleported to player ' + plID[x].nickname, '#63e084')]);
 				return;
 			}
@@ -36,7 +36,7 @@ function teleport(executor, arg) {
 
 		executor.send([new ChatComponent('There is nobody online with this nickname', '#ff4040')]);
 	} else if (arg.length == 3) {
-		executor.teleport([parseFloat(arg[0]), parseFloat(arg[1]), parseFloat(arg[2])], executor.entity.world);
+		executor.teleport([parseFloat(arg[0]), parseFloat(arg[1]), parseFloat(arg[2])], executor.entity.world.name);
 		executor.send([new ChatComponent('Teleported to player ' + JSON.stringify(arg), '#63e084')]);
 	} else
 		executor.send([

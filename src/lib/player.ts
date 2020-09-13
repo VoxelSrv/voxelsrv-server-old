@@ -70,13 +70,13 @@ export function sendPacketAll(type: string, data: any) {
 	});
 }
 
-event.on('entity-create', (data) => {
+entity.event.on('entity-create', (data) => {
 	sendPacketAll('EntityCreate', data);
 });
-event.on('entity-move', (data) => {
+entity.event.on('entity-move', (data) => {
 	sendPacketAll('EntityMove', data);
 });
-event.on('entity-remove', (data) => {
+entity.event.on('entity-remove', (data) => {
 	sendPacketAll('EntityRemove', data);
 });
 
@@ -85,7 +85,7 @@ export class Player {
 	readonly nickname: string;
 	displayName: string;
 	entity: entity.Entity;
-	world: string;
+	world: worldManager.World;
 	inventory: PlayerInventory;
 	hookInventory: any;
 	readonly socket: any;
@@ -112,6 +112,7 @@ export class Player {
 					texture: 'entity/steve',
 					position: serverConfig.world.spawn,
 					rotation: 0,
+					pitch: 0,
 					hitbox: [0.55, 1.9, 0.55],
 					armor: new ArmorInventory(null),
 				},
@@ -119,7 +120,7 @@ export class Player {
 				null
 			);
 
-			this.world = 'default';
+			this.world = worldManager.get('default');
 
 			this.inventory = new PlayerInventory(10, null);
 			this.hookInventory = null;
@@ -137,6 +138,7 @@ export class Player {
 					texture: 'entity/steve',
 					position: data.entity.data.position,
 					rotation: data.entity.data.rotation,
+					pitch: data.entity.data.pitch,
 					hitbox: [0.55, 1.9, 0.55],
 					armor: new ArmorInventory(data.entity.data.armor),
 				},
@@ -144,7 +146,7 @@ export class Player {
 				null
 			);
 
-			this.world = data.world;
+			this.world = worldManager.get(data.world);
 
 			this.inventory = new PlayerInventory(10, data.inventory);
 			if (!!data.permissions) this.permissions = new PlayerPermissionHolder(data.permissions, [...data.permissionparents, 'default']);
@@ -171,7 +173,7 @@ export class Player {
 			nickname: this.nickname,
 			entity: this.entity.getObject(),
 			inventory: this.inventory.getObject(),
-			world: this.world,
+			world: this.world.name,
 			permissions: this.permissions.permissions,
 			permissionparents: Object.keys(this.permissions.parents),
 		};
@@ -192,6 +194,7 @@ export class Player {
 
 	teleport(pos, eworld) {
 		this.entity.teleport(pos, eworld);
+		this.world = worldManager.get(eworld)
 		this.sendPacket('PlayerTeleport', { x: pos[0], y: pos[1], z: pos[2] });
 	}
 
@@ -205,13 +208,26 @@ export class Player {
 		this.sendPacket('ChatMessage', { message: msg, time: Date.now() });
 	}
 
-	rotate(rot) {
-		event.emit('player-rotate', { id: this.id, rot: rot });
-		this.entity.rotate(rot);
+	rotate(rot: number | null, pitch: number | null) {
+		event.emit('player-rotate', { id: this.id, rot, pitch });
+		this.entity.rotate(rot, pitch);
+
 	}
 
 	kick(reason) {
 		this.sendPacket('PlayerKick', { reason: reason, date: Date.now() });
+	}
+
+	updateMovement(key: string, value: number) {
+		this.sendPacket('PlayerUpdateMovement', { key: key, value: value });
+	}
+
+	updatePhysics(key: string, value: number) {
+		this.sendPacket('PlayerUpdatePhysics', { key: key, value: value });
+	}
+
+	applyForce(x: number, y: number, z: number) {
+		this.sendPacket('PlayerApplyImpulse', { x, y, z });
 	}
 
 	get getID() {
@@ -228,11 +244,11 @@ export class Player {
 		}
 
 		const blockpos: types.XYZ = [data.x, data.y, data.z];
-		const block = worldManager.get(this.world).getBlock(blockpos, false);
+		const block = this.world.getBlock(blockpos, false);
 		const pos = this.entity.data.position;
 
 		if (vec.dist(pos, [data.x, data.y, data.z]) < 14 && block != undefined && block.unbreakable != true) {
-			worldManager.get(this.world).setBlock(blockpos, 0, false);
+			this.world.setBlock(blockpos, 0, false);
 			sendPacketAll('WorldBlockUpdate', {
 				id: 0,
 				x: data.x,
@@ -256,7 +272,7 @@ export class Player {
 		if (vec.dist(pos, [data.x, data.y, data.z]) < 14 && itemstack != undefined && itemstack.id != undefined) {
 			if (itemstack != null && itemstack.item.block != undefined) {
 				//player.inv.remove(id, item.id, 1, {})
-				worldManager.get(this.world).setBlock([data.x, data.y, data.z], itemstack.item.block.getRawID(), false);
+				this.world.setBlock([data.x, data.y, data.z], itemstack.item.block.getRawID(), false);
 				sendPacketAll('WorldBlockUpdate', {
 					id: registry.blockPalette[itemstack.item.block.id],
 					x: data.x,
@@ -327,7 +343,7 @@ export class Player {
 		if (data.pos[0] == undefined || data.pos[1] == undefined || data.pos[2] == undefined) return;
 
 		data.cancel = false;
-		if (worldManager.get(this.world).chunks[this.entity.chunk.toString()] == undefined) data.cancel = true;
+		if (this.entity.chunk == undefined) data.cancel = true;
 
 		for (let x = 0; x <= 5; x++) {
 			event.emit(`player-move-${x}`, this, data);
@@ -346,7 +362,25 @@ export class Player {
 
 		if (vec.dist(pos, data.pos) < 20) this.move(data.pos);
 
-		this.rotate(data.rot);
+		this.rotate(data.rot, data.pitch);
+	}
+
+	action_click(data) {
+		data.cancel = false;
+		for (let x = 0; x <= 5; x++) {
+			event.emit(`player-click-${x}`, this, data);
+			if (data.cancel) return;
+		}
+
+	}
+
+	action_entityclick(data) {
+		data.cancel = false;
+		for (let x = 0; x <= 5; x++) {
+			event.emit(`player-entityclick-${x}`, this, data);
+			if (data.cancel) return;
+		}
+
 	}
 }
 
@@ -354,7 +388,7 @@ setInterval(async function () {
 	const list = Object.keys(players);
 
 	list.forEach(async function (id) {
-		const chunk = players[id].entity.chunk;
+		const chunk = players[id].entity.chunkID;
 		const loadedchunks = { ...players[id].chunks };
 		for (let w = 0; w <= serverConfig.viewDistance; w++) {
 			for (let x = 0 - w; x <= 0 + w; x++) {
@@ -364,8 +398,8 @@ setInterval(async function () {
 						players[id].chunks[tempid] = true;
 						chunksToSend.push([id, tempid]);
 					}
-					if (worldManager.get(players[id].world).chunks[tempid.toString()] != undefined)
-						worldManager.get(players[id].world).chunks[tempid.toString()].keepAlive();
+					if (players[id].world.chunks[tempid.toString()] != undefined)
+						players[id].world.chunks[tempid.toString()].keepAlive();
 					loadedchunks[tempid.toString()] = false;
 				}
 			}
@@ -397,7 +431,7 @@ setInterval(async function () {
 async function sendChunkToPlayer(id: string, cid: types.XZ) {
 	event.emit('sendChunk', id, cid);
 	if (players[id] != undefined) {
-		const chunk = await worldManager.get(players[id].world).getChunk(cid, true);
+		const chunk = await players[id].world.getChunk(cid, true);
 		if (chunk != undefined && players[id] != undefined) {
 			chunk.keepAlive();
 

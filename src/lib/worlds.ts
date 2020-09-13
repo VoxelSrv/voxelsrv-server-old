@@ -232,7 +232,7 @@ export class World {
 			this.chunks[cid].keepAlive();
 			return this.chunks[cid].data.get(local.pos[0], local.pos[1], local.pos[2]);
 		} else if (allowgen) {
-			return this.generator.getBlock(data[0], data[1], data[2])
+			return this.generator.getBlock(data[0], data[1], data[2]);
 		}
 	}
 
