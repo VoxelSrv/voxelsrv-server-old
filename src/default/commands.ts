@@ -1,4 +1,3 @@
-import { register as registerCommand, commands, execute } from '../lib/commands';
 import * as console from '../lib/console';
 import * as worldManager from '../lib/worlds';
 import * as players from '../lib/player';
@@ -11,12 +10,12 @@ const ChatComponent = chat.ChatComponent;
 
 async function helpCommand(executor, arg) {
 	executor.send([new ChatComponent('List of all commands:', '#9ed0ff', 'Lato-Bold')]);
-	Object.entries(commands).forEach(function (item) {
-		executor.send([new ChatComponent(item[0] + ' - ' + item[1].description)]);
+	Object.values(registry.commandRegistry).forEach(function (item) {
+		executor.send([new ChatComponent(item.command + ' - ' + item.description)]);
 	});
 }
 
-registerCommand('/help', helpCommand, 'Displays list of all commands');
+registry.addCommand(new registry.Command('/help', helpCommand, 'Displays list of all commands'));
 
 function teleport(executor, arg) {
 	if (executor.id == '#console') return;
@@ -47,7 +46,8 @@ function teleport(executor, arg) {
 		]);
 }
 
-registerCommand('/tp', teleport, 'Teleports player to other player or location');
+registry.addCommand(new registry.Command('/tp', teleport, 'Teleports player to other player or location'));
+
 
 function stopCommand(executor, args) {
 	if (!executor.permissions.check('server.stop')) {
@@ -71,7 +71,7 @@ function stopCommand(executor, args) {
 	}, 1000);
 }
 
-registerCommand('/stop', stopCommand, 'Stops the server (console only)');
+registry.addCommand(new registry.Command('/stop', stopCommand, 'Stops the server (console only)'));
 
 function give(executor, arg) {
 	if (executor.id == '#console') return;
@@ -119,6 +119,6 @@ function clear(executor, arg) {
 	executor.send([new ChatComponent('Your inventory has been cleared', 'green')]);
 }
 
-registerCommand('/give', give, 'Gives item to a player');
-registerCommand('/giveall', giveAll, 'Gives all items to a player');
-registerCommand('/clear', clear, "Clears player's inventory");
+registry.addCommand(new registry.Command('/give', give, 'Gives item to a player'));
+registry.addCommand(new registry.Command('/giveall', giveAll, 'Gives all items to a player'));
+registry.addCommand(new registry.Command('/clear', clear, "Clears player's inventory"));

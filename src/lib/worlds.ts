@@ -82,6 +82,19 @@ export function globalToChunk(pos: types.XYZ): { id: types.XZ; pos: types.XYZ } 
 	};
 }
 
+export function chunkIDFromGlobal(pos: types.XYZ): types.XZ {
+	let xz: types.XZ = [Math.floor(pos[0] / chunkWitdh), Math.floor(pos[2] / chunkWitdh)];
+
+	if (xz[0] < 0) xz[0] = xz[0] + chunkWitdh;
+	if (xz[1] < 0) xz[1] = xz[1] + chunkWitdh;
+
+	return xz;
+}
+
+export function globalToLocal(pos: types.XYZ): types.XYZ {
+	return [pos[0] % chunkWitdh, pos[1], pos[2] % chunkWitdh];
+}
+
 function getRandomSeed(): number {
 	return Math.random() * (9007199254740990 + 9007199254740990) - 9007199254740991;
 }
@@ -222,8 +235,8 @@ export class World {
 		const local = globalToChunk(data);
 		const cid: string = local.id.toString();
 
-		if (this.chunks[local.id.toString()] != undefined) {
-			const id = this.chunks[local.id.toString()].data.get(local.pos[0], local.pos[1], local.pos[2]);
+		if (this.chunks[cid] != undefined) {
+			const id = this.chunks[cid].data.get(local.pos[0], local.pos[1], local.pos[2]);
 
 			return blockRegistry[blockIDmap[id]];
 		} else if (this.existChunk(local.id)) {
@@ -234,6 +247,7 @@ export class World {
 		} else if (allowgen) {
 			return this.generator.getBlock(data[0], data[1], data[2]);
 		}
+		return blockRegistry['air'];
 	}
 
 	async setBlock(data: types.XYZ, block: string | number | Block, allowgen: boolean) {
@@ -241,9 +255,18 @@ export class World {
 		let id = 0;
 		const cid: string = local.id.toString();
 
-		if (typeof block == 'number') id = block;
-		else if (typeof block == 'string') id = blockPalette[block];
-		else id = block.rawid;
+		switch (typeof block) {
+			case 'number':
+				id = block;
+				break;
+			case 'object':
+				id = block.rawid;
+				break;
+			case 'string':
+				id = blockPalette[block];
+			default:
+				return;
+		}
 
 		if (this.chunks[cid] != undefined) {
 			this.chunks[cid].data.set(local.pos[0], local.pos[1], local.pos[2], block);

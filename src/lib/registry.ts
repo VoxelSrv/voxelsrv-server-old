@@ -3,6 +3,7 @@ import { EventEmitter } from 'events';
 
 export const itemRegistry: { [index: string]: any } = {};
 export const blockRegistry: { [index: string]: any } = {};
+export const commandRegistry: { [index: string]: any } = {};
 export let blockPalette: { [index: string]: number } = {};
 export const blockIDmap: { [index: number]: string } = {};
 
@@ -62,6 +63,12 @@ export function addBlock(block: Block): void {
 		blockRegistry[block.id] = block;
 		event.emit('block-define', block);
 	}
+}
+
+export function addCommand(command: Command): void {
+	event.emit('command-predefine', command);
+	commandRegistry[command.command] = command;
+	event.emit('command-define', command);
 }
 
 export function finalize(force: boolean = false): void {
@@ -357,3 +364,12 @@ export class Block {
 
 blockRegistry['air'] = new Block('air', -1, '', {}, 0, 0, 'any');
 blockRegistry['air'].rawid = 0;
+
+export class Command {
+	command: string = null;
+	description: string;
+	trigger: Function = () => {};
+	constructor(command: string, func: Function, description: string = 'Custom command') {
+		(this.command = command), (this.description = description), (this.trigger = func);
+	}
+}

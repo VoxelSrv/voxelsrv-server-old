@@ -1,1 +1,1 @@
-export { getGroup, createGroup, removeGroup, getAllGroups } from '../lib/permissions';
+export { getGroup, createGroup, removeGroup, getAllGroups, PermissionHolder, PlayerPermissionHolder } from '../lib/permissions';

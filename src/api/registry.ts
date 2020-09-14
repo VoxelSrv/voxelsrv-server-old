@@ -1,1 +1,16 @@
-export { addItem, addBlock, itemRegistry, blockRegistry, Block, ItemBlock, Item, ItemTool, ItemArmor, ItemStack, event } from '../lib/registry';
+export {
+	addItem,
+	addBlock,
+	addCommand,
+	itemRegistry,
+	blockRegistry,
+	commandRegistry,
+	Block,
+	ItemBlock,
+	Item,
+	ItemTool,
+	ItemArmor,
+	ItemStack,
+	Command,
+	event,
+} from '../lib/registry';

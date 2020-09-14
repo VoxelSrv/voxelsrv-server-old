@@ -7,7 +7,6 @@ export const event = new EventEmitter();
 import * as entity from './entity';
 import * as worldManager from './worlds';
 import * as registry from './registry';
-import * as commands from './commands';
 import * as fs from 'fs';
 import * as console from './console';
 import * as protocol from './protocol';
@@ -333,7 +332,19 @@ export class Player {
 		}
 
 		if (data.message.charAt(0) == '/') {
-			commands.execute(this, data.message);
+			const arg = data.message.split(' ');
+			const command = arg[0];
+			arg.shift();
+			event.emit('player-executecommand', this, command, arg);
+
+			if (registry.commandRegistry[command]) {
+				try {
+					registry.commandRegistry[command].trigger(this, arg);
+				} catch (e) {
+					console.error(`User ^R${this.nickname}^r tried to execute command ^R${command}^r and it failed! \n ^R`, e);
+					this.send([new chat.ChatComponent('An error occurred during the execution of this command!', 'red')]);
+				}
+			} else this.send([new chat.ChatComponent("This command doesn't exist! Check /help for list of available commands.", 'red')]);
 		} else if (data.message != '') {
 			const msg = [
 				new chat.ChatComponent(this.displayName, 'white'),

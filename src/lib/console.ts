@@ -1,6 +1,10 @@
 import { terminal as term } from 'terminal-kit';
 import { PermissionHolder } from './permissions';
 
+import { EventEmitter } from 'events';
+
+export const event = new EventEmitter();
+
 export function log(...args: any[]) {
 	for (var i = 0; i < arguments.length; i++) {
 		term('[' + hourNow() + '] ');
