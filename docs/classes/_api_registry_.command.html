@@ -3,7 +3,7 @@
 <head>
 	<meta charset="utf-8">
 	<meta http-equiv="X-UA-Compatible" content="IE=edge">
-	<title>&quot;api/permissions&quot; | voxelsrv-server-api</title>
+	<title>Command | voxelsrv-server-api</title>
 	<meta name="description" content="">
 	<meta name="viewport" content="width=device-width, initial-scale=1">
 	<link rel="stylesheet" href="../assets/css/main.css">
@@ -56,131 +56,123 @@
 					<a href="../globals.html">Globals</a>
 				</li>
 				<li>
-					<a href="_api_index_.html">&quot;api/index&quot;</a>
+					<a href="../modules/_api_registry_.html">&quot;api/registry&quot;</a>
 				</li>
 				<li>
-					<a href="_api_index_._api_permissions_.html">&quot;api/permissions&quot;</a>
+					<a href="_api_registry_.command.html">Command</a>
 				</li>
 			</ul>
-			<h1>Module &quot;api/permissions&quot;</h1>
+			<h1>Class Command</h1>
 		</div>
 	</div>
 </header>
 <div class="container container-main">
 	<div class="row">
 		<div class="col-8 col-content">
+			<section class="tsd-panel tsd-hierarchy">
+				<h3>Hierarchy</h3>
+				<ul class="tsd-hierarchy">
+					<li>
+						<span class="target">Command</span>
+					</li>
+				</ul>
+			</section>
 			<section class="tsd-panel-group tsd-index-group">
 				<h2>Index</h2>
 				<section class="tsd-panel tsd-index-panel">
 					<div class="tsd-index-content">
 						<section class="tsd-index-section ">
-							<h3>Classes</h3>
+							<h3>Constructors</h3>
 							<ul class="tsd-index-list">
-								<li class="tsd-kind-class tsd-parent-kind-module"><a href="../classes/_api_index_._api_permissions_.permissionholder.html" class="tsd-kind-icon">Permission<wbr>Holder</a></li>
-								<li class="tsd-kind-class tsd-parent-kind-module"><a href="../classes/_api_index_._api_permissions_.playerpermissionholder.html" class="tsd-kind-icon">Player<wbr>Permission<wbr>Holder</a></li>
+								<li class="tsd-kind-constructor tsd-parent-kind-class"><a href="_api_registry_.command.html#constructor" class="tsd-kind-icon">constructor</a></li>
 							</ul>
 						</section>
 						<section class="tsd-index-section ">
-							<h3>Functions</h3>
+							<h3>Properties</h3>
 							<ul class="tsd-index-list">
-								<li class="tsd-kind-function tsd-parent-kind-module"><a href="_api_index_._api_permissions_.html#creategroup" class="tsd-kind-icon">create<wbr>Group</a></li>
-								<li class="tsd-kind-function tsd-parent-kind-module"><a href="_api_index_._api_permissions_.html#getallgroups" class="tsd-kind-icon">get<wbr>All<wbr>Groups</a></li>
-								<li class="tsd-kind-function tsd-parent-kind-module"><a href="_api_index_._api_permissions_.html#getgroup" class="tsd-kind-icon">get<wbr>Group</a></li>
-								<li class="tsd-kind-function tsd-parent-kind-module"><a href="_api_index_._api_permissions_.html#removegroup" class="tsd-kind-icon">remove<wbr>Group</a></li>
+								<li class="tsd-kind-property tsd-parent-kind-class"><a href="_api_registry_.command.html#command" class="tsd-kind-icon">command</a></li>
+								<li class="tsd-kind-property tsd-parent-kind-class"><a href="_api_registry_.command.html#description" class="tsd-kind-icon">description</a></li>
+							</ul>
+						</section>
+						<section class="tsd-index-section ">
+							<h3>Methods</h3>
+							<ul class="tsd-index-list">
+								<li class="tsd-kind-method tsd-parent-kind-class"><a href="_api_registry_.command.html#trigger" class="tsd-kind-icon">trigger</a></li>
 							</ul>
 						</section>
 					</div>
 				</section>
 			</section>
 			<section class="tsd-panel-group tsd-member-group ">
-				<h2>Functions</h2>
-				<section class="tsd-panel tsd-member tsd-kind-function tsd-parent-kind-module">
-					<a name="creategroup" class="tsd-anchor"></a>
-					<h3>create<wbr>Group</h3>
-					<ul class="tsd-signatures tsd-kind-function tsd-parent-kind-module">
-						<li class="tsd-signature tsd-kind-icon">create<wbr>Group<span class="tsd-signature-symbol">(</span>name<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span>, group<span class="tsd-signature-symbol">: </span><a href="../classes/_api_index_._api_permissions_.permissionholder.html" class="tsd-signature-type">PermissionHolder</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">void</span></li>
+				<h2>Constructors</h2>
+				<section class="tsd-panel tsd-member tsd-kind-constructor tsd-parent-kind-class">
+					<a name="constructor" class="tsd-anchor"></a>
+					<h3>constructor</h3>
+					<ul class="tsd-signatures tsd-kind-constructor tsd-parent-kind-class">
+						<li class="tsd-signature tsd-kind-icon">new <wbr>Command<span class="tsd-signature-symbol">(</span>command<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span>, func<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">Function</span>, description<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="_api_registry_.command.html" class="tsd-signature-type">Command</a></li>
 					</ul>
 					<ul class="tsd-descriptions">
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/Patbox/voxelsrv-server/blob/0a54b7f/src/lib/permissions.ts#L13">lib/permissions.ts:13</a></li>
+									<li>Defined in <a href="https://github.com/Patbox/voxelsrv-server/blob/0a54b7f/src/lib/registry.ts#L371">lib/registry.ts:371</a></li>
 								</ul>
 							</aside>
 							<h4 class="tsd-parameters-title">Parameters</h4>
 							<ul class="tsd-parameters">
 								<li>
-									<h5>name: <span class="tsd-signature-type">string</span></h5>
+									<h5>command: <span class="tsd-signature-type">string</span></h5>
 								</li>
 								<li>
-									<h5>group: <a href="../classes/_api_index_._api_permissions_.permissionholder.html" class="tsd-signature-type">PermissionHolder</a></h5>
+									<h5>func: <span class="tsd-signature-type">Function</span></h5>
+								</li>
+								<li>
+									<h5><span class="tsd-flag ts-flagDefault value">Default value</span> description: <span class="tsd-signature-type">string</span><span class="tsd-signature-symbol"> = &quot;Custom command&quot;</span></h5>
 								</li>
 							</ul>
-							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4>
+							<h4 class="tsd-returns-title">Returns <a href="_api_registry_.command.html" class="tsd-signature-type">Command</a></h4>
 						</li>
 					</ul>
 				</section>
-				<section class="tsd-panel tsd-member tsd-kind-function tsd-parent-kind-module">
-					<a name="getallgroups" class="tsd-anchor"></a>
-					<h3>get<wbr>All<wbr>Groups</h3>
-					<ul class="tsd-signatures tsd-kind-function tsd-parent-kind-module">
-						<li class="tsd-signature tsd-kind-icon">get<wbr>All<wbr>Groups<span class="tsd-signature-symbol">(</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-symbol">{}</span></li>
+			</section>
+			<section class="tsd-panel-group tsd-member-group ">
+				<h2>Properties</h2>
+				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-class">
+					<a name="command" class="tsd-anchor"></a>
+					<h3>command</h3>
+					<div class="tsd-signature tsd-kind-icon">command<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">string</span><span class="tsd-signature-symbol"> = null</span></div>
+					<aside class="tsd-sources">
+						<ul>
+							<li>Defined in <a href="https://github.com/Patbox/voxelsrv-server/blob/0a54b7f/src/lib/registry.ts#L369">lib/registry.ts:369</a></li>
+						</ul>
+					</aside>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-class">
+					<a name="description" class="tsd-anchor"></a>
+					<h3>description</h3>
+					<div class="tsd-signature tsd-kind-icon">description<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">string</span></div>
+					<aside class="tsd-sources">
+						<ul>
+							<li>Defined in <a href="https://github.com/Patbox/voxelsrv-server/blob/0a54b7f/src/lib/registry.ts#L370">lib/registry.ts:370</a></li>
+						</ul>
+					</aside>
+				</section>
+			</section>
+			<section class="tsd-panel-group tsd-member-group ">
+				<h2>Methods</h2>
+				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class">
+					<a name="trigger" class="tsd-anchor"></a>
+					<h3>trigger</h3>
+					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
+						<li class="tsd-signature tsd-kind-icon">trigger<span class="tsd-signature-symbol">(</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">void</span></li>
 					</ul>
 					<ul class="tsd-descriptions">
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/Patbox/voxelsrv-server/blob/0a54b7f/src/lib/permissions.ts#L25">lib/permissions.ts:25</a></li>
+									<li>Defined in <a href="https://github.com/Patbox/voxelsrv-server/blob/0a54b7f/src/lib/registry.ts#L371">lib/registry.ts:371</a></li>
 								</ul>
 							</aside>
-							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-symbol">{}</span></h4>
-							<ul class="tsd-parameters">
-							</ul>
-						</li>
-					</ul>
-				</section>
-				<section class="tsd-panel tsd-member tsd-kind-function tsd-parent-kind-module">
-					<a name="getgroup" class="tsd-anchor"></a>
-					<h3>get<wbr>Group</h3>
-					<ul class="tsd-signatures tsd-kind-function tsd-parent-kind-module">
-						<li class="tsd-signature tsd-kind-icon">get<wbr>Group<span class="tsd-signature-symbol">(</span>name<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">any</span></li>
-					</ul>
-					<ul class="tsd-descriptions">
-						<li class="tsd-description">
-							<aside class="tsd-sources">
-								<ul>
-									<li>Defined in <a href="https://github.com/Patbox/voxelsrv-server/blob/0a54b7f/src/lib/permissions.ts#L21">lib/permissions.ts:21</a></li>
-								</ul>
-							</aside>
-							<h4 class="tsd-parameters-title">Parameters</h4>
-							<ul class="tsd-parameters">
-								<li>
-									<h5>name: <span class="tsd-signature-type">string</span></h5>
-								</li>
-							</ul>
-							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">any</span></h4>
-						</li>
-					</ul>
-				</section>
-				<section class="tsd-panel tsd-member tsd-kind-function tsd-parent-kind-module">
-					<a name="removegroup" class="tsd-anchor"></a>
-					<h3>remove<wbr>Group</h3>
-					<ul class="tsd-signatures tsd-kind-function tsd-parent-kind-module">
-						<li class="tsd-signature tsd-kind-icon">remove<wbr>Group<span class="tsd-signature-symbol">(</span>name<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">void</span></li>
-					</ul>
-					<ul class="tsd-descriptions">
-						<li class="tsd-description">
-							<aside class="tsd-sources">
-								<ul>
-									<li>Defined in <a href="https://github.com/Patbox/voxelsrv-server/blob/0a54b7f/src/lib/permissions.ts#L17">lib/permissions.ts:17</a></li>
-								</ul>
-							</aside>
-							<h4 class="tsd-parameters-title">Parameters</h4>
-							<ul class="tsd-parameters">
-								<li>
-									<h5>name: <span class="tsd-signature-type">string</span></h5>
-								</li>
-							</ul>
 							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4>
 						</li>
 					</ul>
@@ -194,97 +186,104 @@
 						<a href="../globals.html"><em>Globals</em></a>
 					</li>
 					<li class=" tsd-kind-module">
-						<a href="_api_chat_.html">&quot;api/chat&quot;</a>
+						<a href="../modules/_api_chat_.html">&quot;api/chat&quot;</a>
 					</li>
 					<li class=" tsd-kind-module">
-						<a href="_api_commands_.html">&quot;api/commands&quot;</a>
+						<a href="../modules/_api_commands_.html">&quot;api/commands&quot;</a>
 					</li>
 					<li class=" tsd-kind-module">
-						<a href="_api_configs_.html">&quot;api/configs&quot;</a>
+						<a href="../modules/_api_configs_.html">&quot;api/configs&quot;</a>
 					</li>
 					<li class=" tsd-kind-module">
-						<a href="_api_console_.html">&quot;api/console&quot;</a>
+						<a href="../modules/_api_console_.html">&quot;api/console&quot;</a>
 					</li>
 					<li class=" tsd-kind-module">
-						<a href="_api_entities_.html">&quot;api/entities&quot;</a>
+						<a href="../modules/_api_entities_.html">&quot;api/entities&quot;</a>
+					</li>
+					<li class=" tsd-kind-module">
+						<a href="../modules/_api_index_.html">&quot;api/index&quot;</a>
+					</li>
+					<li class=" tsd-kind-module">
+						<a href="../modules/_api_inventory_.html">&quot;api/inventory&quot;</a>
+					</li>
+					<li class=" tsd-kind-module">
+						<a href="../modules/_api_permissions_.html">&quot;api/permissions&quot;</a>
+					</li>
+					<li class=" tsd-kind-module">
+						<a href="../modules/_api_players_.html">&quot;api/players&quot;</a>
 					</li>
 					<li class="current tsd-kind-module">
-						<a href="_api_index_.html">&quot;api/index&quot;</a>
-						<ul>
-							<li class=" tsd-kind-module tsd-parent-kind-module">
-								<a href="_api_index_._api_chat_.html">&quot;api/chat&quot;</a>
-							</li>
-							<li class=" tsd-kind-module tsd-parent-kind-module">
-								<a href="_api_index_._api_commands_.html">&quot;api/commands&quot;</a>
-							</li>
-							<li class=" tsd-kind-module tsd-parent-kind-module">
-								<a href="_api_index_._api_configs_.html">&quot;api/configs&quot;</a>
-							</li>
-							<li class=" tsd-kind-module tsd-parent-kind-module">
-								<a href="_api_index_._api_console_.html">&quot;api/console&quot;</a>
-							</li>
-							<li class=" tsd-kind-module tsd-parent-kind-module">
-								<a href="_api_index_._api_entities_.html">&quot;api/entities&quot;</a>
-							</li>
-							<li class=" tsd-kind-module tsd-parent-kind-module">
-								<a href="_api_index_._api_inventory_.html">&quot;api/inventory&quot;</a>
-							</li>
-							<li class="current tsd-kind-module tsd-parent-kind-module">
-								<a href="_api_index_._api_permissions_.html">&quot;api/permissions&quot;</a>
-							</li>
-							<li class=" tsd-kind-module tsd-parent-kind-module">
-								<a href="_api_index_._api_players_.html">&quot;api/players&quot;</a>
-							</li>
-							<li class=" tsd-kind-module tsd-parent-kind-module">
-								<a href="_api_index_._api_registry_.html">&quot;api/registry&quot;</a>
-							</li>
-							<li class=" tsd-kind-module tsd-parent-kind-module">
-								<a href="_api_index_._api_worlds_.html">&quot;api/worlds&quot;</a>
-							</li>
-							<li class=" tsd-kind-module tsd-parent-kind-module tsd-is-external">
-								<a href="_api_index_._values_.html">&quot;values&quot;</a>
-							</li>
-						</ul>
+						<a href="../modules/_api_registry_.html">&quot;api/registry&quot;</a>
 					</li>
 					<li class=" tsd-kind-module">
-						<a href="_api_inventory_.html">&quot;api/inventory&quot;</a>
+						<a href="../modules/_api_values_.html">&quot;api/values&quot;</a>
 					</li>
 					<li class=" tsd-kind-module">
-						<a href="_api_permissions_.html">&quot;api/permissions&quot;</a>
-					</li>
-					<li class=" tsd-kind-module">
-						<a href="_api_players_.html">&quot;api/players&quot;</a>
-					</li>
-					<li class=" tsd-kind-module">
-						<a href="_api_registry_.html">&quot;api/registry&quot;</a>
-					</li>
-					<li class=" tsd-kind-module">
-						<a href="_api_values_.html">&quot;api/values&quot;</a>
-					</li>
-					<li class=" tsd-kind-module">
-						<a href="_api_worlds_.html">&quot;api/worlds&quot;</a>
+						<a href="../modules/_api_worlds_.html">&quot;api/worlds&quot;</a>
 					</li>
 				</ul>
 			</nav>
 			<nav class="tsd-navigation secondary menu-sticky">
 				<ul class="before-current">
 					<li class=" tsd-kind-class tsd-parent-kind-module">
-						<a href="../classes/_api_index_._api_permissions_.permissionholder.html" class="tsd-kind-icon">Permission<wbr>Holder</a>
+						<a href="_api_registry_.block.html" class="tsd-kind-icon">Block</a>
+					</li>
+				</ul>
+				<ul class="current">
+					<li class="current tsd-kind-class tsd-parent-kind-module">
+						<a href="_api_registry_.command.html" class="tsd-kind-icon">Command</a>
+						<ul>
+							<li class=" tsd-kind-constructor tsd-parent-kind-class">
+								<a href="_api_registry_.command.html#constructor" class="tsd-kind-icon">constructor</a>
+							</li>
+							<li class=" tsd-kind-property tsd-parent-kind-class">
+								<a href="_api_registry_.command.html#command" class="tsd-kind-icon">command</a>
+							</li>
+							<li class=" tsd-kind-property tsd-parent-kind-class">
+								<a href="_api_registry_.command.html#description" class="tsd-kind-icon">description</a>
+							</li>
+							<li class=" tsd-kind-method tsd-parent-kind-class">
+								<a href="_api_registry_.command.html#trigger" class="tsd-kind-icon">trigger</a>
+							</li>
+						</ul>
+					</li>
+				</ul>
+				<ul class="after-current">
+					<li class=" tsd-kind-class tsd-parent-kind-module">
+						<a href="_api_registry_.item.html" class="tsd-kind-icon">Item</a>
 					</li>
 					<li class=" tsd-kind-class tsd-parent-kind-module">
-						<a href="../classes/_api_index_._api_permissions_.playerpermissionholder.html" class="tsd-kind-icon">Player<wbr>Permission<wbr>Holder</a>
+						<a href="_api_registry_.itemarmor.html" class="tsd-kind-icon">Item<wbr>Armor</a>
+					</li>
+					<li class=" tsd-kind-class tsd-parent-kind-module">
+						<a href="_api_registry_.itemblock.html" class="tsd-kind-icon">Item<wbr>Block</a>
+					</li>
+					<li class=" tsd-kind-class tsd-parent-kind-module">
+						<a href="_api_registry_.itemstack.html" class="tsd-kind-icon">Item<wbr>Stack</a>
+					</li>
+					<li class=" tsd-kind-class tsd-parent-kind-module">
+						<a href="_api_registry_.itemtool.html" class="tsd-kind-icon">Item<wbr>Tool</a>
+					</li>
+					<li class=" tsd-kind-variable tsd-parent-kind-module">
+						<a href="../modules/_api_registry_.html#blockregistry" class="tsd-kind-icon">block<wbr>Registry</a>
+					</li>
+					<li class=" tsd-kind-variable tsd-parent-kind-module">
+						<a href="../modules/_api_registry_.html#commandregistry" class="tsd-kind-icon">command<wbr>Registry</a>
+					</li>
+					<li class=" tsd-kind-variable tsd-parent-kind-module">
+						<a href="../modules/_api_registry_.html#event" class="tsd-kind-icon">event</a>
+					</li>
+					<li class=" tsd-kind-variable tsd-parent-kind-module">
+						<a href="../modules/_api_registry_.html#itemregistry" class="tsd-kind-icon">item<wbr>Registry</a>
 					</li>
 					<li class=" tsd-kind-function tsd-parent-kind-module">
-						<a href="_api_index_._api_permissions_.html#creategroup" class="tsd-kind-icon">create<wbr>Group</a>
+						<a href="../modules/_api_registry_.html#addblock" class="tsd-kind-icon">add<wbr>Block</a>
 					</li>
 					<li class=" tsd-kind-function tsd-parent-kind-module">
-						<a href="_api_index_._api_permissions_.html#getallgroups" class="tsd-kind-icon">get<wbr>All<wbr>Groups</a>
+						<a href="../modules/_api_registry_.html#addcommand" class="tsd-kind-icon">add<wbr>Command</a>
 					</li>
 					<li class=" tsd-kind-function tsd-parent-kind-module">
-						<a href="_api_index_._api_permissions_.html#getgroup" class="tsd-kind-icon">get<wbr>Group</a>
-					</li>
-					<li class=" tsd-kind-function tsd-parent-kind-module">
-						<a href="_api_index_._api_permissions_.html#removegroup" class="tsd-kind-icon">remove<wbr>Group</a>
+						<a href="../modules/_api_registry_.html#additem" class="tsd-kind-icon">add<wbr>Item</a>
 					</li>
 				</ul>
 			</nav>

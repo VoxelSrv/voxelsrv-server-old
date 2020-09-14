@@ -79,7 +79,6 @@
 						<section class="tsd-index-section ">
 							<h3>Functions</h3>
 							<ul class="tsd-index-list">
-								<li class="tsd-kind-function tsd-parent-kind-module"><a href="_api_commands_.html#execute" class="tsd-kind-icon">execute</a></li>
 								<li class="tsd-kind-function tsd-parent-kind-module"><a href="_api_commands_.html#register" class="tsd-kind-icon">register</a></li>
 							</ul>
 						</section>
@@ -94,7 +93,7 @@
 					<div class="tsd-signature tsd-kind-icon">event<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">EventEmitter</span><span class="tsd-signature-symbol"> = new EventEmitter()</span></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in <a href="https://github.com/Patbox/voxelsrv-server/blob/323499e/src/lib/commands.ts#L5">lib/commands.ts:5</a></li>
+							<li>Defined in <a href="https://github.com/Patbox/voxelsrv-server/blob/0a54b7f/src/api/commands.ts#L7">api/commands.ts:7</a></li>
 						</ul>
 					</aside>
 				</section>
@@ -102,54 +101,28 @@
 			<section class="tsd-panel-group tsd-member-group ">
 				<h2>Functions</h2>
 				<section class="tsd-panel tsd-member tsd-kind-function tsd-parent-kind-module">
-					<a name="execute" class="tsd-anchor"></a>
-					<h3>execute</h3>
-					<ul class="tsd-signatures tsd-kind-function tsd-parent-kind-module">
-						<li class="tsd-signature tsd-kind-icon">execute<span class="tsd-signature-symbol">(</span>executor<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">any</span>, args<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">void</span></li>
-					</ul>
-					<ul class="tsd-descriptions">
-						<li class="tsd-description">
-							<aside class="tsd-sources">
-								<ul>
-									<li>Defined in <a href="https://github.com/Patbox/voxelsrv-server/blob/323499e/src/lib/commands.ts#L13">lib/commands.ts:13</a></li>
-								</ul>
-							</aside>
-							<h4 class="tsd-parameters-title">Parameters</h4>
-							<ul class="tsd-parameters">
-								<li>
-									<h5>executor: <span class="tsd-signature-type">any</span></h5>
-								</li>
-								<li>
-									<h5>args: <span class="tsd-signature-type">string</span></h5>
-								</li>
-							</ul>
-							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4>
-						</li>
-					</ul>
-				</section>
-				<section class="tsd-panel tsd-member tsd-kind-function tsd-parent-kind-module">
 					<a name="register" class="tsd-anchor"></a>
 					<h3>register</h3>
 					<ul class="tsd-signatures tsd-kind-function tsd-parent-kind-module">
-						<li class="tsd-signature tsd-kind-icon">register<span class="tsd-signature-symbol">(</span>command<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span>, func<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">Function</span>, description<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">void</span></li>
+						<li class="tsd-signature tsd-kind-icon">register<span class="tsd-signature-symbol">(</span>cmd<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span>, func<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">Function</span>, desc<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">void</span></li>
 					</ul>
 					<ul class="tsd-descriptions">
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/Patbox/voxelsrv-server/blob/323499e/src/lib/commands.ts#L35">lib/commands.ts:35</a></li>
+									<li>Defined in <a href="https://github.com/Patbox/voxelsrv-server/blob/0a54b7f/src/api/commands.ts#L9">api/commands.ts:9</a></li>
 								</ul>
 							</aside>
 							<h4 class="tsd-parameters-title">Parameters</h4>
 							<ul class="tsd-parameters">
 								<li>
-									<h5>command: <span class="tsd-signature-type">string</span></h5>
+									<h5>cmd: <span class="tsd-signature-type">string</span></h5>
 								</li>
 								<li>
 									<h5>func: <span class="tsd-signature-type">Function</span></h5>
 								</li>
 								<li>
-									<h5>description: <span class="tsd-signature-type">string</span></h5>
+									<h5><span class="tsd-flag ts-flagDefault value">Default value</span> desc: <span class="tsd-signature-type">string</span><span class="tsd-signature-symbol"> = &quot;Custom command&quot;</span></h5>
 								</li>
 							</ul>
 							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4>
@@ -195,6 +168,9 @@
 						<a href="_api_registry_.html">&quot;api/registry&quot;</a>
 					</li>
 					<li class=" tsd-kind-module">
+						<a href="_api_values_.html">&quot;api/values&quot;</a>
+					</li>
+					<li class=" tsd-kind-module">
 						<a href="_api_worlds_.html">&quot;api/worlds&quot;</a>
 					</li>
 				</ul>
@@ -203,9 +179,6 @@
 				<ul class="before-current">
 					<li class=" tsd-kind-variable tsd-parent-kind-module">
 						<a href="_api_commands_.html#event" class="tsd-kind-icon">event</a>
-					</li>
-					<li class=" tsd-kind-function tsd-parent-kind-module">
-						<a href="_api_commands_.html#execute" class="tsd-kind-icon">execute</a>
 					</li>
 					<li class=" tsd-kind-function tsd-parent-kind-module">
 						<a href="_api_commands_.html#register" class="tsd-kind-icon">register</a>

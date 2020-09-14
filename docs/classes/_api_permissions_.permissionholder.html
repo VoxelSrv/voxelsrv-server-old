@@ -3,7 +3,7 @@
 <head>
 	<meta charset="utf-8">
 	<meta http-equiv="X-UA-Compatible" content="IE=edge">
-	<title>ChatComponent | voxelsrv-server-api</title>
+	<title>PermissionHolder | voxelsrv-server-api</title>
 	<meta name="description" content="">
 	<meta name="viewport" content="width=device-width, initial-scale=1">
 	<link rel="stylesheet" href="../assets/css/main.css">
@@ -56,16 +56,13 @@
 					<a href="../globals.html">Globals</a>
 				</li>
 				<li>
-					<a href="../modules/_api_index_.html">&quot;api/index&quot;</a>
+					<a href="../modules/_api_permissions_.html">&quot;api/permissions&quot;</a>
 				</li>
 				<li>
-					<a href="../modules/_api_index_._api_chat_.html">&quot;api/chat&quot;</a>
-				</li>
-				<li>
-					<a href="_api_index_._api_chat_.chatcomponent.html">ChatComponent</a>
+					<a href="_api_permissions_.permissionholder.html">PermissionHolder</a>
 				</li>
 			</ul>
-			<h1>Class ChatComponent</h1>
+			<h1>Class PermissionHolder</h1>
 		</div>
 	</div>
 </header>
@@ -76,14 +73,8 @@
 				<h3>Hierarchy</h3>
 				<ul class="tsd-hierarchy">
 					<li>
-						<span class="target">ChatComponent</span>
+						<span class="target">PermissionHolder</span>
 					</li>
-				</ul>
-			</section>
-			<section class="tsd-panel">
-				<h3>Implements</h3>
-				<ul class="tsd-hierarchy">
-					<li><span class="tsd-signature-type">IChatComponent</span></li>
 				</ul>
 			</section>
 			<section class="tsd-panel-group tsd-index-group">
@@ -93,17 +84,22 @@
 						<section class="tsd-index-section ">
 							<h3>Constructors</h3>
 							<ul class="tsd-index-list">
-								<li class="tsd-kind-constructor tsd-parent-kind-class"><a href="_api_index_._api_chat_.chatcomponent.html#constructor" class="tsd-kind-icon">constructor</a></li>
+								<li class="tsd-kind-constructor tsd-parent-kind-class"><a href="_api_permissions_.permissionholder.html#constructor" class="tsd-kind-icon">constructor</a></li>
 							</ul>
 						</section>
 						<section class="tsd-index-section ">
 							<h3>Properties</h3>
 							<ul class="tsd-index-list">
-								<li class="tsd-kind-property tsd-parent-kind-class"><a href="_api_index_._api_chat_.chatcomponent.html#color" class="tsd-kind-icon">color</a></li>
-								<li class="tsd-kind-property tsd-parent-kind-class"><a href="_api_index_._api_chat_.chatcomponent.html#font" class="tsd-kind-icon">font</a></li>
-								<li class="tsd-kind-property tsd-parent-kind-class"><a href="_api_index_._api_chat_.chatcomponent.html#linethrough" class="tsd-kind-icon">linethrough</a></li>
-								<li class="tsd-kind-property tsd-parent-kind-class"><a href="_api_index_._api_chat_.chatcomponent.html#text" class="tsd-kind-icon">text</a></li>
-								<li class="tsd-kind-property tsd-parent-kind-class"><a href="_api_index_._api_chat_.chatcomponent.html#underline" class="tsd-kind-icon">underline</a></li>
+								<li class="tsd-kind-property tsd-parent-kind-class"><a href="_api_permissions_.permissionholder.html#permissions" class="tsd-kind-icon">permissions</a></li>
+							</ul>
+						</section>
+						<section class="tsd-index-section ">
+							<h3>Methods</h3>
+							<ul class="tsd-index-list">
+								<li class="tsd-kind-method tsd-parent-kind-class"><a href="_api_permissions_.permissionholder.html#add" class="tsd-kind-icon">add</a></li>
+								<li class="tsd-kind-method tsd-parent-kind-class"><a href="_api_permissions_.permissionholder.html#check" class="tsd-kind-icon">check</a></li>
+								<li class="tsd-kind-method tsd-parent-kind-class"><a href="_api_permissions_.permissionholder.html#checkstrict" class="tsd-kind-icon">check<wbr>Strict</a></li>
+								<li class="tsd-kind-method tsd-parent-kind-class"><a href="_api_permissions_.permissionholder.html#remove" class="tsd-kind-icon">remove</a></li>
 							</ul>
 						</section>
 					</div>
@@ -115,34 +111,27 @@
 					<a name="constructor" class="tsd-anchor"></a>
 					<h3>constructor</h3>
 					<ul class="tsd-signatures tsd-kind-constructor tsd-parent-kind-class">
-						<li class="tsd-signature tsd-kind-icon">new <wbr>Chat<wbr>Component<span class="tsd-signature-symbol">(</span>text<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span>, color<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">string</span>, font<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">string</span>, linethrough<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">boolean</span>, underline<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="_api_index_._api_chat_.chatcomponent.html" class="tsd-signature-type">ChatComponent</a></li>
+						<li class="tsd-signature tsd-kind-icon">new <wbr>Permission<wbr>Holder<span class="tsd-signature-symbol">(</span>permissions<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-symbol">{}</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="_api_permissions_.permissionholder.html" class="tsd-signature-type">PermissionHolder</a></li>
 					</ul>
 					<ul class="tsd-descriptions">
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/Patbox/voxelsrv-server/blob/0a54b7f/src/lib/chat.ts#L19">lib/chat.ts:19</a></li>
+									<li>Defined in <a href="https://github.com/Patbox/voxelsrv-server/blob/0a54b7f/src/lib/permissions.ts#L30">lib/permissions.ts:30</a></li>
 								</ul>
 							</aside>
 							<h4 class="tsd-parameters-title">Parameters</h4>
 							<ul class="tsd-parameters">
 								<li>
-									<h5>text: <span class="tsd-signature-type">string</span></h5>
-								</li>
-								<li>
-									<h5><span class="tsd-flag ts-flagDefault value">Default value</span> color: <span class="tsd-signature-type">string</span><span class="tsd-signature-symbol"> = &quot;white&quot;</span></h5>
-								</li>
-								<li>
-									<h5><span class="tsd-flag ts-flagDefault value">Default value</span> font: <span class="tsd-signature-type">string</span><span class="tsd-signature-symbol"> = &quot;lato&quot;</span></h5>
-								</li>
-								<li>
-									<h5><span class="tsd-flag ts-flagDefault value">Default value</span> linethrough: <span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol"> = false</span></h5>
-								</li>
-								<li>
-									<h5><span class="tsd-flag ts-flagDefault value">Default value</span> underline: <span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol"> = false</span></h5>
+									<h5><span class="tsd-flag ts-flagDefault value">Default value</span> permissions: <span class="tsd-signature-symbol">{}</span><span class="tsd-signature-symbol"> = {}</span></h5>
+									<ul class="tsd-parameters">
+										<li class="tsd-parameter-index-signature">
+											<h5><span class="tsd-signature-symbol">[</span>index: <span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">]: </span><span class="tsd-signature-type">NestedPermission</span></h5>
+										</li>
+									</ul>
 								</li>
 							</ul>
-							<h4 class="tsd-returns-title">Returns <a href="_api_index_._api_chat_.chatcomponent.html" class="tsd-signature-type">ChatComponent</a></h4>
+							<h4 class="tsd-returns-title">Returns <a href="_api_permissions_.permissionholder.html" class="tsd-signature-type">PermissionHolder</a></h4>
 						</li>
 					</ul>
 				</section>
@@ -150,54 +139,120 @@
 			<section class="tsd-panel-group tsd-member-group ">
 				<h2>Properties</h2>
 				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-class">
-					<a name="color" class="tsd-anchor"></a>
-					<h3>color</h3>
-					<div class="tsd-signature tsd-kind-icon">color<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">string</span><span class="tsd-signature-symbol"> = &quot;white&quot;</span></div>
+					<a name="permissions" class="tsd-anchor"></a>
+					<h3>permissions</h3>
+					<div class="tsd-signature tsd-kind-icon">permissions<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-symbol">{}</span></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in <a href="https://github.com/Patbox/voxelsrv-server/blob/0a54b7f/src/lib/chat.ts#L17">lib/chat.ts:17</a></li>
+							<li>Defined in <a href="https://github.com/Patbox/voxelsrv-server/blob/0a54b7f/src/lib/permissions.ts#L30">lib/permissions.ts:30</a></li>
 						</ul>
 					</aside>
+					<div class="tsd-type-declaration">
+						<h4>Type declaration</h4>
+						<ul class="tsd-parameters">
+							<li class="tsd-parameter-index-signature">
+								<h5><span class="tsd-signature-symbol">[</span>index: <span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">]: </span><span class="tsd-signature-type">NestedPermission</span></h5>
+							</li>
+						</ul>
+					</div>
 				</section>
-				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-class">
-					<a name="font" class="tsd-anchor"></a>
-					<h3>font</h3>
-					<div class="tsd-signature tsd-kind-icon">font<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">string</span></div>
-					<aside class="tsd-sources">
-						<ul>
-							<li>Defined in <a href="https://github.com/Patbox/voxelsrv-server/blob/0a54b7f/src/lib/chat.ts#L16">lib/chat.ts:16</a></li>
-						</ul>
-					</aside>
+			</section>
+			<section class="tsd-panel-group tsd-member-group ">
+				<h2>Methods</h2>
+				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class">
+					<a name="add" class="tsd-anchor"></a>
+					<h3>add</h3>
+					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
+						<li class="tsd-signature tsd-kind-icon">add<span class="tsd-signature-symbol">(</span>perm<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span>, bool<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">void</span></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<ul>
+									<li>Defined in <a href="https://github.com/Patbox/voxelsrv-server/blob/0a54b7f/src/lib/permissions.ts#L63">lib/permissions.ts:63</a></li>
+								</ul>
+							</aside>
+							<h4 class="tsd-parameters-title">Parameters</h4>
+							<ul class="tsd-parameters">
+								<li>
+									<h5>perm: <span class="tsd-signature-type">string</span></h5>
+								</li>
+								<li>
+									<h5><span class="tsd-flag ts-flagDefault value">Default value</span> bool: <span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol"> = true</span></h5>
+								</li>
+							</ul>
+							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4>
+						</li>
+					</ul>
 				</section>
-				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-class">
-					<a name="linethrough" class="tsd-anchor"></a>
-					<h3>linethrough</h3>
-					<div class="tsd-signature tsd-kind-icon">linethrough<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol"> = false</span></div>
-					<aside class="tsd-sources">
-						<ul>
-							<li>Defined in <a href="https://github.com/Patbox/voxelsrv-server/blob/0a54b7f/src/lib/chat.ts#L18">lib/chat.ts:18</a></li>
-						</ul>
-					</aside>
+				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class">
+					<a name="check" class="tsd-anchor"></a>
+					<h3>check</h3>
+					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
+						<li class="tsd-signature tsd-kind-icon">check<span class="tsd-signature-symbol">(</span>perm<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">[]</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">null</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">boolean</span></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<ul>
+									<li>Defined in <a href="https://github.com/Patbox/voxelsrv-server/blob/0a54b7f/src/lib/permissions.ts#L36">lib/permissions.ts:36</a></li>
+								</ul>
+							</aside>
+							<h4 class="tsd-parameters-title">Parameters</h4>
+							<ul class="tsd-parameters">
+								<li>
+									<h5>perm: <span class="tsd-signature-type">string</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">[]</span></h5>
+								</li>
+							</ul>
+							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">null</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">boolean</span></h4>
+						</li>
+					</ul>
 				</section>
-				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-class">
-					<a name="text" class="tsd-anchor"></a>
-					<h3>text</h3>
-					<div class="tsd-signature tsd-kind-icon">text<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">string</span></div>
-					<aside class="tsd-sources">
-						<ul>
-							<li>Defined in <a href="https://github.com/Patbox/voxelsrv-server/blob/0a54b7f/src/lib/chat.ts#L15">lib/chat.ts:15</a></li>
-						</ul>
-					</aside>
+				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class">
+					<a name="checkstrict" class="tsd-anchor"></a>
+					<h3>check<wbr>Strict</h3>
+					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
+						<li class="tsd-signature tsd-kind-icon">check<wbr>Strict<span class="tsd-signature-symbol">(</span>perm<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">[]</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">null</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">boolean</span></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<ul>
+									<li>Defined in <a href="https://github.com/Patbox/voxelsrv-server/blob/0a54b7f/src/lib/permissions.ts#L50">lib/permissions.ts:50</a></li>
+								</ul>
+							</aside>
+							<h4 class="tsd-parameters-title">Parameters</h4>
+							<ul class="tsd-parameters">
+								<li>
+									<h5>perm: <span class="tsd-signature-type">string</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">[]</span></h5>
+								</li>
+							</ul>
+							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">null</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">boolean</span></h4>
+						</li>
+					</ul>
 				</section>
-				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-class">
-					<a name="underline" class="tsd-anchor"></a>
-					<h3>underline</h3>
-					<div class="tsd-signature tsd-kind-icon">underline<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol"> = false</span></div>
-					<aside class="tsd-sources">
-						<ul>
-							<li>Defined in <a href="https://github.com/Patbox/voxelsrv-server/blob/0a54b7f/src/lib/chat.ts#L19">lib/chat.ts:19</a></li>
-						</ul>
-					</aside>
+				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class">
+					<a name="remove" class="tsd-anchor"></a>
+					<h3>remove</h3>
+					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
+						<li class="tsd-signature tsd-kind-icon">remove<span class="tsd-signature-symbol">(</span>perm<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">void</span></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<ul>
+									<li>Defined in <a href="https://github.com/Patbox/voxelsrv-server/blob/0a54b7f/src/lib/permissions.ts#L74">lib/permissions.ts:74</a></li>
+								</ul>
+							</aside>
+							<h4 class="tsd-parameters-title">Parameters</h4>
+							<ul class="tsd-parameters">
+								<li>
+									<h5>perm: <span class="tsd-signature-type">string</span></h5>
+								</li>
+							</ul>
+							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4>
+						</li>
+					</ul>
 				</section>
 			</section>
 		</div>
@@ -222,48 +277,13 @@
 					<li class=" tsd-kind-module">
 						<a href="../modules/_api_entities_.html">&quot;api/entities&quot;</a>
 					</li>
-					<li class="current tsd-kind-module">
+					<li class=" tsd-kind-module">
 						<a href="../modules/_api_index_.html">&quot;api/index&quot;</a>
-						<ul>
-							<li class="current tsd-kind-module tsd-parent-kind-module">
-								<a href="../modules/_api_index_._api_chat_.html">&quot;api/chat&quot;</a>
-							</li>
-							<li class=" tsd-kind-module tsd-parent-kind-module">
-								<a href="../modules/_api_index_._api_commands_.html">&quot;api/commands&quot;</a>
-							</li>
-							<li class=" tsd-kind-module tsd-parent-kind-module">
-								<a href="../modules/_api_index_._api_configs_.html">&quot;api/configs&quot;</a>
-							</li>
-							<li class=" tsd-kind-module tsd-parent-kind-module">
-								<a href="../modules/_api_index_._api_console_.html">&quot;api/console&quot;</a>
-							</li>
-							<li class=" tsd-kind-module tsd-parent-kind-module">
-								<a href="../modules/_api_index_._api_entities_.html">&quot;api/entities&quot;</a>
-							</li>
-							<li class=" tsd-kind-module tsd-parent-kind-module">
-								<a href="../modules/_api_index_._api_inventory_.html">&quot;api/inventory&quot;</a>
-							</li>
-							<li class=" tsd-kind-module tsd-parent-kind-module">
-								<a href="../modules/_api_index_._api_permissions_.html">&quot;api/permissions&quot;</a>
-							</li>
-							<li class=" tsd-kind-module tsd-parent-kind-module">
-								<a href="../modules/_api_index_._api_players_.html">&quot;api/players&quot;</a>
-							</li>
-							<li class=" tsd-kind-module tsd-parent-kind-module">
-								<a href="../modules/_api_index_._api_registry_.html">&quot;api/registry&quot;</a>
-							</li>
-							<li class=" tsd-kind-module tsd-parent-kind-module">
-								<a href="../modules/_api_index_._api_worlds_.html">&quot;api/worlds&quot;</a>
-							</li>
-							<li class=" tsd-kind-module tsd-parent-kind-module tsd-is-external">
-								<a href="../modules/_api_index_._values_.html">&quot;values&quot;</a>
-							</li>
-						</ul>
 					</li>
 					<li class=" tsd-kind-module">
 						<a href="../modules/_api_inventory_.html">&quot;api/inventory&quot;</a>
 					</li>
-					<li class=" tsd-kind-module">
+					<li class="current tsd-kind-module">
 						<a href="../modules/_api_permissions_.html">&quot;api/permissions&quot;</a>
 					</li>
 					<li class=" tsd-kind-module">
@@ -285,44 +305,44 @@
 				</ul>
 				<ul class="current">
 					<li class="current tsd-kind-class tsd-parent-kind-module">
-						<a href="_api_index_._api_chat_.chatcomponent.html" class="tsd-kind-icon">Chat<wbr>Component</a>
+						<a href="_api_permissions_.permissionholder.html" class="tsd-kind-icon">Permission<wbr>Holder</a>
 						<ul>
 							<li class=" tsd-kind-constructor tsd-parent-kind-class">
-								<a href="_api_index_._api_chat_.chatcomponent.html#constructor" class="tsd-kind-icon">constructor</a>
+								<a href="_api_permissions_.permissionholder.html#constructor" class="tsd-kind-icon">constructor</a>
 							</li>
 							<li class=" tsd-kind-property tsd-parent-kind-class">
-								<a href="_api_index_._api_chat_.chatcomponent.html#color" class="tsd-kind-icon">color</a>
+								<a href="_api_permissions_.permissionholder.html#permissions" class="tsd-kind-icon">permissions</a>
 							</li>
-							<li class=" tsd-kind-property tsd-parent-kind-class">
-								<a href="_api_index_._api_chat_.chatcomponent.html#font" class="tsd-kind-icon">font</a>
+							<li class=" tsd-kind-method tsd-parent-kind-class">
+								<a href="_api_permissions_.permissionholder.html#add" class="tsd-kind-icon">add</a>
 							</li>
-							<li class=" tsd-kind-property tsd-parent-kind-class">
-								<a href="_api_index_._api_chat_.chatcomponent.html#linethrough" class="tsd-kind-icon">linethrough</a>
+							<li class=" tsd-kind-method tsd-parent-kind-class">
+								<a href="_api_permissions_.permissionholder.html#check" class="tsd-kind-icon">check</a>
 							</li>
-							<li class=" tsd-kind-property tsd-parent-kind-class">
-								<a href="_api_index_._api_chat_.chatcomponent.html#text" class="tsd-kind-icon">text</a>
+							<li class=" tsd-kind-method tsd-parent-kind-class">
+								<a href="_api_permissions_.permissionholder.html#checkstrict" class="tsd-kind-icon">check<wbr>Strict</a>
 							</li>
-							<li class=" tsd-kind-property tsd-parent-kind-class">
-								<a href="_api_index_._api_chat_.chatcomponent.html#underline" class="tsd-kind-icon">underline</a>
+							<li class=" tsd-kind-method tsd-parent-kind-class">
+								<a href="_api_permissions_.permissionholder.html#remove" class="tsd-kind-icon">remove</a>
 							</li>
 						</ul>
 					</li>
 				</ul>
 				<ul class="after-current">
-					<li class=" tsd-kind-variable tsd-parent-kind-module">
-						<a href="../modules/_api_index_._api_chat_.html#event" class="tsd-kind-icon">event</a>
+					<li class=" tsd-kind-class tsd-parent-kind-module">
+						<a href="_api_permissions_.playerpermissionholder.html" class="tsd-kind-icon">Player<wbr>Permission<wbr>Holder</a>
 					</li>
 					<li class=" tsd-kind-function tsd-parent-kind-module">
-						<a href="../modules/_api_index_._api_chat_.html#convertfromplain" class="tsd-kind-icon">convert<wbr>From<wbr>Plain</a>
+						<a href="../modules/_api_permissions_.html#creategroup" class="tsd-kind-icon">create<wbr>Group</a>
 					</li>
 					<li class=" tsd-kind-function tsd-parent-kind-module">
-						<a href="../modules/_api_index_._api_chat_.html#converttoplain" class="tsd-kind-icon">convert<wbr>ToPlain</a>
+						<a href="../modules/_api_permissions_.html#getallgroups" class="tsd-kind-icon">get<wbr>All<wbr>Groups</a>
 					</li>
 					<li class=" tsd-kind-function tsd-parent-kind-module">
-						<a href="../modules/_api_index_._api_chat_.html#sendmlt" class="tsd-kind-icon">send<wbr>Mlt</a>
+						<a href="../modules/_api_permissions_.html#getgroup" class="tsd-kind-icon">get<wbr>Group</a>
 					</li>
 					<li class=" tsd-kind-function tsd-parent-kind-module">
-						<a href="../modules/_api_index_._api_chat_.html#validate" class="tsd-kind-icon">validate</a>
+						<a href="../modules/_api_permissions_.html#removegroup" class="tsd-kind-icon">remove<wbr>Group</a>
 					</li>
 				</ul>
 			</nav>
