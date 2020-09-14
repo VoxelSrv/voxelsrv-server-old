@@ -237,20 +237,20 @@ export class World {
 
 		if (this.chunks[cid] != undefined) {
 			const id = this.chunks[cid].data.get(local.pos[0], local.pos[1], local.pos[2]);
-
+			this.chunks[cid].keepAlive();
 			return blockRegistry[blockIDmap[id]];
 		} else if (this.existChunk(local.id)) {
 			const data = this.readChunk(local.id);
 			this.chunks[cid] = new Chunk(local.id, data.chunk, data.metadata, false);
 			this.chunks[cid].keepAlive();
-			return this.chunks[cid].data.get(local.pos[0], local.pos[1], local.pos[2]);
+			return blockRegistry[blockIDmap[this.chunks[cid].data.get(local.pos[0], local.pos[1], local.pos[2])]];
 		} else if (allowgen) {
-			return this.generator.getBlock(data[0], data[1], data[2]);
+			return blockRegistry[blockIDmap[this.generator.getBlock(data[0], data[1], data[2])]];
 		}
 		return blockRegistry['air'];
 	}
 
-	async setBlock(data: types.XYZ, block: string | number | Block, allowgen: boolean) {
+	async setBlock(data: types.XYZ, block: string | number | Block, allowgen: boolean = false) {
 		const local = globalToChunk(data);
 		let id = 0;
 		const cid: string = local.id.toString();

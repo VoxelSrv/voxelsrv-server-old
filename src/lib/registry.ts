@@ -364,6 +364,7 @@ export class Block {
 
 blockRegistry['air'] = new Block('air', -1, '', {}, 0, 0, 'any');
 blockRegistry['air'].rawid = 0;
+blockIDmap[0] = 'air';
 
 export class Command {
 	command: string = null;
