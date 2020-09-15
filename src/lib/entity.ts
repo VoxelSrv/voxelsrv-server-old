@@ -106,8 +106,8 @@ export class Entity implements IEntity {
 		};
 	}
 
-	teleport(pos: types.XYZ, eworld: string): void {
-		this.world = worldManager.get(eworld);
+	teleport(pos: types.XYZ, eworld: string | worldManager.World): void {
+		this.world = typeof eworld == 'string' ? worldManager.get(eworld) : eworld;
 		this.data.position = pos;
 		this.chunkID = worldManager.toChunk(pos).id;
 		this.chunk = this.world.chunks[this.chunkID.toString()];

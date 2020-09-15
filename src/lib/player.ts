@@ -17,6 +17,7 @@ import { PlayerInventory, ArmorInventory } from './inventory';
 import { PlayerPermissionHolder } from './permissions';
 
 import { serverConfig } from '../values';
+import * as pClient from 'voxelsrv-protocol/js/client';
 
 const players = {};
 const chunksToSend = [];
@@ -48,7 +49,7 @@ export function exist(id: string): boolean {
 	return r;
 }
 
-export function save(id, data) {
+export function save(id: string, data: Object) {
 	fs.writeFile('./players/' + id + '.json', JSON.stringify(data), function (err) {
 		if (err) console.error('Cant save player ' + id + '! Reason: ' + err);
 	});
@@ -92,7 +93,7 @@ export class Player {
 	permissions: PlayerPermissionHolder;
 	chunks: types.anyobject;
 
-	constructor(id, name, socket, packetEvent) {
+	constructor(id: string, name: string, socket: EventEmitter, packetEvent: EventEmitter) {
 		this.id = id;
 		this.nickname = name;
 		this.displayName = name;
@@ -126,7 +127,6 @@ export class Player {
 			this.permissions = new PlayerPermissionHolder({}, ['default']);
 			event.emit('player-firstjoin', this);
 			event.emit('player-join', this);
-
 		} else {
 			this.entity = entity.recreate(
 				data.entity.id,
@@ -154,7 +154,6 @@ export class Player {
 			if (!!data.permissions) this.permissions = new PlayerPermissionHolder(data.permissions, [...data.permissionparents, 'default']);
 			else this.permissions = new PlayerPermissionHolder({}, ['default']);
 			event.emit('player-join', this);
-
 		}
 
 		this.socket = socket;
@@ -185,7 +184,7 @@ export class Player {
 		};
 	}
 
-	sendPacket(type, data) {
+	sendPacket(type: string, data: Object) {
 		this.socket.send(protocol.parseToMessage('server', type, data));
 	}
 
@@ -199,18 +198,18 @@ export class Player {
 		}, 10);
 	}
 
-	teleport(pos, eworld) {
+	teleport(pos: types.XYZ, eworld: string | worldManager.World) {
 		this.entity.teleport(pos, eworld);
-		this.world = worldManager.get(eworld)
+		this.world = typeof eworld == 'string' ? worldManager.get(eworld) : eworld;
 		this.sendPacket('PlayerTeleport', { x: pos[0], y: pos[1], z: pos[2] });
 	}
 
-	move(pos) {
+	move(pos: types.XYZ) {
 		event.emit('player-move', { id: this.id, pos: pos });
 		this.entity.move(pos);
 	}
 
-	send(msg) {
+	send(msg: string | chat.ChatMessage) {
 		if (typeof msg == 'string') msg = chat.convertFromPlain(msg);
 		this.sendPacket('ChatMessage', { message: msg, time: Date.now() });
 	}
@@ -218,10 +217,9 @@ export class Player {
 	rotate(rot: number | null, pitch: number | null) {
 		event.emit('player-rotate', { id: this.id, rot, pitch });
 		this.entity.rotate(rot, pitch);
-
 	}
 
-	kick(reason) {
+	kick(reason: string) {
 		this.sendPacket('PlayerKick', { reason: reason, date: Date.now() });
 	}
 
@@ -241,7 +239,7 @@ export class Player {
 		return this.id;
 	}
 
-	action_blockbreak(data) {
+	action_blockbreak(data: pClient.IActionBlockBreak & { cancel: boolean }) {
 		if (data.x == undefined || data.y == undefined || data.z == undefined) return;
 
 		data.cancel = false;
@@ -265,7 +263,7 @@ export class Player {
 		}
 	}
 
-	action_blockplace(data) {
+	action_blockplace(data: pClient.IActionBlockPlace & { cancel: boolean }) {
 		data.cancel = false;
 		for (let x = 0; x <= 5; x++) {
 			event.emit(`player-blockplace-${x}`, this, data);
@@ -290,7 +288,7 @@ export class Player {
 		}
 	}
 
-	action_invclick(data) {
+	action_invclick(data: pClient.IActionInventoryClick & { cancel: boolean }) {
 		if (data.inventory == undefined) data.inventory = 'main';
 
 		data.cancel = false;
@@ -324,7 +322,7 @@ export class Player {
 		}
 	}
 
-	action_chatsend(data) {
+	action_chatsend(data: pClient.IActionMessage & { cancel: boolean }) {
 		data.cancel = false;
 		for (let x = 0; x <= 5; x++) {
 			event.emit(`player-message-${x}`, this, data);
@@ -358,48 +356,47 @@ export class Player {
 		}
 	}
 
-	action_move(data) {
-		if (data.pos[0] == undefined || data.pos[1] == undefined || data.pos[2] == undefined) return;
+	action_move(data: pClient.IActionMove & { cancel: boolean }) {
+		if (data.x == undefined || data.y == undefined || data.z == undefined) return;
 
 		data.cancel = false;
 		if (this.world.chunks[this.entity.chunkID.toString()] == undefined) data.cancel = true;
 
+		const pos = this.entity.data.position;
+		const move: types.XYZ = [data.x, data.y, data.z]
+
 		for (let x = 0; x <= 5; x++) {
 			event.emit(`player-move-${x}`, this, data);
 			if (data.cancel) {
-				const apos = this.entity.data.position;
-				this.sendPacket('PlayerTeleport', { x: apos[0], y: apos[1], z: apos[2] });
+				this.sendPacket('PlayerTeleport', { x: pos[0], y: pos[1], z: pos[2] });
 				return;
 			}
 		}
 
-		var pos = this.entity.data.position;
-		if (Math.abs(data.pos[0]) > 120000 || data.pos[1] > 120000 || Math.abs(data.pos[2]) > 120000) {
+		if (Math.abs(data.x) > 120000 || data.y > 120000 || Math.abs(data.z) > 120000) {
 			this.sendPacket('PlayerTeleport', { x: pos[0], y: pos[1], z: pos[2] });
 			return;
 		}
 
-		if (vec.dist(pos, data.pos) < 20) this.move(data.pos);
+		if (vec.dist(pos, move) < 20) this.move(move);
 
-		this.rotate(data.rot, data.pitch);
+		this.rotate(data.rotation, data.pitch);
 	}
 
-	action_click(data) {
+	action_click(data: pClient.IActionClick & { cancel: boolean }) {
 		data.cancel = false;
 		for (let x = 0; x <= 5; x++) {
 			event.emit(`player-click-${x}`, this, data);
 			if (data.cancel) return;
 		}
-
 	}
 
-	action_entityclick(data) {
+	action_entityclick(data: pClient.IActionClickEntity & { cancel: boolean }) {
 		data.cancel = false;
 		for (let x = 0; x <= 5; x++) {
 			event.emit(`player-entityclick-${x}`, this, data);
 			if (data.cancel) return;
 		}
-
 	}
 }
 
@@ -417,8 +414,7 @@ setInterval(async function () {
 						players[id].chunks[tempid] = true;
 						chunksToSend.push([id, tempid]);
 					}
-					if (players[id].world.chunks[tempid.toString()] != undefined)
-						players[id].world.chunks[tempid.toString()].keepAlive();
+					if (players[id].world.chunks[tempid.toString()] != undefined) players[id].world.chunks[tempid.toString()].keepAlive();
 					loadedchunks[tempid.toString()] = false;
 				}
 			}

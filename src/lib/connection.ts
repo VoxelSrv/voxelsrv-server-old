@@ -125,11 +125,7 @@ export function setupConnectionHandler(wss) {
 				});
 
 				packetEvent.on('ActionMove', function (data) {
-					player.action_move({
-						pos: [data.x, data.y, data.z],
-						rot: data.rotation,
-						pitch: data.pitch
-					});
+					player.action_move(data);
 				});
 
 				packetEvent.on('ActionInventoryClick', function (data) {
