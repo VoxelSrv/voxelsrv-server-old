@@ -169,7 +169,7 @@ export class Entity implements IEntity {
 	getEntitiesInRadius(radius: number): { uuid: string; entity: Entity; distance: number }[] {
 		const array: { uuid: string; entity: Entity; distance: number }[] = [];
 		for (const uuid in entities) {
-			const distance = vec.distance(this.data.position, entities[uuid].data.position);
+			const distance = vec.dist(this.data.position, entities[uuid].data.position);
 			if (distance <= radius) array.push({ uuid, entity: entities[uuid], distance });
 		}
 		return array;
