@@ -8,6 +8,7 @@ import * as format from '../formats/world';
 import * as pako from 'pako';
 
 import ndarray = require('ndarray');
+import { serverConfig } from '../values';
 
 const chunkWitdh = 32;
 const chunkHeight = 256;
@@ -122,16 +123,18 @@ export class World {
 		this.folder = './worlds/' + name;
 		this.chunkFolder = './worlds/' + name + '/chunks';
 
-		if (!fs.existsSync(this.folder)) fs.mkdirSync(this.folder);
-		if (!fs.existsSync(this.chunkFolder)) fs.mkdirSync(this.chunkFolder);
+		if (serverConfig.world.save) {
+			if (!fs.existsSync(this.folder)) fs.mkdirSync(this.folder);
+			if (!fs.existsSync(this.chunkFolder)) fs.mkdirSync(this.chunkFolder);
 
-		fs.writeFile(this.folder + '/world.json', JSON.stringify(this.getSettings()), function (err) {
-			if (err) console.error('Cant save world ' + this.name + '! Reason: ' + err);
-		});
+			fs.writeFile(this.folder + '/world.json', JSON.stringify(this.getSettings()), function (err) {
+				if (err) console.error('Cant save world ' + this.name + '! Reason: ' + err);
+			});
 
-		this.autoSaveInterval = setInterval(async () => {
-			this.saveAll();
-		}, 30000);
+			this.autoSaveInterval = setInterval(async () => {
+				this.saveAll();
+			}, 30000);
+		}
 
 		this.chunkUnloadInterval = setInterval(async () => {
 			const chunklist = Object.keys(this.chunks);
@@ -171,6 +174,7 @@ export class World {
 	}
 
 	saveAll(): void {
+		if (!serverConfig.world.save) return;
 		const chunklist = Object.keys(this.chunks);
 
 		fs.writeFile(this.folder + '/world.json', JSON.stringify(this.getSettings()), function (err) {
@@ -218,7 +222,7 @@ export class World {
 	}
 
 	unloadChunk(id: types.XZ) {
-		this.saveChunk(id);
+		if (serverConfig.world.save) this.saveChunk(id);
 		delete this.chunks[id.toString()];
 	}
 

@@ -40,7 +40,7 @@ export async function startServer(wss: any) {
 	
 	event.emit('config-update', config);
 
-	await loadPlugins();
+	if (serverConfig.loadPlugins) await loadPlugins();
 
 	registry.loadPalette();
 

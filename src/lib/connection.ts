@@ -8,6 +8,7 @@ import * as entity from './entity';
 import * as chat from './chat';
 
 import { serverVersion, serverProtocol, serverConfig, invalidNicknameRegex } from '../values';
+import { BaseSocket } from '../socket';
 
 export function setupConnectionHandler(wss) {
 	const connections = {};
@@ -25,14 +26,8 @@ export function setupConnectionHandler(wss) {
 		return 0;
 	}
 
-	wss.on('connection', async function (socket) {
-		socket.binaryType = 'arraybuffer';
-
-		function send(type, data) {
-			socket.send(protocol.parseToMessage('server', type, data));
-		}
-
-		send('LoginRequest', {
+	wss.on('connection', async function (socket: BaseSocket) {
+		socket.send('LoginRequest', {
 			name: serverConfig.name,
 			motd: serverConfig.motd,
 			protocol: serverProtocol,
@@ -40,20 +35,15 @@ export function setupConnectionHandler(wss) {
 			numberplayers: playerCount,
 			software: `VoxelSrv-Server`,
 		});
-		const packetEvent = new EventEmitter();
 
-		socket.on('message', (m) => {
-			var packet = protocol.parseToObject('client', new Uint8Array(m));
-			if (packet != undefined) packetEvent.emit(packet.type, packet.data);
-		});
 
 		let loginTimeout = true;
 
-		packetEvent.on('LoginResponse', function (data) {
+		socket.on('LoginResponse', function (data) {
 			loginTimeout = false;
 
 			if (playerCount >= serverConfig.maxplayers) {
-				send('PlayerKick', { reason: 'Server is full', time: Date.now() });
+				socket.send('PlayerKick', { reason: 'Server is full', time: Date.now() });
 				socket.close();
 				return;
 			}
@@ -64,20 +54,20 @@ export function setupConnectionHandler(wss) {
 			const id = data.username.toLowerCase();
 
 			if (check != 0) {
-				send('PlayerKick', { reason: check, time: Date.now() });
+				socket.send('PlayerKick', { reason: check, time: Date.now() });
 				socket.close();
 			}
 			if (connections[id] != undefined) {
-				send('PlayerKick', {
+				socket.send('PlayerKick', {
 					reason: 'Player with that nickname is already online!',
 					time: Date.now(),
 				});
 				socket.close();
 			} else {
 				players.event.emit('connection', id);
-				var player = players.create(id, data, socket, packetEvent);
+				var player = players.create(id, data, socket);
 
-				send('LoginSuccess', {
+				socket.send('LoginSuccess', {
 					xPos: player.entity.data.position[0],
 					yPos: player.entity.data.position[1],
 					zPos: player.entity.data.position[2],
@@ -89,10 +79,10 @@ export function setupConnectionHandler(wss) {
 
 				connections[id] = socket;
 
-				send('PlayerEntity', { uuid: player.entity.id });
+				socket.send('PlayerEntity', { uuid: player.entity.id });
 
 				Object.entries(player.world.entities).forEach(function (data: any) {
-					send('EntityCreate', {
+					socket.send('EntityCreate', {
 						uuid: data[0],
 						data: JSON.stringify(data[1].data),
 					});
@@ -112,31 +102,31 @@ export function setupConnectionHandler(wss) {
 					delete connections[id];
 					playerCount = playerCount - 1;
 				});
-				packetEvent.on('ActionMessage', function (data) {
+				socket.on('ActionMessage', function (data) {
 					player.action_chatsend(data);
 				});
 
-				packetEvent.on('ActionBlockBreak', function (data) {
+				socket.on('ActionBlockBreak', function (data) {
 					player.action_blockbreak(data);
 				});
 
-				packetEvent.on('ActionBlockPlace', function (data) {
+				socket.on('ActionBlockPlace', function (data) {
 					player.action_blockplace(data);
 				});
 
-				packetEvent.on('ActionMove', function (data) {
+				socket.on('ActionMove', function (data) {
 					player.action_move(data);
 				});
 
-				packetEvent.on('ActionInventoryClick', function (data) {
+				socket.on('ActionInventoryClick', function (data) {
 					player.action_invclick(data);
 				});
 
-				packetEvent.on('ActionClick', function (data) {
+				socket.on('ActionClick', function (data) {
 					player.action_click(data);
 				});
 				
-				packetEvent.on('ActionClickEntity', function (data) {
+				socket.on('ActionClickEntity', function (data) {
 					player.action_click(data);
 				});
 			}
@@ -144,7 +134,7 @@ export function setupConnectionHandler(wss) {
 
 		setTimeout(function () {
 			if (loginTimeout == true) {
-				send('PlayerKick', { reason: 'Timeout' });
+				socket.send('PlayerKick', { reason: 'Timeout!' });
 				socket.close();
 			}
 		}, 10000);

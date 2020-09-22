@@ -24,7 +24,7 @@ export function loadPalette(): void {
 
 			event.emit('palette-loaded', json);
 
-			blockPalette = json;
+			blockPalette = {...blockPalette, ...json};
 
 			const usedIDs = Object.values(blockPalette);
 
@@ -365,6 +365,7 @@ export class Block {
 blockRegistry['air'] = new Block('air', -1, '', {}, 0, 0, 'any');
 blockRegistry['air'].rawid = 0;
 blockIDmap[0] = 'air';
+blockPalette['air'] = 0;
 
 export class Command {
 	command: string = null;

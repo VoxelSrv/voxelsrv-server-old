@@ -9,7 +9,6 @@ import * as worldManager from './worlds';
 import * as registry from './registry';
 import * as fs from 'fs';
 import * as console from './console';
-import * as protocol from './protocol';
 import * as types from '../types';
 import * as chat from './chat';
 
@@ -18,12 +17,13 @@ import { PlayerPermissionHolder } from './permissions';
 
 import { serverConfig } from '../values';
 import * as pClient from 'voxelsrv-protocol/js/client';
+import { BaseSocket } from '../socket';
 
 const players = {};
 const chunksToSend = [];
 
-export function create(id: string, data: any, socket: any, packetEvent: EventEmitter): Player {
-	players[id] = new Player(id, data.username, socket, packetEvent);
+export function create(id: string, data: any, socket: BaseSocket): Player {
+	players[id] = new Player(id, data.username, socket);
 
 	event.emit('create', players[id]);
 
@@ -88,12 +88,11 @@ export class Player {
 	world: worldManager.World;
 	inventory: PlayerInventory;
 	hookInventory: any;
-	readonly socket: any;
-	readonly packetRecived: EventEmitter;
+	readonly socket: BaseSocket;
 	permissions: PlayerPermissionHolder;
 	chunks: types.anyobject;
 
-	constructor(id: string, name: string, socket: EventEmitter, packetEvent: EventEmitter) {
+	constructor(id: string, name: string, socket: BaseSocket) {
 		this.id = id;
 		this.nickname = name;
 		this.displayName = name;
@@ -157,7 +156,6 @@ export class Player {
 		}
 
 		this.socket = socket;
-		this.packetRecived = packetEvent;
 		this.chunks = {};
 		save(this.id, this.getObject());
 
@@ -185,7 +183,7 @@ export class Player {
 	}
 
 	sendPacket(type: string, data: Object) {
-		this.socket.send(protocol.parseToMessage('server', type, data));
+		this.socket.send(type, data);
 	}
 
 	remove() {
@@ -441,7 +439,7 @@ setInterval(async function () {
 		sendChunkToPlayer(chunksToSend[0][0], chunksToSend[0][1]);
 		chunksToSend.shift();
 	}
-}, 100);
+}, 50);
 
 async function sendChunkToPlayer(id: string, cid: types.XZ) {
 	event.emit('sendChunk', id, cid);
