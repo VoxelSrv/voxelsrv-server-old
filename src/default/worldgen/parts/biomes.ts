@@ -2,6 +2,7 @@ import { Noise2D, Noise3D, makeNoise2D, makeNoise3D } from 'open-simplex-noise';
 import hash from 'murmur-numbers';
 
 export class BaseBiome {
+	id: string = 'base';
 	block: { [index: string]: number } = {};
 	heightNoise: Noise2D;
 	caveNoise: Noise3D;
@@ -20,16 +21,14 @@ export class BaseBiome {
 		this.hash2 = hash(seed * 3 * 10000);
 	}
 
-	getBlock(x: number, y: number, z: number): number | string {
-		if (this.getHeightMap(x, y, z)) {
+	getBlock(x: number, y: number, z: number, get: Function): number {
+		if (get(x, y, z)) {
 			return this.block.stone;
 		}
 	}
 
-	getHeightMap(x: number, y: number, z: number): boolean {
-		const r = Math.floor(this.heightNoise(x / 140, z / 140) + 1) * 5 + 50;
-
-		return y <= r ? true : false;
+	getHeightMap(x: number, y: number, z: number): number {
+		return Math.floor(this.heightNoise(x / 140, z / 140) + 1) * 5 + 50;
 	}
 
 	validate(x: number, z: number) {
@@ -38,12 +37,13 @@ export class BaseBiome {
 }
 
 export class PlainsBiome extends BaseBiome {
+	id: string = 'plains';
 	height: number = 120;
-	getBlock(x: number, y: number, z: number): number | string {
-		const block = this.getHeightMap(x, y, z);
-		const upBlock = this.getHeightMap(x, y + 1, z);
-		const up3Block = this.getHeightMap(x, y + 3, z);
-		const bottomBlock = this.getHeightMap(x, y - 1, z);
+	getBlock(x: number, y: number, z: number, get: Function): number {
+		const block = get(y);
+		const upBlock = get(y + 1);
+		const up3Block = get(y + 3);
+		const bottomBlock = get(y - 1);
 
 		if (y == 0) return this.block.bedrock;
 		if (block) {
@@ -60,7 +60,7 @@ export class PlainsBiome extends BaseBiome {
 		return this.block.air;
 	}
 
-	getHeightMap(x: number, y: number, z: number): boolean {
+	getHeightMap(x: number, y: number, z: number): number {
 		const dim = this.caveNoise(x / 70, y / 70, z / 70);
 		const dim2 = this.caveNoise(x / 40, y / 40, z / 40);
 		const layer1 = this.heightNoise(x / 120, z / 120);
@@ -68,25 +68,97 @@ export class PlainsBiome extends BaseBiome {
 
 		const h = layer1 + (layer2 + 1) / 4;
 
-		const r = (dim * (1 - h) + dim2 * h) * 14 + 50;
-
 		//lerp(noise1, noise2, clamp(noiseBlend * blendAmplitide)) * mainAmplitude
 
 		//const r = (dim * (1 - layer1) + dim2 * layer1) * (60 * Math.abs(layer2)) + 50;
 		//const r = Math.floor((dim + dim2 + layer1 + layer2 - 3) / 8) + 50
 		//const r = Math.floor((dim * 30 + dim2 * 20 + layer1 * 20 + layer2 * 10 - 3) / 65) + 50
 
-		return y <= r ? true : false;
+		return (dim * (1 - h) + dim2 * h) * 14 + 50;
 	}
 }
 
+export class ForestBiome extends BaseBiome {
+	id: string = 'forest';
+	height: number = 120;
+	getBlock(x: number, y: number, z: number, get: Function): number {
+		const block = get(y);
+		const upBlock = get(y + 1);
+		const up3Block = get(y + 3);
+		const bottomBlock = get(y - 1);
+
+		if (y == 0) return this.block.bedrock;
+		if (block) {
+			if (!upBlock) return this.block.grass;
+			else if (upBlock && !up3Block) return this.block.dirt;
+			else return this.block.stone;
+		} else if (bottomBlock) {
+			if (this.hash2(x, z) >= 0.993) return this.feature.oakTree;
+			else if (this.hash2(x, z) <= 0.002) return this.feature.birchTree;
+			else if (this.hash(x, z) <= 0.06) return this.hash(x, y, z) <= 0.5 ? this.block.red_flower : this.block.yellow_flower;
+			else if (this.hash(x, z) >= 0.85) return this.block.grass_plant;
+		}
+
+		return this.block.air;
+	}
+
+	getHeightMap(x: number, y: number, z: number): number {
+		const dim = this.caveNoise(x / 70, y / 70, z / 70);
+		const dim2 = this.caveNoise(x / 40, y / 40, z / 40);
+		const layer1 = this.heightNoise(x / 120, z / 120);
+		const layer2 = this.heightNoise(x / 10, z / 10);
+
+		const h = layer1 + (layer2 + 1) / 4;
+
+		return (dim * (1 - h) + dim2 * h) * 14 + 55;
+	}
+}
+
+export class DesertBiome extends BaseBiome {
+	id: string = 'desert';
+	height: number = 120;
+	getBlock(x: number, y: number, z: number, get: Function): number {
+		const block = get(y);
+		const upBlock = get(y + 1);
+		const up3Block = get(y + 3);
+		const bottomBlock = get(y - 1);
+
+		if (y == 0) return this.block.bedrock;
+		if (block) {
+			if (!upBlock) return this.block.sand;
+			else if (upBlock && !up3Block) return this.block.sand;
+			else return this.block.stone;
+		} else if (bottomBlock) {
+			if (this.hash2(x, z) <= 0.01) return this.feature.cactus;
+			else if (this.hash(x, z) <= 0.006) return this.block.deadbush;
+		}
+
+		return this.block.air;
+	}
+
+	getHeightMap(x: number, y: number, z: number): number {
+		const dim = this.caveNoise(x / 70, y / 70, z / 70);
+		const dim2 = this.caveNoise(x / 40, y / 40, z / 40);
+		const layer1 = this.heightNoise(x / 120, z / 120);
+
+		return Math.abs(dim * (1 - layer1) + dim2 * layer1) * 24 + 60;
+	}
+}
+
+
 export class MountainsBiome extends BaseBiome {
+	id: string = 'mountains';
 	height: number = 180;
-	getBlock(x: number, y: number, z: number): number | string {
-		const block = this.getHeightMap(x, y, z);
-		const upBlock = this.getHeightMap(x, y + 1, z);
-		const up3Block = this.getHeightMap(x, y + 3, z);
-		const bottomBlock = this.getHeightMap(x, y - 1, z);
+	hightVariationNoise: Noise2D;
+	constructor(blocks, feature, seed) {
+		super(blocks, feature, seed);
+		this.hightVariationNoise = makeNoise2D(seed ^ (2 + 1));
+	}
+	getBlock(x: number, y: number, z: number, get: Function): number {
+		const block = get(y);
+		const upBlock = get(y + 1);
+		const up3Block = get(y + 3);
+		const bottomBlock = get(y - 1);
 
 		if (y == 0) return this.block.bedrock;
 		if (block) {
@@ -103,13 +175,11 @@ export class MountainsBiome extends BaseBiome {
 		return this.block.air;
 	}
 
-	getHeightMap(x: number, y: number, z: number): boolean {
-		const dim = this.caveNoise(x / 120, y / 120, z / 120);
-		const dim2 = this.heightNoise(x / 80, z / 80);
-		const h = this.heightNoise(x / 150, z / 150);
+	getHeightMap(x: number, y: number, z: number): number {
+		const dim = this.caveNoise(x / 180, y / 180, z / 180);
+		const dim2 = this.caveNoise(x / 20, y / 20, z / 20);
+		const mountaines = Math.abs(this.heightNoise(x / 30, z / 30));
 
-		const r = (-1 * Math.abs(dim * (1 - h) + dim2 * h) + 1) * 100 + 60;
-
-		return y <= r ? true : false;
+		return Math.abs(dim + dim2 + 100 * mountaines) + 60;
 	}
 }
