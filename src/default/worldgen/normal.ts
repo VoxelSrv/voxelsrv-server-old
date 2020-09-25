@@ -163,16 +163,22 @@ function pasteStructure(chunk: types.IView3duint16, gen: types.IView3duint16, x:
 	const xm = Math.round(gen.shape[0] / 2);
 	const zm = Math.round(gen.shape[2] / 2);
 	for (var i = 0; i < gen.shape[0]; i++) {
-		for (var j = 0; j < gen.shape[1]; j++) {
-			for (var k = 0; k < gen.shape[2]; k++) {
+		// x
+		let x2 = x - xm + i;
+		if (x2 >= chunk.shape[0] || x2 < 0) continue;
+		for (var k = 0; k < gen.shape[2]; k++) {
+			// z
+			let z2 = z - zm + k;
+			if (z2 >= chunk.shape[2] || z2 < 0) continue;
+			for (var j = 0; j < gen.shape[1]; j++) {
+				// y
 				if (gen.get(i, j, k) != 0) {
-					chunk.set(x - xm + i, y + j, z - zm + k, gen.get(i, j, k));
+					chunk.set(x2, y + j, z2, gen.get(i, j, k));
 				}
 			}
 		}
 	}
 }
-
 
 function dist2(x: number, z: number): number {
 	return Math.sqrt(x * x + z * z);

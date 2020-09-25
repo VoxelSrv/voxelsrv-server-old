@@ -46,9 +46,9 @@ export class PlainsBiome extends BaseBiome {
 		const bottomBlock = get(y - 1);
 
 		if (y == 0) return this.block.bedrock;
-		if (block) {
-			if (!upBlock) return this.block.grass;
-			else if (upBlock && !up3Block) return this.block.dirt;
+		if (block == this.block.stone) {
+			if (upBlock == 0) return this.block.grass;
+			else if (upBlock == this.block.stone && up3Block != this.block.stone) return this.block.dirt;
 			else return this.block.stone;
 		} else if (bottomBlock) {
 			if (this.hash2(x, z) >= 0.9995) return this.feature.oakTree;
@@ -74,13 +74,19 @@ export class PlainsBiome extends BaseBiome {
 		//const r = Math.floor((dim + dim2 + layer1 + layer2 - 3) / 8) + 50
 		//const r = Math.floor((dim * 30 + dim2 * 20 + layer1 * 20 + layer2 * 10 - 3) / 65) + 50
 
-		return (dim * (1 - h) + dim2 * h) * 14 + 50;
+		return (dim * (1 - h) + dim2 * h) * 14 + 66;
 	}
 }
+
 
 export class ForestBiome extends BaseBiome {
 	id: string = 'forest';
 	height: number = 120;
+	mountainNoise: Noise2D;
+	constructor(blocks, feature, seed) {
+		super(blocks, feature, seed);
+		this.mountainNoise = makeNoise2D(seed * 5238 + 132);
+	}
 	getBlock(x: number, y: number, z: number, get: Function): number {
 		const block = get(y);
 		const upBlock = get(y + 1);
@@ -88,9 +94,9 @@ export class ForestBiome extends BaseBiome {
 		const bottomBlock = get(y - 1);
 
 		if (y == 0) return this.block.bedrock;
-		if (block) {
-			if (!upBlock) return this.block.grass;
-			else if (upBlock && !up3Block) return this.block.dirt;
+		if (block == this.block.stone) {
+			if (upBlock == 0) return this.block.grass;
+			else if (upBlock == this.block.stone && up3Block != this.block.stone) return this.block.dirt;
 			else return this.block.stone;
 		} else if (bottomBlock) {
 			if (this.hash2(x, z) >= 0.993) return this.feature.oakTree;
@@ -107,10 +113,11 @@ export class ForestBiome extends BaseBiome {
 		const dim2 = this.caveNoise(x / 40, y / 40, z / 40);
 		const layer1 = this.heightNoise(x / 120, z / 120);
 		const layer2 = this.heightNoise(x / 10, z / 10);
+		const mountain = this.mountainNoise(x / 60, z / 60) + 1;
 
 		const h = layer1 + (layer2 + 1) / 4;
 
-		return (dim * (1 - h) + dim2 * h) * 14 + 55;
+		return (dim * (1 - h) + dim2 * h) * (14 + mountain * 10) + 68;
 	}
 }
 
@@ -124,7 +131,7 @@ export class DesertBiome extends BaseBiome {
 		const bottomBlock = get(y - 1);
 
 		if (y == 0) return this.block.bedrock;
-		if (block) {
+		else if (block == this.block.stone) {
 			if (!upBlock) return this.block.sand;
 			else if (upBlock && !up3Block) return this.block.sand;
 			else return this.block.stone;
@@ -141,10 +148,9 @@ export class DesertBiome extends BaseBiome {
 		const dim2 = this.caveNoise(x / 40, y / 40, z / 40);
 		const layer1 = this.heightNoise(x / 120, z / 120);
 
-		return Math.abs(dim * (1 - layer1) + dim2 * layer1) * 24 + 60;
+		return Math.abs(dim * (1 - layer1) + dim2 * layer1) * 24 + 73;
 	}
 }
-
 
 export class MountainsBiome extends BaseBiome {
 	id: string = 'mountains';
@@ -161,9 +167,9 @@ export class MountainsBiome extends BaseBiome {
 		const bottomBlock = get(y - 1);
 
 		if (y == 0) return this.block.bedrock;
-		if (block) {
-			if (!upBlock) return this.block.grass;
-			else if (upBlock && !up3Block) return this.block.dirt;
+		if (block == this.block.stone) {
+			if (upBlock == 0) return this.block.grass;
+			else if (upBlock == this.block.stone && (up3Block == this.block.stone || up3Block == this.block.water)) return this.block.dirt;
 			else return this.block.stone;
 		} else if (bottomBlock) {
 			if (this.hash2(x, z) >= 0.9997) return this.feature.oakTree;
@@ -180,6 +186,6 @@ export class MountainsBiome extends BaseBiome {
 		const dim2 = this.caveNoise(x / 20, y / 20, z / 20);
 		const mountaines = Math.abs(this.heightNoise(x / 30, z / 30));
 
-		return Math.abs(dim + dim2 + 100 * mountaines) + 60;
+		return Math.abs(dim + dim2 + 100 * mountaines) + 68;
 	}
 }
