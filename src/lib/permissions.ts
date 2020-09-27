@@ -1,10 +1,9 @@
-type NestedPermission = boolean | null | { [index: string]: NestedPermission };
+type PermissionList = { [index: string]: boolean | null };
 type Parents = { [index: string]: PermissionHolder };
 
 export let groups = {};
 
 export function loadGroups(groups2) {
-
 	Object.entries(groups2).forEach((group: [string, any]) => {
 		groups[group[0]] = new PermissionHolder(group[1].permissions);
 	});
@@ -27,66 +26,51 @@ export function getAllGroups() {
 }
 
 export class PermissionHolder {
-	readonly permissions: { [index: string]: NestedPermission } = {};
+	readonly permissions: PermissionList = {};
 
-	constructor(permissions: { [index: string]: NestedPermission } = {}) {
+	constructor(permissions: PermissionList = {}) {
 		this.permissions = permissions;
 	}
 
 	check(perm: string | string[]): null | boolean {
+		const pathString: string = Array.isArray(perm) ? perm.join('.') : perm;
+
+		if (this.permissions[pathString] != undefined) return this.permissions[pathString];
+
+		if (this.permissions['*'] != undefined) return this.permissions['*'];
+
 		const path: Array<string> = Array.isArray(perm) ? perm : perm.split('.');
-		let currientNode: NestedPermission = this.permissions;
+		let x = '';
 
-		for (let x = 0; x < path.length - 1; x++) {
-			if (!!currientNode['*']) return currientNode['*'] == true;
-			else if (currientNode[path[x]] == undefined) return null;
-			currientNode = currientNode[path[x]];
-		}
+		path.forEach((y) => {
+			x = x + y + '.';
+			if (this.permissions[x + '*'] != undefined) return this.permissions[x + '*'];
+		});
 
-		if (typeof currientNode[path[path.length - 1]] == 'boolean') return currientNode[path[path.length - 1]];
-		else return null;
+		return null;
 	}
 
 	checkStrict(perm: string | string[]): null | boolean {
-		const path: Array<string> = Array.isArray(perm) ? perm : perm.split('.');
-		let currientNode: NestedPermission = this.permissions;
+		const pathString: string = Array.isArray(perm) ? perm.join('.') : perm;
 
-		for (let x = 0; x < path.length - 1; x++) {
-			if (currientNode[path[x]] == undefined) return null;
-			currientNode = currientNode[path[x]];
-		}
+		if (this.permissions[pathString] != undefined) return this.permissions[pathString];
 
-		if (typeof currientNode[path[path.length - 1]] == 'boolean') return currientNode[path[path.length - 1]];
-		else return null;
+		return null;
 	}
 
 	add(perm: string, bool: boolean = true) {
-		const path: Array<string> = perm.split('.');
-		let currientNode: NestedPermission = this.permissions;
-
-		for (let x = 0; x < path.length - 1; x++) {
-			if (currientNode[path[x]] == undefined) currientNode[path[x]] = {};
-			currientNode = currientNode[path[x]];
-		}
-		currientNode[path[path.length - 1]] = bool;
+		this.permissions[perm] = bool;
 	}
 
 	remove(perm: string) {
-		const path: Array<string> = perm.split('.');
-		let currientNode: NestedPermission = this.permissions;
-
-		for (let x = 0; x < path.length - 1; x++) {
-			if (currientNode[path[x]] == undefined) return;
-			currientNode = currientNode[path[x]];
-		}
-		delete currientNode[path[path.length - 1]];
+		delete this.permissions[perm];
 	}
 }
 
 export class PlayerPermissionHolder extends PermissionHolder {
 	parents: Parents = {};
 
-	constructor(permissions: { [index: string]: NestedPermission } = {}, parents: Array<string> = []) {
+	constructor(permissions: PermissionList = {}, parents: Array<string> = []) {
 		super(permissions);
 		parents.forEach((parent) => {
 			if (groups[parent] != undefined) this.parents[parent] = groups[parent];
@@ -94,53 +78,41 @@ export class PlayerPermissionHolder extends PermissionHolder {
 	}
 
 	check(perm: string | string[]): null | boolean {
-		const path: Array<string> = Array.isArray(perm) ? perm : perm.split('.');
+		const pathString: string = Array.isArray(perm) ? perm.join('.') : perm;
 
-		let returned: null | boolean = null;
-		let local: null | boolean = null;
-		Object.values(this.parents).forEach((parent) => {
-			returned = parent.check(path);
+		if (this.permissions[pathString] != undefined) return this.permissions[pathString];
+
+		if (this.permissions['*'] != undefined) return this.permissions['*'];
+
+		const path: Array<string> = Array.isArray(perm) ? perm : perm.split('.');
+		let x = '';
+
+		path.forEach((y) => {
+			x = x + y + '.';
+			if (this.permissions[x + '*'] != undefined) return this.permissions[x + '*'];
 		});
 
-		let currientNode: NestedPermission = this.permissions;
-
-		for (let x = 0; x < path.length - 1; x++) {
-			if (!!currientNode['*']) {
-				local = currientNode['*'];
-				break;
-			}
-			else if (currientNode[path[x]] == undefined) {
-				local = null;
-				break;
-			}
-			currientNode = currientNode[path[x]];
+		let returned = null;
+		for (let x in this.parents) {
+			returned = this.parents[x].check(perm);
+			if (returned != null) return returned;
 		}
 
-		if (typeof currientNode[path[path.length - 1]] == 'boolean') local = currientNode[path[path.length - 1]];
-		return (local == null) ? returned : local;
+		return null;
 	}
 
 	checkStrict(perm: string | string[]): null | boolean {
-		const path: Array<string> = Array.isArray(perm) ? perm : perm.split('.');
+		const pathString: string = Array.isArray(perm) ? perm.join('.') : perm;
 
-		let returned: null | boolean = null;
-		let local: null | boolean = null;
-		Object.values(this.parents).forEach((parent) => {
-			returned = parent.checkStrict(path);
-		});
-
-		let currientNode: NestedPermission = this.permissions;
-
-		for (let x = 0; x < path.length - 1; x++) {
-			if (currientNode[path[x]] == undefined) {
-				local = null;
-				break;
-			}
-			currientNode = currientNode[path[x]];
+		if (this.permissions[pathString] != undefined) return this.permissions[pathString];
+		
+		let returned = null;
+		for (let x in this.parents) {
+			returned = this.parents[x].checkStrict(perm);
+			if (returned != null) return returned;
 		}
 
-		if (typeof currientNode[path[path.length - 1]] == 'boolean') return currientNode[path[path.length - 1]];
-		else return returned;
+		return null;
 	}
 
 	addParent(parent: string) {

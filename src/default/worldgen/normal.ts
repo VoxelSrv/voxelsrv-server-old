@@ -100,8 +100,8 @@ export default class normalGenerator {
 		//const water = this.biomeNoise3(x / 400, z / 400);
 
 		if (heat < 0.2) {
-			if (wierdness > 0.7) return this.biomes.mountains;
-			else if (wierdness > 0.4) return this.biomes.forest;
+			if (wierdness > 0.5) return this.biomes.mountains;
+			else if (wierdness > 0.2) return this.biomes.forest;
 			return this.biomes.plains;
 		} else if (heat > 0.15) {
 			return this.biomes.desert;
