@@ -171,7 +171,7 @@ export class MountainsBiome extends BaseBiome {
 			if (y > 135 + this.hash(x, z) * 6) {
 				if (upBlock == 0 || (upBlock == this.block.stone && up2Block == 0)) return this.block.snow;
 			} else if (y > 115 + this.hash(x, z) * 7) {
-				if (upBlock == 0) return this.block.stone;
+				if (upBlock == 0) return this.hash(x, y, z) <= 0.1 ? this.block.cobblestone : this.block.stone;
 			} else if (upBlock == 0) return this.block.grass;
 			else if (upBlock == this.block.stone && up3Block != this.block.stone) return this.block.dirt;
 			return this.block.stone;
@@ -188,8 +188,10 @@ export class MountainsBiome extends BaseBiome {
 		const dim = this.caveNoise(x / 180, y / 80, z / 180);
 		const dim2 = this.caveNoise(x / 20, y / 20, z / 20);
 		const mountaines = Math.abs(this.heightNoise(x / 80, z / 80));
+		const layer = this.heightNoise(x / 5, z / 5);
 
-		return  minNegative(mountaines - (dim * dim2)/2) * 100 + 80;
+
+		return minNegative(mountaines - (dim * dim2)/2) * 100 + layer + 80;
 	}
 }
 

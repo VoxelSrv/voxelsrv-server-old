@@ -19,7 +19,7 @@ export async function startServer(wss: any) {
 	const event = new EventEmitter();
 
 	console.log(`^yStarting VoxelSRV server version^: ${serverVersion} ^y[Protocol:^: ${serverProtocol}^y]`);
-	['./plugins', './players', './worlds', './config', './storage'].forEach((element) => {
+	['./plugins', './players', './worlds', './config'].forEach((element) => {
 		if (!fs.existsSync(element)) {
 			try {
 				fs.mkdirSync(element);
