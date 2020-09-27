@@ -39,7 +39,7 @@ export function convertFromPlain(text: string) {
  */
 export function convertToPlain(msg: ChatMessage) {
 	let plain = '';
-	msg.forEach((x) => plain + x.text);
+	msg.forEach((x) => {plain = plain + x.text});
 	return plain;
 }
 
