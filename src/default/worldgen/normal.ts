@@ -48,6 +48,9 @@ export default class normalGenerator {
 			plains: new biome.PlainsBiome(this.blocks, this.features, seed),
 			desert: new biome.DesertBiome(this.blocks, this.features, seed),
 			forest: new biome.ForestBiome(this.blocks, this.features, seed),
+			iceplains: new biome.IcePlainsBiome(this.blocks, this.features, seed),
+			icemountains: new biome.IceMountainsBiome(this.blocks, this.features, seed),
+
 		};
 	}
 
@@ -105,6 +108,9 @@ export default class normalGenerator {
 			return this.biomes.plains;
 		} else if (heat > 0.15) {
 			return this.biomes.desert;
+		} else if (heat < -0.5) {
+			if (wierdness > 0.5) return this.biomes.icemountains;
+			return this.biomes.iceplains;
 		}
 	}
 
