@@ -122,25 +122,20 @@
 					<a name="constructor" class="tsd-anchor"></a>
 					<h3>constructor</h3>
 					<ul class="tsd-signatures tsd-kind-constructor tsd-parent-kind-class tsd-is-overwrite">
-						<li class="tsd-signature tsd-kind-icon">new <wbr>Player<wbr>Permission<wbr>Holder<span class="tsd-signature-symbol">(</span>permissions<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-symbol">{}</span>, parents<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">Array</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="_api_index_._api_permissions_.playerpermissionholder.html" class="tsd-signature-type">PlayerPermissionHolder</a></li>
+						<li class="tsd-signature tsd-kind-icon">new <wbr>Player<wbr>Permission<wbr>Holder<span class="tsd-signature-symbol">(</span>permissions<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">PermissionList</span>, parents<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">Array</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="_api_index_._api_permissions_.playerpermissionholder.html" class="tsd-signature-type">PlayerPermissionHolder</a></li>
 					</ul>
 					<ul class="tsd-descriptions">
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<p>Overrides <a href="_api_index_._api_permissions_.permissionholder.html">PermissionHolder</a>.<a href="_api_index_._api_permissions_.permissionholder.html#constructor">constructor</a></p>
 								<ul>
-									<li>Defined in <a href="https://github.com/Patbox/voxelsrv-server/blob/0a54b7f/src/lib/permissions.ts#L87">lib/permissions.ts:87</a></li>
+									<li>Defined in <a href="https://github.com/Patbox/voxelsrv-server/blob/f34bb10/src/lib/permissions.ts#L71">lib/permissions.ts:71</a></li>
 								</ul>
 							</aside>
 							<h4 class="tsd-parameters-title">Parameters</h4>
 							<ul class="tsd-parameters">
 								<li>
-									<h5><span class="tsd-flag ts-flagDefault value">Default value</span> permissions: <span class="tsd-signature-symbol">{}</span><span class="tsd-signature-symbol"> = {}</span></h5>
-									<ul class="tsd-parameters">
-										<li class="tsd-parameter-index-signature">
-											<h5><span class="tsd-signature-symbol">[</span>index: <span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">]: </span><span class="tsd-signature-type">NestedPermission</span></h5>
-										</li>
-									</ul>
+									<h5><span class="tsd-flag ts-flagDefault value">Default value</span> permissions: <span class="tsd-signature-type">PermissionList</span><span class="tsd-signature-symbol"> = {}</span></h5>
 								</li>
 								<li>
 									<h5><span class="tsd-flag ts-flagDefault value">Default value</span> parents: <span class="tsd-signature-type">Array</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol"> = []</span></h5>
@@ -159,28 +154,20 @@
 					<div class="tsd-signature tsd-kind-icon">parents<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">Parents</span></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in <a href="https://github.com/Patbox/voxelsrv-server/blob/0a54b7f/src/lib/permissions.ts#L87">lib/permissions.ts:87</a></li>
+							<li>Defined in <a href="https://github.com/Patbox/voxelsrv-server/blob/f34bb10/src/lib/permissions.ts#L71">lib/permissions.ts:71</a></li>
 						</ul>
 					</aside>
 				</section>
 				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-class tsd-is-inherited">
 					<a name="permissions" class="tsd-anchor"></a>
 					<h3>permissions</h3>
-					<div class="tsd-signature tsd-kind-icon">permissions<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-symbol">{}</span></div>
+					<div class="tsd-signature tsd-kind-icon">permissions<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">PermissionList</span></div>
 					<aside class="tsd-sources">
 						<p>Inherited from <a href="_api_index_._api_permissions_.permissionholder.html">PermissionHolder</a>.<a href="_api_index_._api_permissions_.permissionholder.html#permissions">permissions</a></p>
 						<ul>
-							<li>Defined in <a href="https://github.com/Patbox/voxelsrv-server/blob/0a54b7f/src/lib/permissions.ts#L30">lib/permissions.ts:30</a></li>
+							<li>Defined in <a href="https://github.com/Patbox/voxelsrv-server/blob/f34bb10/src/lib/permissions.ts#L29">lib/permissions.ts:29</a></li>
 						</ul>
 					</aside>
-					<div class="tsd-type-declaration">
-						<h4>Type declaration</h4>
-						<ul class="tsd-parameters">
-							<li class="tsd-parameter-index-signature">
-								<h5><span class="tsd-signature-symbol">[</span>index: <span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">]: </span><span class="tsd-signature-type">NestedPermission</span></h5>
-							</li>
-						</ul>
-					</div>
 				</section>
 			</section>
 			<section class="tsd-panel-group tsd-member-group ">
@@ -196,7 +183,7 @@
 							<aside class="tsd-sources">
 								<p>Inherited from <a href="_api_index_._api_permissions_.permissionholder.html">PermissionHolder</a>.<a href="_api_index_._api_permissions_.permissionholder.html#add">add</a></p>
 								<ul>
-									<li>Defined in <a href="https://github.com/Patbox/voxelsrv-server/blob/0a54b7f/src/lib/permissions.ts#L63">lib/permissions.ts:63</a></li>
+									<li>Defined in <a href="https://github.com/Patbox/voxelsrv-server/blob/f34bb10/src/lib/permissions.ts#L61">lib/permissions.ts:61</a></li>
 								</ul>
 							</aside>
 							<h4 class="tsd-parameters-title">Parameters</h4>
@@ -222,7 +209,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/Patbox/voxelsrv-server/blob/0a54b7f/src/lib/permissions.ts#L146">lib/permissions.ts:146</a></li>
+									<li>Defined in <a href="https://github.com/Patbox/voxelsrv-server/blob/f34bb10/src/lib/permissions.ts#L118">lib/permissions.ts:118</a></li>
 								</ul>
 							</aside>
 							<h4 class="tsd-parameters-title">Parameters</h4>
@@ -246,7 +233,7 @@
 							<aside class="tsd-sources">
 								<p>Overrides <a href="_api_index_._api_permissions_.permissionholder.html">PermissionHolder</a>.<a href="_api_index_._api_permissions_.permissionholder.html#check">check</a></p>
 								<ul>
-									<li>Defined in <a href="https://github.com/Patbox/voxelsrv-server/blob/0a54b7f/src/lib/permissions.ts#L96">lib/permissions.ts:96</a></li>
+									<li>Defined in <a href="https://github.com/Patbox/voxelsrv-server/blob/f34bb10/src/lib/permissions.ts#L80">lib/permissions.ts:80</a></li>
 								</ul>
 							</aside>
 							<h4 class="tsd-parameters-title">Parameters</h4>
@@ -270,7 +257,7 @@
 							<aside class="tsd-sources">
 								<p>Overrides <a href="_api_index_._api_permissions_.permissionholder.html">PermissionHolder</a>.<a href="_api_index_._api_permissions_.permissionholder.html#checkstrict">checkStrict</a></p>
 								<ul>
-									<li>Defined in <a href="https://github.com/Patbox/voxelsrv-server/blob/0a54b7f/src/lib/permissions.ts#L123">lib/permissions.ts:123</a></li>
+									<li>Defined in <a href="https://github.com/Patbox/voxelsrv-server/blob/f34bb10/src/lib/permissions.ts#L104">lib/permissions.ts:104</a></li>
 								</ul>
 							</aside>
 							<h4 class="tsd-parameters-title">Parameters</h4>
@@ -294,7 +281,7 @@
 							<aside class="tsd-sources">
 								<p>Inherited from <a href="_api_index_._api_permissions_.permissionholder.html">PermissionHolder</a>.<a href="_api_index_._api_permissions_.permissionholder.html#remove">remove</a></p>
 								<ul>
-									<li>Defined in <a href="https://github.com/Patbox/voxelsrv-server/blob/0a54b7f/src/lib/permissions.ts#L74">lib/permissions.ts:74</a></li>
+									<li>Defined in <a href="https://github.com/Patbox/voxelsrv-server/blob/f34bb10/src/lib/permissions.ts#L65">lib/permissions.ts:65</a></li>
 								</ul>
 							</aside>
 							<h4 class="tsd-parameters-title">Parameters</h4>
@@ -317,7 +304,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/Patbox/voxelsrv-server/blob/0a54b7f/src/lib/permissions.ts#L150">lib/permissions.ts:150</a></li>
+									<li>Defined in <a href="https://github.com/Patbox/voxelsrv-server/blob/f34bb10/src/lib/permissions.ts#L122">lib/permissions.ts:122</a></li>
 								</ul>
 							</aside>
 							<h4 class="tsd-parameters-title">Parameters</h4>
