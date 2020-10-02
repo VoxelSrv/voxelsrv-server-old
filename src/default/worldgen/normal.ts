@@ -50,7 +50,6 @@ export default class normalGenerator {
 			forest: new biome.ForestBiome(this.blocks, this.features, seed),
 			iceplains: new biome.IcePlainsBiome(this.blocks, this.features, seed),
 			icemountains: new biome.IceMountainsBiome(this.blocks, this.features, seed),
-
 		};
 	}
 
@@ -102,13 +101,13 @@ export default class normalGenerator {
 		const heat = this.biomeNoise2(x / 300, z / 300);
 		//const water = this.biomeNoise3(x / 400, z / 400);
 
-		if (heat < 0.2) {
+		if (heat > 0.4) {
+			return this.biomes.desert;
+		} else if (heat > -0.2) {
 			if (wierdness > 0.5) return this.biomes.mountains;
 			else if (wierdness > 0.2) return this.biomes.forest;
 			return this.biomes.plains;
-		} else if (heat > 0.15) {
-			return this.biomes.desert;
-		} else if (heat < -0.5) {
+		} else if (heat <= -0.2) {
 			if (wierdness > 0.5) return this.biomes.icemountains;
 			return this.biomes.iceplains;
 		}

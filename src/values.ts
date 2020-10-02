@@ -1,6 +1,6 @@
 import * as types from './types';
 
-export const serverVersion = '0.2.0-beta.5.3';
+export const serverVersion = '0.2.0-beta.6';
 export const serverProtocol = 2;
 
 export interface IServerConfig {
@@ -37,9 +37,9 @@ export const serverDefaultConfig: IServerConfig = {
 		border: 24,
 		spawn: [0, 100, 0],
 		generator: 'normal',
-		save: true
+		save: true,
 	},
-	loadPlugins: true
+	loadPlugins: true,
 };
 
 export let serverConfig: IServerConfig = serverDefaultConfig;

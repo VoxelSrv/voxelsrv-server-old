@@ -16,7 +16,7 @@
     "@types/gl-vec3": "^1.1.0",
     "@types/node-fetch": "^2.5.7",
     "@types/peerjs": "^1.1.0",
-    "@types/ws": "^7.2.6",
+    "@types/ws": "^7.2.7",
     "gl-vec3": "^1.1.3",
     "murmur-numbers": "^0.0.2",
     "ndarray": "^1.0.19",

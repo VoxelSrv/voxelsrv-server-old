@@ -12,10 +12,9 @@ const cfg = JSON.parse(json.toString());
 
 const wss = new WebSocket.Server({ port: cfg.port });
 
-const event = new EventEmitter();
+const server = startServer();
 
 wss.on('connection', (s) => {
-	event.emit('connection', new WSSocket(s));
+	server.connectPlayer(new WSSocket(s));
 });
 
-startServer(event);

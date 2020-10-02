@@ -91,6 +91,7 @@ export class Player {
 	readonly socket: BaseSocket;
 	permissions: PlayerPermissionHolder;
 	chunks: types.anyobject;
+	movement: PlayerMovement;
 
 	constructor(id: string, name: string, socket: BaseSocket) {
 		this.id = id;
@@ -124,6 +125,7 @@ export class Player {
 			this.inventory = new PlayerInventory(10, null);
 			this.hookInventory = null;
 			this.permissions = new PlayerPermissionHolder({}, ['default']);
+			this.movement = {...defaultPlayerMovement}
 			event.emit('player-firstjoin', this);
 			event.emit('player-join', this);
 		} else {
@@ -152,6 +154,7 @@ export class Player {
 			this.inventory = new PlayerInventory(10, data.inventory);
 			if (!!data.permissions) this.permissions = new PlayerPermissionHolder(data.permissions, [...data.permissionparents, 'default']);
 			else this.permissions = new PlayerPermissionHolder({}, ['default']);
+			this.movement = {...defaultPlayerMovement, ...data.movement}
 			event.emit('player-join', this);
 		}
 
@@ -179,6 +182,7 @@ export class Player {
 			world: this.world.name,
 			permissions: this.permissions.permissions,
 			permissionparents: Object.keys(this.permissions.parents),
+			movement: this.movement
 		};
 	}
 
@@ -223,6 +227,7 @@ export class Player {
 
 	updateMovement(key: string, value: number) {
 		this.sendPacket('PlayerUpdateMovement', { key: key, value: value });
+		this.movement[key] = value;
 	}
 
 	updatePhysics(key: string, value: number) {
@@ -231,6 +236,10 @@ export class Player {
 
 	applyForce(x: number, y: number, z: number) {
 		this.sendPacket('PlayerApplyImpulse', { x, y, z });
+	}
+
+	setTab(msg: chat.ChatMessage) {
+		this.sendPacket('TabUpdate', { message: msg, time: Date.now() });
 	}
 
 	get getID() {
@@ -460,3 +469,42 @@ async function sendChunkToPlayer(id: string, cid: types.XZ) {
 		}
 	}
 }
+
+
+export interface PlayerMovement {
+	airJumps: number;
+	airMoveMult: number,
+	crouch: boolean,
+	crouchMoveMult: number,
+	jumpForce: number,
+	jumpImpulse: number,
+	jumpTime: number,
+	jumping: boolean,
+	maxSpeed: number,
+	moveForce: number,
+	responsiveness: number,
+	running: boolean,
+	runningFriction: number,
+	sprint: boolean,
+	sprintMoveMult: number,
+	standingFriction: number,
+}
+
+export const defaultPlayerMovement = {
+	airJumps: 0,
+	airMoveMult: 0.5,
+	crouch: false,
+	crouchMoveMult: 0.8,
+	jumpForce: 6,
+	jumpImpulse: 8.5,
+	jumpTime: 500,
+	jumping: false,
+	maxSpeed: 7.5,
+	moveForce: 30,
+	responsiveness: 15,
+	running: false,
+	runningFriction: 0,
+	sprint: false,
+	sprintMoveMult: 1.2,
+	standingFriction: 2,
+};
