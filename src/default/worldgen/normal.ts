@@ -113,23 +113,17 @@ export default class normalGenerator {
 		}
 	}
 
-	async generateChunk(id: types.XZ, chunk: types.IView3duint16): Promise<types.IView3duint16> {
+	async generateBaseChunk(id: types.XZ, chunk: types.IView3duint16): Promise<types.IView3duint16> {
 		const xoff = id[0] * this.chunkWitdh;
 		const zoff = id[1] * this.chunkWitdh;
 
 		let x: number, y: number, z: number;
-		let block: number;
 		let biomes: { main: biome.BaseBiome; possible: { [index: string]: number }; height: number };
-		let biome;
 		let chunkTemp = new ndarray(new Uint16Array(this.chunkWitdh * this.chunkHeight * this.chunkWitdh), [
 			this.chunkWitdh,
 			this.chunkHeight,
 			this.chunkWitdh,
 		]);
-
-		function get(y1: number) {
-			return chunkTemp.get(x, y1, z);
-		}
 
 		for (x = 0; x < this.chunkWitdh; x++) {
 			for (z = 0; z < this.chunkWitdh; z++) {
@@ -140,10 +134,31 @@ export default class normalGenerator {
 			}
 		}
 
+		return chunkTemp;
+	}
+
+	async generateChunk(id: types.XZ, chunkBase: types.IView3duint16): Promise<types.IView3duint16> {
+		const xoff = id[0] * this.chunkWitdh;
+		const zoff = id[1] * this.chunkWitdh;
+
+		let x: number, y: number, z: number;
+		let block: number;
+		let biome;
+		let chunk = new ndarray(new Uint16Array(this.chunkWitdh * this.chunkHeight * this.chunkWitdh), [
+			this.chunkWitdh,
+			this.chunkHeight,
+			this.chunkWitdh,
+		]);
+
+		function get(y1: number) {
+			return chunkBase.get(x, y1, z);
+		}
+
 		for (x = 0; x < this.chunkWitdh; x++) {
 			for (z = 0; z < this.chunkWitdh; z++) {
 				biome = this.getBiome(x + xoff, z + zoff);
 				for (y = 0; y <= 200; y++) {
+					if (chunk.get(x, y, z) == this.blocks.water) continue;
 					block = biome.getBlock(x + xoff, y, z + zoff, get);
 					if (block > 0) {
 						chunk.set(x, y, z, block);
@@ -160,6 +175,7 @@ export default class normalGenerator {
 				}
 			}
 		}
+
 		return chunk;
 	}
 }

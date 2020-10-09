@@ -453,7 +453,7 @@ setInterval(async function () {
 async function sendChunkToPlayer(id: string, cid: types.XZ) {
 	event.emit('sendChunk', id, cid);
 	if (players[id] != undefined) {
-		const chunk = await players[id].world.getChunk(cid, true);
+		const chunk = await players[id].world.getChunk(cid);
 		if (chunk != undefined && players[id] != undefined) {
 			chunk.keepAlive();
 

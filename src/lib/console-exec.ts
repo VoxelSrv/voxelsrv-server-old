@@ -20,7 +20,8 @@ const x = async () => {
 			const arg = ('/' + input).split(' ');
 			const command = arg[0];
 			arg.shift();
-			console.event.emit('console-executecommand', console.executor, command, arg)
+			console.event.emit('console-executecommand', console.executor, command, arg);
+			history.push(input);
 
 			if (commandRegistry[command]) {
 				try {

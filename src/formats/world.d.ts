@@ -107,8 +107,8 @@ export interface Ichunk {
     /** chunk version */
     version?: (number|null);
 
-    /** chunk generated */
-    generated?: (boolean|null);
+    /** chunk stage */
+    stage?: (number|null);
 
     /** chunk blocks */
     blocks?: (Uint8Array|null);
@@ -129,8 +129,8 @@ export class chunk implements Ichunk {
     /** chunk version. */
     public version: number;
 
-    /** chunk generated. */
-    public generated: boolean;
+    /** chunk stage. */
+    public stage: number;
 
     /** chunk blocks. */
     public blocks: Uint8Array;

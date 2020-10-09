@@ -1,6 +1,5 @@
 import WebSocket from 'ws';
 import * as fs from 'fs';
-import { EventEmitter } from 'events';
 import { WSSocket } from './src/socket';
 
 import { startServer } from './src/server';

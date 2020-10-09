@@ -9,6 +9,7 @@ import * as pako from 'pako';
 
 import ndarray = require('ndarray');
 import { serverConfig } from '../values';
+import { chat } from 'server';
 
 const chunkWitdh = 32;
 const chunkHeight = 256;
@@ -19,7 +20,7 @@ const worlds: { [index: string]: World } = {};
 
 let worldgen = {};
 
-const baseMetadata = { gen: true, ver: 2 };
+const baseMetadata = { ver: 2, stage: 0 };
 
 export function create(name: string, seed: number, generator: string): World | null {
 	if (exist(name) == false && worlds[name] == undefined) {
@@ -150,20 +151,50 @@ export class World {
 		return [parseInt(x[0]), parseInt(x[1])];
 	}
 
-	async getChunk(id: types.XZ, bool: boolean): Promise<Chunk> {
+	async getChunk(id: types.XZ): Promise<Chunk> {
+		const idS = id.toString();
+		const chunks = this.getNeighborIDsChunks(id);
+
+		await chunks.forEach(async (cid) => {
+			await this.getRawChunk(cid, true);
+		});
+
+		if (this.chunks[idS].metadata.stage < 1) {
+			this.chunks[idS].data = await this.generator.generateChunk(id, this.chunks[idS].data);
+			this.chunks[idS].metadata.stage = 1;
+		}
+		return this.chunks[idS];
+	}
+
+	async getRawChunk(id: types.XZ, bool: boolean): Promise<Chunk> {
 		const idS = id.toString();
 		if (this.chunks[idS] != undefined) {
+			this.chunks[idS].keepAlive();
 			return this.chunks[idS];
 		} else if (this.existChunk(id)) {
 			const data = this.readChunk(id);
 			this.chunks[idS] = new Chunk(id, data.chunk, data.metadata, false);
+			this.chunks[idS].keepAlive();
 			return this.chunks[idS];
 		}
 		if (bool) {
-			const data = new ndarray(new Uint16Array(chunkWitdh * chunkHeight * chunkWitdh), [chunkWitdh, chunkHeight, chunkWitdh]);
-			this.chunks[idS] = new Chunk(id, await this.generator.generateChunk(id, data), { ...baseMetadata }, false);
+			this.chunks[idS] = new Chunk(id, await this.generator.generateBaseChunk(id), { ...baseMetadata }, false);
+			this.chunks[idS].keepAlive();
 			return this.chunks[idS];
 		}
+	}
+
+	getNeighborIDsChunks(id: types.XZ): types.XZ[] {
+		const obj = [];
+		let x: number, z: number;
+
+		for (x = id[0] - 1; x != id[0] + 2; x++) {
+			for (z = id[1] - 1; z != id[1] + 2; z++) {
+				obj.push([x, z]);
+			}
+		}
+
+		return obj;
 	}
 
 	existChunk(id: types.XZ): boolean {
@@ -195,7 +226,7 @@ export class World {
 		const message = format.chunk.create({
 			blocks: chunk.data.data,
 			version: chunk.metadata.ver,
-			generated: chunk.metadata.gen,
+			stage: chunk.metadata.stage,
 		});
 		const buffer = format.chunk.encode(message).finish();
 		const data = pako.deflate(buffer);
@@ -205,7 +236,7 @@ export class World {
 		});
 	}
 
-	readChunk(id: types.XZ): { chunk: types.IView3duint16; metadata: object } {
+	readChunk(id: types.XZ): { chunk: types.IView3duint16; metadata: format.Ichunk } {
 		const idS = id.toString();
 
 		const exist = this.existChunk(id);
@@ -217,6 +248,7 @@ export class World {
 			const decoded = format.chunk.decode(array);
 
 			chunk = new ndarray(decoded.blocks, [chunkWitdh, chunkHeight, chunkWitdh]);
+			meta = { stage: decoded.stage, version: decoded.version };
 		}
 		return { chunk: chunk, metadata: meta };
 	}
@@ -312,6 +344,14 @@ export class Chunk {
 		this.metadata = metadata;
 		this.lastUse = Date.now();
 		this.forceload = !!bool;
+	}
+
+	set(x: number, y: number, z: number, id: number) {
+		this.data.set(x, y, z, id);
+	}
+
+	get(x: number, y: number, z: number): number {
+		return this.data.get(x, y, z);
 	}
 
 	keepAlive() {

@@ -255,7 +255,7 @@
          * @exports Ichunk
          * @interface Ichunk
          * @property {number|null} [version] chunk version
-         * @property {boolean|null} [generated] chunk generated
+         * @property {number|null} [stage] chunk stage
          * @property {Uint8Array|null} [blocks] chunk blocks
          * @property {Object.<string,Ientity>|null} [entities] chunk entities
          */
@@ -285,12 +285,12 @@
         chunk.prototype.version = 0;
     
         /**
-         * chunk generated.
-         * @member {boolean} generated
+         * chunk stage.
+         * @member {number} stage
          * @memberof chunk
          * @instance
          */
-        chunk.prototype.generated = false;
+        chunk.prototype.stage = 0;
     
         /**
          * chunk blocks.
@@ -334,8 +334,8 @@
                 writer = $Writer.create();
             if (message.version != null && Object.hasOwnProperty.call(message, "version"))
                 writer.uint32(/* id 1, wireType 0 =*/8).uint32(message.version);
-            if (message.generated != null && Object.hasOwnProperty.call(message, "generated"))
-                writer.uint32(/* id 2, wireType 0 =*/16).bool(message.generated);
+            if (message.stage != null && Object.hasOwnProperty.call(message, "stage"))
+                writer.uint32(/* id 2, wireType 0 =*/16).uint32(message.stage);
             if (message.blocks != null && Object.hasOwnProperty.call(message, "blocks"))
                 writer.uint32(/* id 3, wireType 2 =*/26).bytes(message.blocks);
             if (message.entities != null && Object.hasOwnProperty.call(message, "entities"))
@@ -381,7 +381,7 @@
                     message.version = reader.uint32();
                     break;
                 case 2:
-                    message.generated = reader.bool();
+                    message.stage = reader.uint32();
                     break;
                 case 3:
                     message.blocks = reader.bytes();
@@ -446,9 +446,9 @@
             if (message.version != null && message.hasOwnProperty("version"))
                 if (!$util.isInteger(message.version))
                     return "version: integer expected";
-            if (message.generated != null && message.hasOwnProperty("generated"))
-                if (typeof message.generated !== "boolean")
-                    return "generated: boolean expected";
+            if (message.stage != null && message.hasOwnProperty("stage"))
+                if (!$util.isInteger(message.stage))
+                    return "stage: integer expected";
             if (message.blocks != null && message.hasOwnProperty("blocks"))
                 if (!(message.blocks && typeof message.blocks.length === "number" || $util.isString(message.blocks)))
                     return "blocks: buffer expected";
@@ -479,8 +479,8 @@
             var message = new $root.chunk();
             if (object.version != null)
                 message.version = object.version >>> 0;
-            if (object.generated != null)
-                message.generated = Boolean(object.generated);
+            if (object.stage != null)
+                message.stage = object.stage >>> 0;
             if (object.blocks != null)
                 if (typeof object.blocks === "string")
                     $util.base64.decode(object.blocks, message.blocks = $util.newBuffer($util.base64.length(object.blocks)), 0);
@@ -516,7 +516,7 @@
                 object.entities = {};
             if (options.defaults) {
                 object.version = 0;
-                object.generated = false;
+                object.stage = 0;
                 if (options.bytes === String)
                     object.blocks = "";
                 else {
@@ -527,8 +527,8 @@
             }
             if (message.version != null && message.hasOwnProperty("version"))
                 object.version = message.version;
-            if (message.generated != null && message.hasOwnProperty("generated"))
-                object.generated = message.generated;
+            if (message.stage != null && message.hasOwnProperty("stage"))
+                object.stage = message.stage;
             if (message.blocks != null && message.hasOwnProperty("blocks"))
                 object.blocks = options.bytes === String ? $util.base64.encode(message.blocks, 0, message.blocks.length) : options.bytes === Array ? Array.prototype.slice.call(message.blocks) : message.blocks;
             var keys2;
