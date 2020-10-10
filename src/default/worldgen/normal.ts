@@ -5,6 +5,7 @@ import { blockPalette } from '../../lib/registry';
 import * as types from '../../types';
 import * as biome from './parts/biomes';
 import ndarray = require('ndarray');
+import { Chunk, World } from 'server/worlds';
 
 function getHighestBlock(chunk: types.IView3duint16, x: number, z: number) {
 	for (let y = 256 - 1; y >= 0; y = y - 1) {
@@ -137,14 +138,14 @@ export default class normalGenerator {
 		return chunkTemp;
 	}
 
-	async generateChunk(id: types.XZ, chunkBase: types.IView3duint16): Promise<types.IView3duint16> {
+	async generateChunk(id: types.XZ, chunk: types.IView3duint16, world: World) {
 		const xoff = id[0] * this.chunkWitdh;
 		const zoff = id[1] * this.chunkWitdh;
 
 		let x: number, y: number, z: number;
 		let block: number;
 		let biome;
-		let chunk = new ndarray(new Uint16Array(this.chunkWitdh * this.chunkHeight * this.chunkWitdh), [
+		let chunkBase = new ndarray(new Uint16Array(chunk.data.slice(0)), [
 			this.chunkWitdh,
 			this.chunkHeight,
 			this.chunkWitdh,
@@ -158,14 +159,14 @@ export default class normalGenerator {
 			for (z = 0; z < this.chunkWitdh; z++) {
 				biome = this.getBiome(x + xoff, z + zoff);
 				for (y = 0; y <= 200; y++) {
-					if (chunk.get(x, y, z) == this.blocks.water) continue;
 					block = biome.getBlock(x + xoff, y, z + zoff, get);
 					if (block > 0) {
 						chunk.set(x, y, z, block);
 					} else if (block < 0) {
-						if (block == this.features.oakTree) pasteStructure(chunk, tree.oakTree(hash(x + xoff, z + zoff) * 1000, this.hash, this.blocks), x, y, z);
+						if (block == this.features.oakTree)
+							await pasteStructure(chunk, tree.oakTree(hash(x + xoff, z + zoff) * 1000, this.hash, this.blocks), x, y, z, id, world);
 						else if (block == this.features.birchTree)
-							pasteStructure(chunk, tree.birchTree(hash(x + xoff, z + zoff) * 1000, this.hash, this.blocks), x, y, z);
+							await pasteStructure(chunk, tree.birchTree(hash(x + xoff, z + zoff) * 1000, this.hash, this.blocks), x, y, z, id, world);
 						else if (block == this.features.cactus) {
 							chunk.set(x, y, z, this.blocks.cactus);
 							chunk.set(x, y + 1, z, this.blocks.cactus);
@@ -176,25 +177,37 @@ export default class normalGenerator {
 			}
 		}
 
-		return chunk;
 	}
 }
 
-function pasteStructure(chunk: types.IView3duint16, gen: types.IView3duint16, x: number, y: number, z: number) {
+async function pasteStructure(chunk: types.IView3duint16, gen: types.IView3duint16, x: number, y: number, z: number, id: types.XZ, world: World) {
 	const xm = Math.round(gen.shape[0] / 2);
 	const zm = Math.round(gen.shape[2] / 2);
+	let alt = false;
+
 	for (var i = 0; i < gen.shape[0]; i++) {
 		// x
 		let x2 = x - xm + i;
-		if (x2 >= chunk.shape[0] || x2 < 0) continue;
+		if (x2 >= chunk.shape[0] || x2 < 0) alt = true;
 		for (var k = 0; k < gen.shape[2]; k++) {
 			// z
 			let z2 = z - zm + k;
-			if (z2 >= chunk.shape[2] || z2 < 0) continue;
-			for (var j = 0; j < gen.shape[1]; j++) {
-				// y
-				if (gen.get(i, j, k) != 0) {
-					chunk.set(x2, y + j, z2, gen.get(i, j, k));
+			if (z2 >= chunk.shape[2] || z2 < 0) alt = true;
+			if (alt) {
+				alt = false;
+
+				for (var j = 0; j < gen.shape[1]; j++) {
+					// y
+					if (gen.get(i, j, k) != 0) {
+						await world.setRawBlock([id[0] * 32 + x2, y + j, id[1] * 32 + z2], gen.get(i, j, k));
+					}
+				}
+			} else {
+				for (var j = 0; j < gen.shape[1]; j++) {
+					// y
+					if (gen.get(i, j, k) != 0) {
+						chunk.set(x2, y + j, z2, gen.get(i, j, k));
+					}
 				}
 			}
 		}

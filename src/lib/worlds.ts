@@ -153,14 +153,15 @@ export class World {
 
 	async getChunk(id: types.XZ): Promise<Chunk> {
 		const idS = id.toString();
-		const chunks = this.getNeighborIDsChunks(id);
+		const chunkIDs = this.getNeighborIDsChunks(id);
+		const chunks = {};
 
-		await chunks.forEach(async (cid) => {
-			await this.getRawChunk(cid, true);
+		await chunkIDs.forEach(async (cid) => {
+			chunks[cid.toString()] = await this.getRawChunk(cid, true);
 		});
 
 		if (this.chunks[idS].metadata.stage < 1) {
-			this.chunks[idS].data = await this.generator.generateChunk(id, this.chunks[idS].data);
+			await this.generator.generateChunk(id, this.chunks[idS].data, this);
 			this.chunks[idS].metadata.stage = 1;
 		}
 		return this.chunks[idS];
@@ -289,8 +290,6 @@ export class World {
 	async setBlock(data: types.XYZ, block: string | number | Block, allowgen: boolean = false) {
 		const local = globalToChunk(data);
 		let id = 0;
-		const cid: string = local.id.toString();
-
 		switch (typeof block) {
 			case 'number':
 				id = block;
@@ -304,20 +303,16 @@ export class World {
 				return;
 		}
 
-		if (this.chunks[cid] != undefined) {
-			this.chunks[cid].data.set(local.pos[0], local.pos[1], local.pos[2], block);
-			this.chunks[cid].keepAlive();
-		} else if (this.existChunk(local.id)) {
-			const data = this.readChunk(local.id);
-			this.chunks[cid] = new Chunk(local.id, data.chunk, data.metadata, false);
-			this.chunks[cid].data.set(local.pos[0], local.pos[1], local.pos[2], block);
-			this.chunks[cid].keepAlive();
-		} else if (allowgen) {
-			const data = new ndarray(new Uint16Array(chunkWitdh * chunkHeight * chunkWitdh), [chunkWitdh, chunkHeight, chunkWitdh]);
-			this.chunks[cid] = new Chunk(local.id, await this.generator.generateChunk(id, data), { ...baseMetadata }, false);
-			this.chunks[cid].data.set(local.pos[0], local.pos[1], local.pos[2], block);
-			this.chunks[cid].keepAlive();
-		}
+		const chunk = await this.getChunk(local.id);
+		chunk.data.set(local.pos[0], local.pos[1], local.pos[2], id);
+	}
+
+
+	async setRawBlock(data: types.XYZ, block: number) {
+		const local = globalToChunk(data);
+		const chunk = await this.getRawChunk(local.id, true);
+		chunk.keepAlive();
+		chunk.data.set(local.pos[0], local.pos[1], local.pos[2], block);
 	}
 
 	unload() {
