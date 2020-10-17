@@ -89,3 +89,5 @@ colors.forEach((color) => {
 addBlock(new Block('tnt', 0, ['block/tnt_top', 'block/tnt_bottom', 'block/tnt_side'], {}, 0, 0, 'any'));
 addBlock(new Block('pumpkin', 0, ['block/pumpkin_top', 'block/pumpkin_side', 'block/pumpkin_side'], {}, 0, 0, 'any'));
 addBlock(new Block('oak_sapling', 1, ['block/oak_sapling'], { solid: false, opaque: false }, 0, 0, 'any'));
+
+addBlock(new Block('ice', 0, ['block/ice'], { }, 0, 0, 'any'));

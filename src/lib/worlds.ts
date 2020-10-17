@@ -9,7 +9,6 @@ import * as pako from 'pako';
 
 import ndarray = require('ndarray');
 import { serverConfig } from '../values';
-import { chat } from 'server';
 
 const chunkWitdh = 32;
 const chunkHeight = 256;

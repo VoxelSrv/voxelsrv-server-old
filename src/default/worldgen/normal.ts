@@ -5,7 +5,7 @@ import { blockPalette } from '../../lib/registry';
 import * as types from '../../types';
 import * as biome from './parts/biomes';
 import ndarray = require('ndarray');
-import { Chunk, World } from 'server/worlds';
+import { Chunk, World } from '../../lib/worlds';
 
 function getHighestBlock(chunk: types.IView3duint16, x: number, z: number) {
 	for (let y = 256 - 1; y >= 0; y = y - 1) {
@@ -15,11 +15,11 @@ function getHighestBlock(chunk: types.IView3duint16, x: number, z: number) {
 	return null;
 }
 
-export default class normalGenerator {
+export default class NormalGenerator {
 	name: string = 'normal';
 	chunkWitdh: number = 32;
 	chunkHeight: number = 256;
-	waterLevel: number = 60;
+	waterLevel: number = 65;
 	seed: number;
 	biomeNoise1: Noise2D;
 	biomeNoise2: Noise2D;
@@ -51,6 +51,8 @@ export default class normalGenerator {
 			forest: new biome.ForestBiome(this.blocks, this.features, seed),
 			iceplains: new biome.IcePlainsBiome(this.blocks, this.features, seed),
 			icemountains: new biome.IceMountainsBiome(this.blocks, this.features, seed),
+			ocean: new biome.OceanBiome(this.blocks, this.features, seed),
+			beach: new biome.BeachBiome(this.blocks, this.features, seed),
 		};
 	}
 
@@ -63,7 +65,27 @@ export default class normalGenerator {
 		}
 		value = value / biomes.size;
 
-		return y <= value ? 1 : 0;
+		return y <= value ? this.blocks.stone : y <= this.waterLevel ? this.blocks.water : 0;
+	}
+
+	getBiome(x: number, z: number): biome.BaseBiome {
+		const rand = this.hash(200, x, z) / 20;
+		const wierdness = this.biomeNoise1(x / 600, z / 600) + 1 + rand;
+		const heat = this.biomeNoise2(x / 300, z / 300) + 1 + rand;
+		const water = this.biomeNoise3(x / 400, z / 400) + 1 + rand;
+
+		if (water > 1.3) return this.biomes.ocean;
+		else if (water > 1.15) return this.biomes.beach;
+		else if (heat > 1.5) {
+			return this.biomes.desert;
+		} else if (heat > 0.5) {
+			if (wierdness > 1.5) return this.biomes.mountains;
+			else if (wierdness > 1.3) return this.biomes.forest;
+			return this.biomes.plains;
+		} else if (heat <= 0.5) {
+			if (wierdness > 1.5) return this.biomes.icemountains;
+			return this.biomes.iceplains;
+		}
 	}
 
 	getBiomesAt(x: number, z: number): { main: biome.BaseBiome; possible: { [index: string]: number }; height: number; size: number } {
@@ -97,23 +119,6 @@ export default class normalGenerator {
 		};
 	}
 
-	getBiome(x: number, z: number): biome.BaseBiome {
-		let wierdness = this.biomeNoise1(x / 600, z / 600);
-		const heat = this.biomeNoise2(x / 300, z / 300);
-		//const water = this.biomeNoise3(x / 400, z / 400);
-
-		if (heat > 0.4) {
-			return this.biomes.desert;
-		} else if (heat > -0.2) {
-			if (wierdness > 0.5) return this.biomes.mountains;
-			else if (wierdness > 0.2) return this.biomes.forest;
-			return this.biomes.plains;
-		} else if (heat <= -0.2) {
-			if (wierdness > 0.5) return this.biomes.icemountains;
-			return this.biomes.iceplains;
-		}
-	}
-
 	async generateBaseChunk(id: types.XZ, chunk: types.IView3duint16): Promise<types.IView3duint16> {
 		const xoff = id[0] * this.chunkWitdh;
 		const zoff = id[1] * this.chunkWitdh;
@@ -145,11 +150,7 @@ export default class normalGenerator {
 		let x: number, y: number, z: number;
 		let block: number;
 		let biome;
-		let chunkBase = new ndarray(new Uint16Array(chunk.data.slice(0)), [
-			this.chunkWitdh,
-			this.chunkHeight,
-			this.chunkWitdh,
-		]);
+		let chunkBase = new ndarray(new Uint16Array(chunk.data.slice(0)), [this.chunkWitdh, this.chunkHeight, this.chunkWitdh]);
 
 		function get(y1: number) {
 			return chunkBase.get(x, y1, z);
@@ -176,7 +177,6 @@ export default class normalGenerator {
 				}
 			}
 		}
-
 	}
 }
 

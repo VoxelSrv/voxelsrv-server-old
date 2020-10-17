@@ -6,7 +6,6 @@ import * as types from '../types';
 import { ArmorInventory } from './inventory';
 
 import { v4 as uuid } from 'uuid';
-import { entities } from 'server';
 
 export const event = new EventEmitter();
 
@@ -166,14 +165,14 @@ export class Entity implements IEntity {
 		return this.id;
 	}
 
-	getEntitiesInRadius(radius: number): { uuid: string; entity: Entity; distance: number }[] {
+	/*getEntitiesInRadius(radius: number): { uuid: string; entity: Entity; distance: number }[] {
 		const array: { uuid: string; entity: Entity; distance: number }[] = [];
 		for (const uuid in entities) {
 			const distance = vec.dist(this.data.position, entities[uuid].data.position);
 			if (distance <= radius) array.push({ uuid, entity: entities[uuid], distance });
 		}
 		return array;
-	}
+	}*/
 }
 
 export function get(world, id) {
