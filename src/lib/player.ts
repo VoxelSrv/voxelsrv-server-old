@@ -44,7 +44,7 @@ export class PlayerManager {
 	create(id: string, data: any, socket: BaseSocket): Player {
 		this.players[id] = new Player(id, data.username, socket, this);
 
-		this._server.emit('create', this.players[id]);
+		this._server.emit('player-create', this.players[id]);
 
 		return this.players[id];
 	}
@@ -225,6 +225,7 @@ export class Player {
 
 	remove() {
 		this._server.emit('player-remove', this);
+		this._server.emit('player-quit', this);
 		this._players.save(this.id, this.getObject());
 		this.entity.remove();
 		clearInterval(this._chunksInterval);
