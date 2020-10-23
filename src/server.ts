@@ -1,19 +1,21 @@
 import { EventEmitter } from 'events';
 import * as fs from 'fs';
 
-import * as registry from './lib/registry';
+import { Registry } from './lib/registry';
 import * as console from './lib/console';
-import * as worldManager from './lib/worlds';
+import { WorldManager } from './lib/worlds';
+import { EntityManager } from './lib/entity';
 import * as permissions from './lib/permissions';
 import * as configs from './lib/configs';
-import * as players from './lib/player';
+import { PlayerManager } from './lib/player';
 import * as chat from './lib/chat';
+import * as semver from 'semver';
+
 
 import startHeartbeat from './lib/heartbeat';
-import { loadPlugins } from './lib/plugins';
 
 import normalGenerator from './default/worldgen/normal';
-import flatGenerator from './default/worldgen/flat';
+//import flatGenerator from './default/worldgen/flat';
 
 import { serverVersion, serverProtocol, serverConfig, setConfig, invalidNicknameRegex } from './values';
 import { BaseSocket } from './socket';
@@ -29,25 +31,36 @@ export function startServer(): Server {
 	return server;
 }
 
-class Server extends EventEmitter {
+export class Server extends EventEmitter {
 	playerCount: number = 0;
+	registry: Registry;
+	worlds: WorldManager;
+	players: PlayerManager;
+	entities: EntityManager;
+
+	plugins: {[index: string]: IPlugin} = {}
 	constructor() {
 		super();
+		this.registry = new Registry(this);
+		this.worlds = new WorldManager(this);
+		this.entities = new EntityManager(this);
+
+		this.players = new PlayerManager(this);
+
 		this.startServer();
 	}
 
 	private async initDefaults() {
-		await import('./default/blocks');
-		await import('./default/items');
-		await import('./default/commands');
-
-		worldManager.addGenerator('normal', normalGenerator);
-		worldManager.addGenerator('flat', flatGenerator);
+		(await import('./default/blocks')).setup(this.registry);
+		(await import('./default/items')).setup(this.registry);
+		(await import('./default/commands')).setup(this.registry, this);
+		this.worlds.addGenerator('normal', normalGenerator);
+		//this.worlds.addGenerator('flat', flatGenerator);
 	}
 
 	private async initDefWorld() {
-		if (worldManager.exist('default') == false) worldManager.create('default', serverConfig.world.seed, serverConfig.world.generator);
-		else worldManager.load('default');
+		if (this.worlds.exist('default') == false) this.worlds.create('default', serverConfig.world.seed, serverConfig.world.generator);
+		else this.worlds.load('default');
 	}
 
 	private async startServer() {
@@ -63,7 +76,9 @@ class Server extends EventEmitter {
 				}
 			}
 		});
-		import('./lib/console-exec');
+		import('./lib/console-exec').then((x) => {
+			x.startCmd(this.registry.commands);
+		});
 
 		const config = configs.load('', 'config');
 		setConfig(config);
@@ -73,15 +88,15 @@ class Server extends EventEmitter {
 
 		this.emit('config-update', config);
 
-		if (serverConfig.loadPlugins) await loadPlugins();
+		if (serverConfig.loadPlugins) await this.loadPlugins();
 
-		registry.loadPalette();
+		this.registry._loadPalette();
 
 		await this.initDefaults();
 
-		registry.event.emit('registry-define');
+		this.emit('registry-define');
 
-		registry.finalize();
+		this.registry._finalize();
 
 		await this.initDefWorld();
 
@@ -120,24 +135,24 @@ class Server extends EventEmitter {
 				socket.send('PlayerKick', { reason: check, time: Date.now() });
 				socket.close();
 			}
-			if (players.get(id) != null) {
+			if (this.players.get(id) != null) {
 				socket.send('PlayerKick', {
 					reason: 'Player with that nickname is already online!',
 					time: Date.now(),
 				});
 				socket.close();
 			} else {
-				players.event.emit('connection', id);
-				var player = players.create(id, data, socket);
+				this.emit('player-connection', id);
+				var player = this.players.create(id, data, socket);
 
 				socket.send('LoginSuccess', {
 					xPos: player.entity.data.position[0],
 					yPos: player.entity.data.position[1],
 					zPos: player.entity.data.position[2],
-					inventory: JSON.stringify(player.inventory),
-					blocksDef: JSON.stringify(registry.blockRegistryObject),
-					itemsDef: JSON.stringify(registry.itemRegistryObject),
-					armor: JSON.stringify(player.entity.data.armor),
+					inventory: JSON.stringify(player.inventory.getObject()),
+					blocksDef: JSON.stringify(this.registry._blockRegistryObject),
+					itemsDef: JSON.stringify(this.registry._itemRegistryObject),
+					armor: JSON.stringify(player.entity.data.armor.getObject()),
 					allowCheats: false,
 					allowCustomSkins: true,
 					movement: JSON.stringify(player.movement),
@@ -152,19 +167,19 @@ class Server extends EventEmitter {
 				Object.entries(player.world.entities).forEach((data: any) => {
 					socket.send('EntityCreate', {
 						uuid: data[0],
-						data: JSON.stringify(data[1].data),
+						data: JSON.stringify(data[1].getObject().data),
 					});
 				});
 
 				const joinMsg = [new chat.ChatComponent(`${player.displayName} joined the game!`, '#b5f598')];
-				sendChat(joinMsg);
+				chat.sendMlt([console.executorchat, ...Object.values(this.players.getAll())], joinMsg);
 				chat.event.emit('system-message', joinMsg);
 				this.playerCount = this.playerCount + 1;
 
 				socket.on('close', () => {
-					players.event.emit('disconnect', id);
+					this.emit('player-disconnect', id);
 					const leaveMsg = [new chat.ChatComponent(`${player.displayName} left the game!`, '#f59898')];
-					sendChat(leaveMsg);
+					chat.sendMlt([console.executorchat, ...Object.values(this.players.getAll())], leaveMsg);
 					chat.event.emit('system-message', leaveMsg);
 					player.remove();
 					this.playerCount = this.playerCount - 1;
@@ -206,10 +221,34 @@ class Server extends EventEmitter {
 			}
 		}, 10000);
 	}
-}
 
-function sendChat(msg) {
-	chat.sendMlt([console.executorchat, ...Object.values(players.getAll())], msg);
+	async loadPlugins() {
+		const pluginFiles = fs.readdirSync('./plugins');
+	
+		for (const file of pluginFiles) {
+			try {
+				let plugin: IPlugin;
+				if (file.endsWith('.ts') || file.endsWith('.js')) plugin = await import(`${process.cwd()}/plugins/${file}`);
+				else if (fs.existsSync(`./plugins/${file}/index.ts`) || fs.existsSync(`${process.cwd()}/plugins/${file}/index.js`)) plugin = await import(`${process.cwd()}/plugins/${file}/`);
+				else continue;
+				if (!semver.satisfies(serverVersion, plugin.supported)) {
+					console.warn([new chat.ChatComponent('Plugin ', 'orange'), new chat.ChatComponent(file, 'yellow'),  new chat.ChatComponent(' might not support this version of server!', 'orange')]);
+					const min = semver.minVersion(plugin.supported);
+					const max = semver.maxSatisfying(plugin.supported);
+					if (!!min && !!max && (semver.gt(serverVersion, max) || semver.lt(serverVersion, min)))
+						console.warn(`It only support versions from ${min} to ${max}.`);
+					else if (!!min && !max && semver.lt(serverVersion, min)) console.warn(`It only support versions ${min} or newer.`);
+					else if (!min && !!max && semver.gt(serverVersion, max)) console.warn(`It only support versions ${max} or older.`);
+				}
+	
+				plugin._start(this)
+				this.plugins[plugin.name] = plugin;
+			} catch (e) {
+				console.error(`Can't load plugin ${file}!`);
+				console.obj(e)
+			}
+		}
+	}
 }
 
 function verifyLogin(data) {
@@ -218,4 +257,13 @@ function verifyLogin(data) {
 	else if (data.protocol == undefined || data.protocol != serverProtocol) return 'Unsupported protocol';
 
 	return 0;
+}
+
+
+export interface IPlugin {
+	name: string;
+	version: string;
+	supported: string;
+	_start: (server: Server) => void 
+	[index: string]: any;
 }

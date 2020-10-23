@@ -1,12 +1,10 @@
-import { EventEmitter } from 'events';
 import * as vec from 'gl-vec3';
 import * as pako from 'pako';
 
-export const event = new EventEmitter();
-
-import * as entity from './entity';
-import * as worldManager from './worlds';
-import * as registry from './registry';
+import type { EntityManager, Entity } from './entity';
+import type { WorldManager, World, Chunk } from './worlds';
+import type { ItemStack, Registry } from './registry';
+import type { Server } from '../server';
 import * as fs from 'fs';
 import * as console from './console';
 import * as types from '../types';
@@ -19,89 +17,108 @@ import { serverConfig } from '../values';
 import * as pClient from 'voxelsrv-protocol/js/client';
 import { BaseSocket } from '../socket';
 
-const players = {};
-const chunksToSend = [];
+export class PlayerManager {
+	players: { [index: string]: Player } = {};
+	chunksToSend = [];
+	_server: Server;
+	_entities: EntityManager;
+	_worlds: WorldManager;
+	_lastChunkUpdate: number = 0;
 
-export function create(id: string, data: any, socket: BaseSocket): Player {
-	players[id] = new Player(id, data.username, socket);
+	constructor(server: Server) {
+		this._server = server;
+		this._entities = server.entities;
+		this._worlds = server.worlds;
 
-	event.emit('create', players[id]);
+		server.on('entity-create', (data) => {
+			this.sendPacketAll('EntityCreate', data);
+		});
+		server.on('entity-move', (data) => {
+			this.sendPacketAll('EntityMove', data);
+		});
+		server.on('entity-remove', (data) => {
+			this.sendPacketAll('EntityRemove', data);
+		});
+	}
 
-	return players[id];
-}
+	create(id: string, data: any, socket: BaseSocket): Player {
+		this.players[id] = new Player(id, data.username, socket, this);
 
-export function read(id: string): object | null {
-	try {
-		let r = null;
+		this._server.emit('create', this.players[id]);
+
+		return this.players[id];
+	}
+
+	read(id: string): object | null {
+		try {
+			let r = null;
+			const name = id + '.json';
+			const data = fs.readFileSync('./players/' + name);
+			r = JSON.parse(data.toString());
+
+			return r;
+		} catch (e) {
+			console.error('Tried to load data of player ' + id + ', but it failed! Error: ', e);
+		}
+	}
+
+	exist(id: string): boolean {
 		const name = id + '.json';
-		const data = fs.readFileSync('./players/' + name);
-		r = JSON.parse(data.toString());
-
+		const r = fs.existsSync('./players/' + name);
 		return r;
-	} catch (e) {
-		console.error('Tried to load data of player ' + id + ', but it failed! Error: ', e);
+	}
+
+	save(id: string, data: Object) {
+		fs.writeFile('./players/' + id + '.json', JSON.stringify(data), function (err) {
+			if (err) console.error('Cant save player ' + id + '! Reason: ' + err);
+		});
+	}
+
+	get(id: string): Player | null {
+		if (this.players[id] != undefined) return this.players[id];
+		else return null;
+	}
+
+	getAll(): { [index: string]: Player } {
+		return this.players;
+	}
+
+	sendPacketAll(type: string, data: any) {
+		Object.values(this.players).forEach((p: Player) => {
+			p.sendPacket(type, data);
+		});
 	}
 }
-
-export function exist(id: string): boolean {
-	const name = id + '.json';
-	const r = fs.existsSync('./players/' + name);
-	return r;
-}
-
-export function save(id: string, data: Object) {
-	fs.writeFile('./players/' + id + '.json', JSON.stringify(data), function (err) {
-		if (err) console.error('Cant save player ' + id + '! Reason: ' + err);
-	});
-}
-
-export function get(id: string): Player | null {
-	if (players[id] != undefined) return players[id];
-	else return null;
-}
-
-export function getAll(): { [index: string]: Player } {
-	return players;
-}
-
-export function sendPacketAll(type: string, data: any) {
-	Object.values(players).forEach((p: Player) => {
-		p.sendPacket(type, data);
-	});
-}
-
-entity.event.on('entity-create', (data) => {
-	sendPacketAll('EntityCreate', data);
-});
-entity.event.on('entity-move', (data) => {
-	sendPacketAll('EntityMove', data);
-});
-entity.event.on('entity-remove', (data) => {
-	sendPacketAll('EntityRemove', data);
-});
 
 export class Player {
 	readonly id: string;
 	readonly nickname: string;
 	displayName: string;
-	entity: entity.Entity;
-	world: worldManager.World;
+	entity: Entity;
+	world: World;
 	inventory: PlayerInventory;
 	hookInventory: any;
 	readonly socket: BaseSocket;
 	permissions: PlayerPermissionHolder;
 	chunks: types.anyobject;
 	movement: PlayerMovement;
+	_chunksToSend = [];
+	_chunksInterval: any;
 
-	constructor(id: string, name: string, socket: BaseSocket) {
+	_players: PlayerManager;
+	_server: Server;
+
+	constructor(id: string, name: string, socket: BaseSocket, players: PlayerManager) {
 		this.id = id;
 		this.nickname = name;
 		this.displayName = name;
+		this._players = players;
+		this._server = players._server;
 		let data: types.anyobject | null;
-		if (exist(this.id)) data = read(this.id);
+		if (this._players.exist(this.id)) data = this._players.read(this.id);
 
 		if (data == null) {
-			this.entity = entity.create(
+			this.entity = this._players._entities.create(
 				'player',
 				{
 					name: name,
@@ -114,22 +131,22 @@ export class Player {
 					rotation: 0,
 					pitch: 0,
 					hitbox: [0.55, 1.9, 0.55],
-					armor: new ArmorInventory(null),
+					armor: new ArmorInventory(null, this._server),
 				},
 				'default',
 				null
 			);
 
-			this.world = worldManager.get('default');
+			this.world = this._players._worlds.get('default');
 
-			this.inventory = new PlayerInventory(10, null);
+			this.inventory = new PlayerInventory(10, null, this._server);
 			this.hookInventory = null;
 			this.permissions = new PlayerPermissionHolder({}, ['default']);
-			this.movement = {...defaultPlayerMovement}
-			event.emit('player-firstjoin', this);
-			event.emit('player-join', this);
+			this.movement = { ...defaultPlayerMovement };
+			this._server.emit('player-firstjoin', this);
+			this._server.emit('player-join', this);
 		} else {
-			this.entity = entity.recreate(
+			this.entity = this._players._entities.recreate(
 				data.entity.id,
 				'player',
 				{
@@ -143,34 +160,50 @@ export class Player {
 					rotation: data.entity.data.rotation,
 					pitch: data.entity.data.pitch,
 					hitbox: [0.55, 1.9, 0.55],
-					armor: new ArmorInventory(data.entity.data.armor),
+					armor: new ArmorInventory(data.entity.data.armor, this._server),
 				},
 				data.world,
 				null
 			);
 
-			this.world = worldManager.get(data.world);
+			this.world = this._players._worlds.get(data.world);
 
-			this.inventory = new PlayerInventory(10, data.inventory);
+			this.inventory = new PlayerInventory(10, data.inventory, this._server);
 			if (!!data.permissions) this.permissions = new PlayerPermissionHolder(data.permissions, [...data.permissionparents, 'default']);
 			else this.permissions = new PlayerPermissionHolder({}, ['default']);
-			this.movement = {...defaultPlayerMovement, ...data.movement}
-			event.emit('player-join', this);
+			this.movement = { ...defaultPlayerMovement, ...data.movement };
+			this._server.emit('player-join', this);
 		}
 
 		this.socket = socket;
 		this.chunks = {};
-		save(this.id, this.getObject());
+		this._players.save(this.id, this.getObject());
 
-		this.inventory.event.on('slot-update', (data) => {
+		/*this.inventory.on('slot-update', (data) => {
 			this.sendPacket('PlayerSlotUpdate', {
 				slot: parseInt(data.slot),
 				data: JSON.stringify(data.data),
 				type: data.type,
 			});
-		});
+		});*/
 
-		event.emit('player-created', this);
+		this._server.emit('player-created', this);
+		this.updateChunks();
+
+		this._chunksInterval = setInterval(async () => {
+			if (this._chunksToSend.length > 0) {
+				this.sendPacket('WorldChunkLoad', {
+					x: this._chunksToSend[0][0],
+					y: 0,
+					z: this._chunksToSend[0][1],
+					type: true,
+					compressed: false,
+					data: (await this.world.getChunk(this._chunksToSend[0])).data.data,
+				});
+
+				this._chunksToSend.shift();
+			}
+		}, 50);
 	}
 
 	getObject() {
@@ -182,7 +215,7 @@ export class Player {
 			world: this.world.name,
 			permissions: this.permissions.permissions,
 			permissionparents: Object.keys(this.permissions.parents),
-			movement: this.movement
+			movement: this.movement,
 		};
 	}
 
@@ -191,24 +224,28 @@ export class Player {
 	}
 
 	remove() {
-		event.emit('player-remove', this);
-		save(this.id, this.getObject());
+		this._server.emit('player-remove', this);
+		this._players.save(this.id, this.getObject());
 		this.entity.remove();
+		clearInterval(this._chunksInterval);
 
 		setTimeout(() => {
-			delete players[this.id];
+			delete this._players.players[this.id];
 		}, 10);
 	}
 
-	teleport(pos: types.XYZ, eworld: string | worldManager.World) {
+	teleport(pos: types.XYZ, eworld: string | World) {
 		this.entity.teleport(pos, eworld);
-		this.world = typeof eworld == 'string' ? worldManager.get(eworld) : eworld;
+		this.world = typeof eworld == 'string' ? this._players._worlds.get(eworld) : eworld;
 		this.sendPacket('PlayerTeleport', { x: pos[0], y: pos[1], z: pos[2] });
+		this.updateChunks();
 	}
 
 	move(pos: types.XYZ) {
-		event.emit('player-move', { id: this.id, pos: pos });
+		this._server.emit('player-move', { id: this.id, pos: pos });
+		const chunk = this.entity.chunkID.join('|');
 		this.entity.move(pos);
+		if (this.entity.chunkID.join('|') != chunk) this.updateChunks();
 	}
 
 	send(msg: string | chat.ChatMessage) {
@@ -217,7 +254,7 @@ export class Player {
 	}
 
 	rotate(rot: number | null, pitch: number | null) {
-		event.emit('player-rotate', { id: this.id, rot, pitch });
+		this._server.emit('player-rotate', { id: this.id, rot, pitch });
 		this.entity.rotate(rot, pitch);
 	}
 
@@ -242,6 +279,39 @@ export class Player {
 		this.sendPacket('TabUpdate', { message: msg, time: Date.now() });
 	}
 
+	async updateChunks() {
+		const chunk = this.entity.chunkID;
+		const loadedchunks = { ...this.chunks };
+		for (let w = 0; w <= serverConfig.viewDistance; w++) {
+			for (let x = 0 - w; x <= 0 + w; x++) {
+				for (let z = 0 - w; z <= 0 + w; z++) {
+					const cid: types.XZ = [chunk[0] + x, chunk[1] + z];
+					const id = cid.toString();
+					if (loadedchunks[id] == undefined) {
+						this.chunks[id] = true;
+						this._chunksToSend.push(cid);
+					}
+					if (this.world.chunks[cid.toString()] != undefined) this.world.chunks[cid.toString()].keepAlive();
+					loadedchunks[cid.toString()] = false;
+				}
+			}
+		}
+
+		const toRemove = Object.entries(loadedchunks);
+		toRemove.forEach((item) => {
+			if (item[1] == true) {
+				delete this.chunks[item[0]];
+				const cid = item[0].split(',');
+				this.sendPacket('WorldChunkUnload', {
+					x: parseInt(cid[0]),
+					y: 0,
+					z: parseInt(cid[1]),
+					type: true,
+				});
+			}
+		});
+	}
+
 	get getID() {
 		return this.id;
 	}
@@ -251,7 +321,7 @@ export class Player {
 
 		data.cancel = false;
 		for (let x = 0; x <= 5; x++) {
-			event.emit(`player-blockbreak-${x}`, this, data);
+			this._server.emit(`player-blockbreak-${x}`, this, data);
 			if (data.cancel) return;
 		}
 
@@ -261,7 +331,7 @@ export class Player {
 
 		if (vec.dist(pos, [data.x, data.y, data.z]) < 14 && block != undefined && block.unbreakable != true) {
 			this.world.setBlock(blockpos, 0, false);
-			sendPacketAll('WorldBlockUpdate', {
+			this._players.sendPacketAll('WorldBlockUpdate', {
 				id: 0,
 				x: data.x,
 				y: data.y,
@@ -273,20 +343,21 @@ export class Player {
 	action_blockplace(data: pClient.IActionBlockPlace & { cancel: boolean }) {
 		data.cancel = false;
 		for (let x = 0; x <= 5; x++) {
-			event.emit(`player-blockplace-${x}`, this, data);
+			this._server.emit(`player-blockplace-${x}`, this, data);
 			if (data.cancel) return;
 		}
 
 		const inv = this.inventory;
-		const itemstack = inv.items[inv.selected];
+		const itemstack: ItemStack = inv.items[inv.selected];
 		const pos = this.entity.data.position;
 
 		if (vec.dist(pos, [data.x, data.y, data.z]) < 14 && itemstack != undefined && itemstack.id != undefined) {
-			if (itemstack != null && itemstack.item.block != undefined) {
+			if (itemstack != null && this._server.registry.items[itemstack.id].block != undefined) {
+				const item = this._server.registry.items[itemstack.id];
 				//player.inv.remove(id, item.id, 1, {})
-				this.world.setBlock([data.x, data.y, data.z], itemstack.item.block.getRawID(), false);
-				sendPacketAll('WorldBlockUpdate', {
-					id: registry.blockPalette[itemstack.item.block.id],
+				this.world.setBlock([data.x, data.y, data.z], item.block.getRawID(), false);
+				this._players.sendPacketAll('WorldBlockUpdate', {
+					id: this._players._server.registry.blockPalette[item.block.id],
 					x: data.x,
 					y: data.y,
 					z: data.z,
@@ -300,7 +371,7 @@ export class Player {
 
 		data.cancel = false;
 		for (let x = 0; x <= 5; x++) {
-			event.emit(`player-invclick-${x}`, this, data);
+			this._server.emit(`player-invclick-${x}`, this, data);
 			if (data.cancel) return;
 		}
 
@@ -332,7 +403,7 @@ export class Player {
 	action_chatsend(data: pClient.IActionMessage & { cancel: boolean }) {
 		data.cancel = false;
 		for (let x = 0; x <= 5; x++) {
-			event.emit(`player-message-${x}`, this, data);
+			this._server.emit(`player-message-${x}`, this, data);
 			if (data.cancel) return;
 		}
 
@@ -340,11 +411,11 @@ export class Player {
 			const arg = data.message.split(' ');
 			const command = arg[0];
 			arg.shift();
-			event.emit('player-executecommand', this, command, arg);
+			this._server.emit('player-executecommand', this, command, arg);
 
-			if (registry.commandRegistry[command]) {
+			if (this._players._server.registry.commands[command]) {
 				try {
-					registry.commandRegistry[command].trigger(this, arg);
+					this._players._server.registry.commands[command].trigger(this, arg);
 				} catch (e) {
 					console.error(`User ^R${this.nickname}^r tried to execute command ^R${command}^r and it failed! \n ^R`, e);
 					this.send([new chat.ChatComponent('An error occurred during the execution of this command!', 'red')]);
@@ -357,9 +428,9 @@ export class Player {
 				new chat.ChatComponent(data.message, 'white'),
 			];
 
-			chat.event.emit('chat-message', msg);
+			this._server.emit('chat-message', msg);
 
-			chat.sendMlt([console.executorchat, ...Object.values(getAll())], msg);
+			chat.sendMlt([console.executorchat, ...Object.values(this._players.getAll())], msg);
 		}
 	}
 
@@ -370,10 +441,10 @@ export class Player {
 		if (this.world.chunks[this.entity.chunkID.toString()] == undefined) data.cancel = true;
 
 		const pos = this.entity.data.position;
-		const move: types.XYZ = [data.x, data.y, data.z]
+		const move: types.XYZ = [data.x, data.y, data.z];
 
 		for (let x = 0; x <= 5; x++) {
-			event.emit(`player-move-${x}`, this, data);
+			this._server.emit(`player-move-${x}`, this, data);
 			if (data.cancel) {
 				this.sendPacket('PlayerTeleport', { x: pos[0], y: pos[1], z: pos[2] });
 				return;
@@ -393,7 +464,7 @@ export class Player {
 	action_click(data: pClient.IActionClick & { cancel: boolean }) {
 		data.cancel = false;
 		for (let x = 0; x <= 5; x++) {
-			event.emit(`player-click-${x}`, this, data);
+			this._server.emit(`player-click-${x}`, this, data);
 			if (data.cancel) return;
 		}
 	}
@@ -401,93 +472,29 @@ export class Player {
 	action_entityclick(data: pClient.IActionClickEntity & { cancel: boolean }) {
 		data.cancel = false;
 		for (let x = 0; x <= 5; x++) {
-			event.emit(`player-entityclick-${x}`, this, data);
+			this._server.emit(`player-entityclick-${x}`, this, data);
 			if (data.cancel) return;
 		}
 	}
 }
 
-setInterval(async function () {
-	const list = Object.keys(players);
-
-	list.forEach(async function (id) {
-		const chunk = players[id].entity.chunkID;
-		const loadedchunks = { ...players[id].chunks };
-		for (let w = 0; w <= serverConfig.viewDistance; w++) {
-			for (let x = 0 - w; x <= 0 + w; x++) {
-				for (let z = 0 - w; z <= 0 + w; z++) {
-					const tempid = [chunk[0] + x, chunk[1] + z];
-					if (loadedchunks[tempid.toString()] == undefined) {
-						players[id].chunks[tempid] = true;
-						chunksToSend.push([id, tempid]);
-					}
-					if (players[id].world.chunks[tempid.toString()] != undefined) players[id].world.chunks[tempid.toString()].keepAlive();
-					loadedchunks[tempid.toString()] = false;
-				}
-			}
-		}
-
-		const toRemove = Object.entries(loadedchunks);
-		toRemove.forEach(function (item) {
-			if (item[1] == true) {
-				delete players[id].chunks[item[0]];
-				const cid = item[0].split(',');
-				players[id].sendPacket('WorldChunkUnload', {
-					x: parseInt(cid[0]),
-					y: 0,
-					z: parseInt(cid[1]),
-					type: true,
-				});
-			}
-		});
-	});
-}, 1000);
-
-setInterval(async function () {
-	if (chunksToSend[0] != undefined) {
-		sendChunkToPlayer(chunksToSend[0][0], chunksToSend[0][1]);
-		chunksToSend.shift();
-	}
-}, 50);
-
-async function sendChunkToPlayer(id: string, cid: types.XZ) {
-	event.emit('sendChunk', id, cid);
-	if (players[id] != undefined) {
-		const chunk = await players[id].world.getChunk(cid);
-		if (chunk != undefined && players[id] != undefined) {
-			chunk.keepAlive();
-
-			const data = serverConfig.chunkTransportCompression ? pako.deflate(chunk.data.data) : chunk.data.data;
-			players[id].sendPacket('WorldChunkLoad', {
-				x: cid[0],
-				y: 0,
-				z: cid[1],
-				data: data,
-				type: true,
-				compressed: serverConfig.chunkTransportCompression,
-			});
-		}
-	}
-}
-
-
 export interface PlayerMovement {
 	airJumps: number;
-	airMoveMult: number,
-	crouch: boolean,
-	crouchMoveMult: number,
-	jumpForce: number,
-	jumpImpulse: number,
-	jumpTime: number,
-	jumping: boolean,
-	maxSpeed: number,
-	moveForce: number,
-	responsiveness: number,
-	running: boolean,
-	runningFriction: number,
-	sprint: boolean,
-	sprintMoveMult: number,
-	standingFriction: number,
+	airMoveMult: number;
+	crouch: boolean;
+	crouchMoveMult: number;
+	jumpForce: number;
+	jumpImpulse: number;
+	jumpTime: number;
+	jumping: boolean;
+	maxSpeed: number;
+	moveForce: number;
+	responsiveness: number;
+	running: boolean;
+	runningFriction: number;
+	sprint: boolean;
+	sprintMoveMult: number;
+	standingFriction: number;
 }
 
 export const defaultPlayerMovement = {

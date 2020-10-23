@@ -1,36 +1,54 @@
-import { EventEmitter } from 'events';
 import * as vec from 'gl-vec3';
 
-import * as worldManager from './worlds';
+import type { WorldManager, World, Chunk } from './worlds';
+import type { Server } from '../server';
 import * as types from '../types';
 import { ArmorInventory } from './inventory';
+import { globalToChunk } from './worlds';
 
 import { v4 as uuid } from 'uuid';
 
-export const event = new EventEmitter();
+export class EntityManager {
+	_worlds: WorldManager;
+	_server: Server;
 
-export function create(type: string, data: EntityData, worldName: string, tick: Function | null): Entity {
-	let id = uuid();
+	constructor(server: Server) {
+		this._server = server;
+		this._worlds = server.worlds;
+	}
 
-	worldManager.get(worldName).entities[id] = new Entity(id, type, data, worldName, tick);
+	create(type: string, data: EntityData, worldName: string, tick: Function | null): Entity {
+		let id = uuid();
 
-	event.emit('entity-create', {
-		uuid: id,
-		data: JSON.stringify(worldManager.get(worldName).entities[id].data),
-	});
+		this._worlds.get(worldName).entities[id] = new Entity(id, type, data, this._worlds.get(worldName), tick, this);
 
-	return worldManager.get(worldName).entities[id];
-}
+		this._server.emit('entity-create', {
+			uuid: id,
+			entity: this._worlds.get(worldName).entities[id],
+		});
 
-export function recreate(id: string, type: string, data: EntityData, worldName: string, tick: Function | null): Entity {
-	worldManager.get(worldName).entities[id] = new Entity(id, type, data, worldName, tick);
+		return this._worlds.get(worldName).entities[id];
+	}
 
-	event.emit('entity-create', {
-		uuid: id,
-		data: JSON.stringify(worldManager.get(worldName).entities[id].data),
-	});
+	recreate(id: string, type: string, data: EntityData, worldName: string, tick: Function | null): Entity {
+		this._worlds.get(worldName).entities[id] = new Entity(id, type, data, this._worlds.get(worldName), tick, this);
 
-	return worldManager.get(worldName).entities[id];
+		this._server.emit('entity-create', {
+			uuid: id,
+			entity: this._worlds.get(worldName).entities[id],
+		});
+
+		return this._worlds.get(worldName).entities[id];
+	}
+
+	get(world, id) {
+		if (!this._worlds.get(world)) return null;
+		return this._worlds.get(world).entities[id];
+	}
+	getAll(world) {
+		if (!this._worlds.get(world)) return null;
+		return this._worlds.get(world).entities;
+	}
 }
 
 export interface EntityData {
@@ -44,16 +62,16 @@ export interface EntityData {
 	name: string;
 	nametag: boolean;
 	hitbox: types.XYZ;
-	armor?: ArmorInventory;
+	armor?: ArmorInventory | any;
 	[index: string]: any;
 }
 
 export interface IEntity {
 	data: EntityData;
 	readonly id: string;
-	world: worldManager.World;
+	world: World;
 	chunkID: types.XZ;
-	chunk: worldManager.Chunk;
+	chunk: Chunk;
 	tick: Function | null;
 	readonly type: string;
 }
@@ -69,14 +87,17 @@ export interface IEntityObject {
 export class Entity implements IEntity {
 	data: EntityData;
 	readonly id: string;
-	world: worldManager.World;
+	world: World;
 	chunkID: types.XZ;
-	chunk: worldManager.Chunk;
+	chunk: Chunk;
 	tick: Function | null;
 	readonly type: string;
 
-	constructor(id: string, type: string, data: EntityData, world: string, tick: Function | null) {
+	_entities: EntityManager;
+
+	constructor(id: string, type: string, data: EntityData, world: World, tick: Function | null, entitymanager: EntityManager) {
 		this.data = data;
+		this._entities = entitymanager;
 		if (data.position == undefined) {
 			this.data.position = [0, 0, 0];
 		}
@@ -88,8 +109,8 @@ export class Entity implements IEntity {
 		}
 		this.type = type;
 		this.id = id;
-		this.world = worldManager.get(world);
-		this.chunkID = worldManager.toChunk(this.data.position).id;
+		this.world = world;
+		this.chunkID = globalToChunk(this.data.position).id;
 		this.chunk = this.world.chunks[this.chunkID.toString()];
 		if (tick != null) this.tick = tick;
 		else this.tick = function () {};
@@ -97,7 +118,19 @@ export class Entity implements IEntity {
 
 	getObject(): IEntityObject {
 		return {
-			data: this.data,
+			data: {
+				position: this.data.position,
+				rotation: this.data.rotation,
+				pitch: this.data.pitch,
+				health: this.data.health,
+				maxHealth: this.data.maxHealth,
+				model: this.data.model,
+				texture: this.data.texture,
+				name: this.data.name,
+				nametag: this.data.nametag,
+				hitbox: this.data.hitbox,
+				armor: this.data.armor.getObject()
+			},
 			id: this.id,
 			world: this.world.name,
 			type: this.type,
@@ -105,12 +138,12 @@ export class Entity implements IEntity {
 		};
 	}
 
-	teleport(pos: types.XYZ, eworld: string | worldManager.World): void {
-		this.world = typeof eworld == 'string' ? worldManager.get(eworld) : eworld;
+	teleport(pos: types.XYZ, eworld: World | string): void {
+		this.world = typeof eworld == 'string' ? this._entities._worlds.get(eworld) : eworld;
 		this.data.position = pos;
-		this.chunkID = worldManager.toChunk(pos).id;
+		this.chunkID = globalToChunk(pos).id;
 		this.chunk = this.world.chunks[this.chunkID.toString()];
-		event.emit('entity-move', {
+		this.world._server.emit('entity-move', {
 			uuid: this.id,
 			x: this.data.position[0],
 			y: this.data.position[1],
@@ -122,10 +155,10 @@ export class Entity implements IEntity {
 
 	move(pos: types.XYZ): void {
 		this.data.position = pos;
-		this.chunkID = worldManager.toChunk(pos).id;
+		this.chunkID = globalToChunk(pos).id;
 		this.chunk = this.world.chunks[this.chunkID.toString()];
 
-		event.emit('entity-move', {
+		this.world._server.emit('entity-move', {
 			uuid: this.id,
 			x: this.data.position[0],
 			y: this.data.position[1],
@@ -138,7 +171,7 @@ export class Entity implements IEntity {
 	rotate(rot: number, pitch: number): void {
 		this.data.rotation = rot;
 		this.data.pitch = pitch;
-		event.emit('entity-move', {
+		this.world._server.emit('entity-move', {
 			uuid: this.id,
 			x: this.data.position[0],
 			y: this.data.position[1],
@@ -151,7 +184,7 @@ export class Entity implements IEntity {
 	remove(): void {
 		try {
 			let id = this.id;
-			event.emit('entity-remove', { uuid: this.id });
+			this.world._server.emit('entity-remove', { uuid: this.id });
 
 			setTimeout(() => {
 				if (this.world.entities[id] != undefined) delete this.world.entities[id];
@@ -173,13 +206,4 @@ export class Entity implements IEntity {
 		}
 		return array;
 	}*/
-}
-
-export function get(world, id) {
-	if (!worldManager.get(world)) return null;
-	return worldManager.get(world).entities[id];
-}
-export function getAll(world) {
-	if (!worldManager.get(world)) return null;
-	return worldManager.get(world).entities;
 }

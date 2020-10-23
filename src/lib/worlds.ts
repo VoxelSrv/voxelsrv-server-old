@@ -2,102 +2,74 @@ import * as fs from 'fs';
 
 import * as console from './console';
 import * as types from '../types';
-import { Block, blockIDmap, blockPalette, blockRegistry } from './registry';
+import type { Server } from '../server';
 import * as format from '../formats/world';
+import { Block } from './registry';
 
 import * as pako from 'pako';
 
 import ndarray = require('ndarray');
 import { serverConfig } from '../values';
 
-const chunkWitdh = 32;
-const chunkHeight = 256;
+export class WorldManager {
+	readonly chunkWitdh = 32;
+	readonly chunkHeight = 256;
 
-const lastChunk = 5000;
+	readonly lastChunk = 5000;
 
-const worlds: { [index: string]: World } = {};
+	worlds: { [index: string]: World } = {};
+	worldgenerators = {};
 
-let worldgen = {};
+	readonly _baseMetadata = { ver: 2, stage: 0 };
 
-const baseMetadata = { ver: 2, stage: 0 };
+	server: Server;
 
-export function create(name: string, seed: number, generator: string): World | null {
-	if (exist(name) == false && worlds[name] == undefined) {
-		worlds[name] = new World(name, seed, generator, null);
-		return worlds[name];
-	} else {
-		return null;
+	constructor(server) {
+		this.server = server;
 	}
-}
 
-export function load(name: string): World | null {
-	try {
-		if (exist(name) == true && worlds[name] == undefined) {
-			const readed = fs.readFileSync('./worlds/' + name + '/world.json');
-			const data = JSON.parse(readed.toString());
-			worlds[name] = new World(name, data.seed, data.generator, data.version);
-
-			return worlds[name];
+	create(name: string, seed: number, generator: string): World | null {
+		if (this.exist(name) == false && this.worlds[name] == undefined) {
+			this.worlds[name] = new World(name, seed, generator, null, this.server);
+			return this.worlds[name];
 		} else {
 			return null;
 		}
-	} catch (e) {
-		console.error(`Can't load world ${name}! Trying to recreate it...`);
-		create(name, 0, 'normal');
 	}
-}
 
-export function unload(name: string): void {
-	worlds[name].unload();
-	console.log('Unloaded world ' + name);
-}
+	load(name: string): World | null {
+		try {
+			if (this.exist(name) == true && this.worlds[name] == undefined) {
+				const readed = fs.readFileSync('./worlds/' + name + '/world.json');
+				const data = JSON.parse(readed.toString());
+				this.worlds[name] = new World(name, data.seed, data.generator, data.version, this.server);
 
-export function exist(name: string): boolean {
-	return fs.existsSync('./worlds/' + name);
-}
+				return this.worlds[name];
+			} else {
+				return null;
+			}
+		} catch (e) {
+			console.error(`Can't load world ${name}! Trying to recreate it...`);
+			this.create(name, 0, 'normal');
+		}
+	}
 
-export function get(name: string): World | undefined {
-	return worlds[name];
-}
+	unload(name: string): void {
+		this.worlds[name].unload();
+		console.log('Unloaded world ' + name);
+	}
 
-export function validateID(id: number[]): boolean {
-	if (id == null || id == undefined) return false;
-	else if (id[0] == null || id[0] == undefined) return false;
-	else if (id[1] == null || id[1] == undefined) return false;
-}
+	exist(name: string): boolean {
+		return fs.existsSync('./worlds/' + name);
+	}
 
-export function globalToChunk(pos: types.XYZ): { id: types.XZ; pos: types.XYZ } {
-	const xc = Math.floor(pos[0] / chunkWitdh);
-	const zc = Math.floor(pos[2] / chunkWitdh);
+	get(name: string): World | undefined {
+		return this.worlds[name];
+	}
 
-	let xl = pos[0] % chunkWitdh;
-	let yl = pos[1];
-	let zl = pos[2] % chunkWitdh;
-
-	if (xl < 0) xl = xl + chunkWitdh;
-	if (zl < 0) zl = zl + chunkWitdh;
-
-	return {
-		id: [xc, zc],
-		pos: [xl, yl, zl],
-	};
-}
-
-export function chunkIDFromGlobal(pos: types.XYZ): types.XZ {
-	let xz: types.XZ = [Math.floor(pos[0] / chunkWitdh), Math.floor(pos[2] / chunkWitdh)];
-
-	if (xz[0] < 0) xz[0] = xz[0] + chunkWitdh;
-	if (xz[1] < 0) xz[1] = xz[1] + chunkWitdh;
-
-	return xz;
-}
-
-export function globalToLocal(pos: types.XYZ): types.XYZ {
-	return [pos[0] % chunkWitdh, pos[1], pos[2] % chunkWitdh];
-}
-
-function getRandomSeed(): number {
-	return Math.random() * (9007199254740990 + 9007199254740990) - 9007199254740991;
+	addGenerator(name: string, gen: any) {
+		this.worldgenerators[name] = gen;
+	}
 }
 
 export class World {
@@ -111,11 +83,15 @@ export class World {
 	chunkFolder: string;
 	autoSaveInterval: any;
 	chunkUnloadInterval: any;
+	_server: Server;
+	_worldMen: WorldManager;
 
-	constructor(name: string, seed: number, generator: string, ver: number) {
+	constructor(name: string, seed: number, generator: string, ver: number, server: Server) {
+		this._server = server;
+		this._worldMen = server.worlds;
 		this.name = name;
 		this.seed = seed != 0 ? seed : getRandomSeed();
-		this.generator = new worldgen[generator](this.seed);
+		this.generator = new server.worlds.worldgenerators[generator](this.seed, server);
 		if (ver == null) this.version = 1;
 		else this.version = ver;
 		this.chunks = {};
@@ -178,7 +154,7 @@ export class World {
 			return this.chunks[idS];
 		}
 		if (bool) {
-			this.chunks[idS] = new Chunk(id, await this.generator.generateBaseChunk(id), { ...baseMetadata }, false);
+			this.chunks[idS] = new Chunk(id, await this.generator.generateBaseChunk(id), { ...this._worldMen._baseMetadata }, false);
 			this.chunks[idS].keepAlive();
 			return this.chunks[idS];
 		}
@@ -244,10 +220,10 @@ export class World {
 		let meta = null;
 		if (exist) {
 			const data = fs.readFileSync(this.chunkFolder + '/' + idS + '.chk');
-			const array = pako.inflate(data, new Uint16Array(chunkWitdh * chunkHeight * chunkWitdh));
+			const array = pako.inflate(data, new Uint16Array(this._worldMen.chunkWitdh * this._worldMen.chunkHeight * this._worldMen.chunkWitdh));
 			const decoded = format.chunk.decode(array);
 
-			chunk = new ndarray(decoded.blocks, [chunkWitdh, chunkHeight, chunkWitdh]);
+			chunk = new ndarray(decoded.blocks, [this._worldMen.chunkWitdh, this._worldMen.chunkHeight, this._worldMen.chunkWitdh]);
 			meta = { stage: decoded.stage, version: decoded.version };
 		}
 		return { chunk: chunk, metadata: meta };
@@ -274,16 +250,16 @@ export class World {
 		if (this.chunks[cid] != undefined) {
 			const id = this.chunks[cid].data.get(local.pos[0], local.pos[1], local.pos[2]);
 			this.chunks[cid].keepAlive();
-			return blockRegistry[blockIDmap[id]];
+			return this._server.registry.blocks[this._server.registry.blockIDmap[id]];
 		} else if (this.existChunk(local.id)) {
 			const data = this.readChunk(local.id);
 			this.chunks[cid] = new Chunk(local.id, data.chunk, data.metadata, false);
 			this.chunks[cid].keepAlive();
-			return blockRegistry[blockIDmap[this.chunks[cid].data.get(local.pos[0], local.pos[1], local.pos[2])]];
+			return this._server.registry.blocks[this._server.registry.blockIDmap[this.chunks[cid].data.get(local.pos[0], local.pos[1], local.pos[2])]];
 		} else if (allowgen) {
-			return blockRegistry[blockIDmap[this.generator.getBlock(data[0], data[1], data[2])]];
+			return this._server.registry.blocks[this._server.registry.blockIDmap[this.generator.getBlock(data[0], data[1], data[2])]];
 		}
-		return blockRegistry['air'];
+		return this._server.registry.blocks['air'];
 	}
 
 	async setBlock(data: types.XYZ, block: string | number | Block, allowgen: boolean = false) {
@@ -297,7 +273,7 @@ export class World {
 				id = block.rawid;
 				break;
 			case 'string':
-				id = blockPalette[block];
+				id = this._server.registry.blockPalette[block];
 			default:
 				return;
 		}
@@ -305,7 +281,6 @@ export class World {
 		const chunk = await this.getChunk(local.id);
 		chunk.data.set(local.pos[0], local.pos[1], local.pos[2], id);
 	}
-
 
 	async setRawBlock(data: types.XYZ, block: number) {
 		const local = globalToChunk(data);
@@ -319,8 +294,8 @@ export class World {
 		clearInterval(this.autoSaveInterval);
 		clearInterval(this.chunkUnloadInterval);
 
-		setTimeout(function () {
-			delete worlds[this.name];
+		setTimeout(() => {
+			delete this._worldMen.worlds[this.name];
 		}, 50);
 	}
 }
@@ -353,10 +328,42 @@ export class Chunk {
 	}
 }
 
-export function getAll() {
-	return worlds;
+export function globalToChunk(pos: types.XYZ): { id: types.XZ; pos: types.XYZ } {
+	const xc = Math.floor(pos[0] / 32);
+	const zc = Math.floor(pos[2] / 32);
+
+	let xl = pos[0] % 32;
+	let yl = pos[1];
+	let zl = pos[2] % 32;
+
+	if (xl < 0) xl = xl + 32;
+	if (zl < 0) zl = zl + 32;
+
+	return {
+		id: [xc, zc],
+		pos: [xl, yl, zl],
+	};
 }
-export const toChunk = globalToChunk;
-export function addGenerator(name: string, gen: any) {
-	worldgen[name] = gen;
+
+export function chunkIDFromGlobal(pos: types.XYZ): types.XZ {
+	let xz: types.XZ = [Math.floor(pos[0] / 32), Math.floor(pos[2] / 32)];
+
+	if (xz[0] < 0) xz[0] = xz[0] + 32;
+	if (xz[1] < 0) xz[1] = xz[1] + 32;
+
+	return xz;
+}
+
+export function globalToLocal(pos: types.XYZ): types.XYZ {
+	return [pos[0] % 32, pos[1], pos[2] % 32];
+}
+
+export function getRandomSeed(): number {
+	return Math.random() * (9007199254740990 + 9007199254740990) - 9007199254740991;
+}
+
+export function validateID(id: number[]): boolean {
+	if (id == null || id == undefined) return false;
+	else if (id[0] == null || id[0] == undefined) return false;
+	else if (id[1] == null || id[1] == undefined) return false;
 }

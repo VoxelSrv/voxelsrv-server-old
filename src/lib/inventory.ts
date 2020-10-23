@@ -1,5 +1,7 @@
-import { IItemStack, ItemStack, itemRegistry } from './registry';
+import { IItemStack, ItemStack } from './registry';
 import { EventEmitter } from 'events';
+import type { Server } from '../server';
+import { isThisTypeNode } from 'typescript';
 
 // Generic Inventory for mobs/block like chest, etc
 
@@ -18,14 +20,16 @@ export class Inventory {
 	lastUpdate: number;
 	readonly event: EventEmitter;
 	selected: number = 0;
+	_server: Server;
 
-	constructor(size: number, data: InventoryObject | null) {
+	constructor(size: number, data: InventoryObject | null, server: Server) {
+		this._server = server;
 		this.items = {};
 		this.size = Math.round(size * 9 - 1);
 		if (data != undefined && data != null) {
 			for (const prop in data.items) {
 				if (data.items[prop] != null && data.items[prop] != {})
-					this.items[prop] = new ItemStack(data.items[prop].id, data.items[prop].count, data.items[prop].data);
+					this.items[prop] = new ItemStack(data.items[prop].id, data.items[prop].count, data.items[prop].data, this._server.registry);
 			}
 		}
 
@@ -37,12 +41,12 @@ export class Inventory {
 	}
 
 	add(item: string, count: number): boolean {
-		if (itemRegistry[item] == undefined) return false;
+		if (this._server.registry.items[item] == undefined) return false;
 
 		this.lastUpdate = Date.now();
 		let invItems = Object.entries(this.items);
 		for (let [slot, data] of invItems) {
-			if (data != null && data.id == item && data.count + count < itemRegistry[item].stack + 1) {
+			if (data != null && data.id == item && data.count + count < this._server.registry.items[item].stack + 1) {
 				this.items[slot].count = count + data.count;
 				this.event.emit('slot-update', {
 					data: this.items[slot],
@@ -54,7 +58,7 @@ export class Inventory {
 		}
 		for (let [slot, data] of invItems) {
 			if (data == null) {
-				this.items[slot] = new ItemStack(item, count, data);
+				this.items[slot] = new ItemStack(item, count, data, this._server.registry);
 				this.event.emit('slot-update', {
 					data: this.items[slot],
 					slot: slot,
@@ -67,7 +71,7 @@ export class Inventory {
 	}
 
 	remove(item: string, count: number): boolean {
-		if (itemRegistry[item] == undefined) return false;
+		if (this._server.registry.items[item] == undefined) return false;
 
 		this.lastUpdate = Date.now();
 		let allItems = Object.entries(this.items);
@@ -89,7 +93,7 @@ export class Inventory {
 			if (data != null && data.id == item) {
 				let newcount = data.count - count;
 				count = count - data.count;
-				if (newcount > 0) this.items[slot] = new ItemStack(item, newcount, data.data);
+				if (newcount > 0) this.items[slot] = new ItemStack(item, newcount, data.data, this._server.registry);
 				else this.items[slot] = null;
 				this.event.emit('slot-update', {
 					data: this.items[slot],
@@ -104,8 +108,8 @@ export class Inventory {
 	set(slot: number, item: string | null, count: number | null, data: object | null): void {
 		this.lastUpdate = Date.now();
 
-		if (itemRegistry[item] == undefined || item == null || count == null || data == null) this.items[slot] = null;
-		else this.items[slot] = new ItemStack(item, count, data);
+		if (this._server.registry.items[item] == undefined || item == null || count == null || data == null) this.items[slot] = null;
+		else this.items[slot] = new ItemStack(item, count, data, this._server.registry);
 
 		this.event.emit('slot-update', {
 			data: this.items[slot],
@@ -126,9 +130,8 @@ export class Inventory {
 	}
 
 	getObject(): InventoryObject {
-		return {...this};
+		return { items: this.items, size: this.size, selected: this.selected };
 	}
-
 }
 
 // Inventory for players
@@ -138,8 +141,8 @@ export class PlayerInventory extends Inventory {
 	tempslot: IItemStack | null;
 	updated: boolean;
 
-	constructor(size: number, data: InventoryObject) {
-		super(size, data);
+	constructor(size: number, data: InventoryObject, server: Server) {
+		super(size, data, server);
 		if (data == undefined) {
 			this.selected = 0;
 			this.tempslot = null;
@@ -188,16 +191,16 @@ export class PlayerInventory extends Inventory {
 
 			// If tempslot and target slot have the same itemtype
 			if (tempY.id == tempX.id && tempY.id != undefined) {
-				if (tempX.count + tempY.count <= itemRegistry[tempX.id].stack) {
+				if (tempX.count + tempY.count <= this._server.registry.items[tempX.id].stack) {
 					let tempZ = { ...tempX };
 					tempZ.count = tempX.count + tempY.count;
 					inv.items[x] = tempZ;
 					this.tempslot = null;
-				} else if (tempX.count + tempY.count > itemRegistry[tempX.id].stack) {
+				} else if (tempX.count + tempY.count > this._server.registry.items[tempX.id].stack) {
 					let tempZ = { ...tempX };
 					let tempW = { ...tempY };
-					tempZ.count = itemRegistry[tempX.id].stack;
-					tempW.count = tempX.count + tempY.count - itemRegistry[tempX.id].stack;
+					tempZ.count = this._server.registry.items[tempX.id].stack;
+					tempW.count = tempX.count + tempY.count - this._server.registry.items[tempX.id].stack;
 					inv.items[x] = tempZ;
 					this.tempslot = tempW;
 				}
@@ -221,7 +224,7 @@ export class PlayerInventory extends Inventory {
 			else {
 				inv.items[x] = tempY;
 				this.tempslot = tempX;
-				
+
 				this.event.emit('slot-update', {
 					data: inv.items[x],
 					slot: x,
@@ -266,7 +269,7 @@ export class PlayerInventory extends Inventory {
 				if (tempW.count <= 0) tempW = null;
 				inv.items[x] = { ...tempZ };
 				this.tempslot = { ...tempW };
-			} else if (tempX.id == tempY.id && tempX.count + 1 <= itemRegistry[tempX.id].stack) {
+			} else if (tempX.id == tempY.id && tempX.count + 1 <= this._server.registry.items[tempX.id].stack) {
 				// The same itemtype
 				let tempZ = { ...tempX };
 				let tempW = { ...tempY };
@@ -294,27 +297,30 @@ export class PlayerInventory extends Inventory {
 			});
 		}
 	}
+
+	getObject(): InventoryObject {
+		return { items: this.items, size: this.size, selected: this.selected, tempslot: this.tempslot };
+	}
 }
 
 export class ArmorInventory extends Inventory {
-	constructor(data: InventoryObject | null) {
-		super( 0.55 , data);
-		
+	constructor(data: InventoryObject | null, server: Server) {
+		super(0.55, data, server);
 	}
 
 	getHelmet(): ItemStack {
-		return this.items[0]
+		return this.items[0];
 	}
 
 	getChestplate(): ItemStack {
-		return this.items[1]
+		return this.items[1];
 	}
 
 	getLeggings(): ItemStack {
-		return this.items[2]
+		return this.items[2];
 	}
 
 	getBoots(): ItemStack {
-		return this.items[3]
+		return this.items[3];
 	}
 }

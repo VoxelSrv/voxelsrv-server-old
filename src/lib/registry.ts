@@ -1,107 +1,118 @@
 import * as fs from 'fs';
-import { EventEmitter } from 'events';
+import type { Server } from '../server';
 
-export const itemRegistry: { [index: string]: any } = {};
-export const blockRegistry: { [index: string]: any } = {};
-export const commandRegistry: { [index: string]: any } = {};
-export let blockPalette: { [index: string]: number } = {};
-export const blockIDmap: { [index: number]: string } = {};
+export class Registry {
+	items: { [index: string]: any } = {};
+	blocks: { [index: string]: any } = {};
+	commands: { [index: string]: any } = {};
+	blockPalette: { [index: string]: number } = {};
+	blockIDmap: { [index: number]: string } = {};
 
-export const blockRegistryObject: { [index: string]: object } = {};
-export const itemRegistryObject: { [index: string]: object } = {};
+	_blockRegistryObject: { [index: string]: object } = {};
+	_itemRegistryObject: { [index: string]: object } = {};
+	_freeIDs: number[] = [];
+	_lastID = 0;
+	finalized: boolean = false;
 
-export const event = new EventEmitter();
-const freeIDs: number[] = [];
-let lastID = 0;
-let finalized: boolean = false;
+	_server: Server = null;
 
-export function loadPalette(): void {
-	if (!finalized && fs.existsSync('./worlds/blocks.json')) {
-		event.emit('palette-preload');
-		try {
-			const file = fs.readFileSync('./worlds/blocks.json');
-			const json = JSON.parse(file.toString());
+	constructor(server: Server) {
+		this._server = server;
 
-			event.emit('palette-loaded', json);
+		this.blocks['air'] = new Block('air', -1, '', {}, 0, 0, 'any');
+		this.blocks['air'].rawid = 0;
+		this.blockIDmap[0] = 'air';
+		this.blockPalette['air'] = 0;
+	}
 
-			blockPalette = {...blockPalette, ...json};
+	_loadPalette(): void {
+		if (!this.finalized && fs.existsSync('./worlds/blocks.json')) {
+			this._server.emit('palette-preload');
+			try {
+				const file = fs.readFileSync('./worlds/blocks.json');
+				const json = JSON.parse(file.toString());
 
-			const usedIDs = Object.values(blockPalette);
+				this._server.emit('palette-loaded', json);
 
-			if (usedIDs.length == 0) return;
+				this.blockPalette = { ...this.blockPalette, ...json };
 
-			lastID = usedIDs[usedIDs.length - 1];
+				const usedIDs = Object.values(this.blockPalette);
 
-			let x = 0;
-			for (let y = 0; y < usedIDs.length; y++) {
-				x = usedIDs[y];
-				for (; x <= lastID; x++) {
-					if (usedIDs[y] > x) {
-						freeIDs.push(x);
-					} else break;
+				if (usedIDs.length == 0) return;
+
+				this._lastID = usedIDs[usedIDs.length - 1];
+
+				let x = 0;
+				for (let y = 0; y < usedIDs.length; y++) {
+					x = usedIDs[y];
+					for (; x <= this._lastID; x++) {
+						if (usedIDs[y] > x) {
+							this._freeIDs.push(x);
+						} else break;
+					}
 				}
-			}
 
-			event.emit('palette-finished', blockPalette);
-		} catch (e) {
-			event.emit('palette-error', e);
+				this._server.emit('palette-finished', this.blockPalette);
+			} catch (e) {
+				this._server.emit('palette-error', e);
+			}
 		}
 	}
-}
 
-export function addItem(item: Item): void {
-	if (!finalized) {
-		event.emit('item-predefine', item);
-		itemRegistry[item.id] = item;
-		event.emit('item-define', item);
+	addItem(item: Item): void {
+		if (!this.finalized) {
+			this._server.emit('item-predefine', item);
+			this.items[item.id] = item;
+			this._server.emit('item-define', item);
+		}
 	}
-}
 
-export function addBlock(block: Block): void {
-	if (!finalized) {
-		event.emit('block-predefine', block);
-		blockRegistry[block.id] = block;
-		event.emit('block-define', block);
+	addBlock(block: Block): void {
+		if (!this.finalized) {
+			this._server.emit('block-predefine', block);
+			this.blocks[block.id] = block;
+			this._server.emit('block-define', block);
+		}
 	}
-}
 
-export function addCommand(command: Command): void {
-	event.emit('command-predefine', command);
-	commandRegistry[command.command] = command;
-	event.emit('command-define', command);
-}
+	addCommand(command: Command): void {
+		this._server.emit('command-predefine', command);
+		this.commands[command.command] = command;
+		this._server.emit('command-define', command);
+	}
 
-export function finalize(force: boolean = false): void {
-	if (finalized && !force) return;
+	_finalize(force: boolean = false): void {
+		if (this.finalized && !force) return;
 
-	event.emit('registry-prefinalize');
+		this._server.emit('registry-prefinalize');
 
-	const items = Object.keys(itemRegistry);
-	const blocks = Object.keys(blockRegistry);
+		const items = Object.keys(this.items);
+		const blocks = Object.keys(this.blocks);
 
-	items.forEach((name) => {
-		itemRegistry[name].finalize();
-		itemRegistryObject[name] = itemRegistry[name].getObject();
-	});
-	blocks.forEach((name) => {
-		blockRegistry[name].finalize();
-		blockRegistryObject[name] = blockRegistry[name].getObject();
-	});
+		items.forEach((name) => {
+			this.items[name]._finalize(this);
+			this._itemRegistryObject[name] = this.items[name].getObject();
+		});
+		blocks.forEach((name) => {
+			this.blocks[name]._finalize(this);
+			this._blockRegistryObject[name] = this.blocks[name].getObject();
+		});
 
-	delete blockRegistryObject['air'];
+		delete this._blockRegistryObject['air'];
 
-	finalized = true;
+		this.finalized = true;
 
-	const list = Object.entries(blockPalette);
-	list.forEach((x) => {
-		blockIDmap[x[1]] = x[0];
-	});
+		const list = Object.entries(this.blockPalette);
+		list.forEach((x) => {
+			this.blockIDmap[x[1]] = x[0];
+		});
 
-	fs.writeFile('./worlds/blocks.json', JSON.stringify(blockPalette), function (err) {
-		if (err) console.error('Cant save block palette! Reason: ' + err);
-	});
+		fs.writeFile('./worlds/blocks.json', JSON.stringify(this.blockPalette), function (err) {
+			if (err) console.error('Cant save block palette! Reason: ' + err);
+		});
 
-	event.emit('registry-finalize');
+		this._server.emit('registry-finalize');
+	}
 }
 
 export interface IItemStack {
@@ -116,14 +127,13 @@ export class ItemStack {
 	id: string;
 	count: number;
 	data: object;
-	item: any;
 
-	constructor(id: string, count: number, data: object) {
+	constructor(id: string, count: number, data: object, registry: Registry) {
 		this.id = id;
 		this.count = count;
 		this.data = data;
 
-		this.item = itemRegistry[id];
+		//this.item = registry.items[id];
 	}
 
 	getObject(): object {
@@ -154,6 +164,7 @@ export class Item {
 	name: string;
 	texture: string | Array<string>;
 	stack: number;
+	registry: Registry = null;
 
 	constructor(id: string, name: string, texture: string | string[], stack: number) {
 		this.id = id;
@@ -164,7 +175,7 @@ export class Item {
 
 	getItemStack(count?: number): ItemStack {
 		const number = count != undefined ? count : 1;
-		return new ItemStack(this.id, number, {});
+		return new ItemStack(this.id, number, {}, this.registry);
 	}
 
 	getObject(): object {
@@ -177,8 +188,9 @@ export class Item {
 		};
 	}
 
-	finalize() {
-		if (!finalized) {
+	_finalize(registry) {
+		if (!registry.finalized) {
+			this.registry = registry;
 		}
 	}
 }
@@ -205,9 +217,10 @@ export class ItemBlock extends Item {
 		};
 	}
 
-	finalize() {
-		if (!finalized) {
-			if (blockRegistry[this.blockID] != undefined) this.block = blockRegistry[this.blockID];
+	_finalize(registry) {
+		if (!registry.finalized) {
+			this.registry = registry;
+			if (registry.blocks[this.blockID] != undefined) this.block = registry.blocks[this.blockID];
 		}
 	}
 }
@@ -239,7 +252,7 @@ export class ItemTool extends Item {
 	canMine(b: Block | string) {
 		let block: Block;
 		if (typeof b == 'string') {
-			if (blockRegistry[b] != undefined) block = blockRegistry[b];
+			if (this.registry.blocks[b] != undefined) block = this.registry.blocks[b];
 			else return false;
 		}
 
@@ -309,10 +322,9 @@ export class Block {
 	unbreakable: boolean;
 	miningtime: number;
 	tool: string | string[];
+	registry: Registry = null;
 
 	constructor(id: string, type: number, texture: string | string[], options: object, hardness: number, miningtime: number, tool: string | string[]) {
-		if (blockPalette[id] != undefined) this.rawid = blockPalette[id];
-
 		this.id = id;
 		this.texture = texture;
 		this.options = options;
@@ -324,7 +336,7 @@ export class Block {
 
 	getItemStack(count?: number): ItemStack {
 		const number = count != undefined ? count : 1;
-		return new ItemStack(this.id, number, {});
+		return new ItemStack(this.id, number, {}, this.registry);
 	}
 
 	getObject(): object {
@@ -341,31 +353,28 @@ export class Block {
 		};
 	}
 
-	getRawID(object: object): number {
+	getRawID(): number {
 		return this.rawid;
 	}
 
-	finalize(): void {
-		if (!finalized) {
-			if (this.rawid == -1) {
-				if (freeIDs.length > 0) {
-					this.rawid = freeIDs[0];
-					freeIDs.shift();
-					blockPalette[this.id] = this.rawid;
+	_finalize(registry: Registry) {
+		if (!registry.finalized) {
+			this.registry = registry;
+			if (registry.blockPalette[this.id] != undefined) this.rawid = registry.blockPalette[this.id];
+			else {
+				if (registry._freeIDs.length > 0) {
+					this.rawid = registry._freeIDs[0];
+					registry._freeIDs.shift();
+					registry.blockPalette[this.id] = this.rawid;
 				} else {
-					lastID++;
-					this.rawid = lastID;
-					blockPalette[this.id] = this.rawid;
+					registry._lastID++;
+					this.rawid = registry._lastID;
+					registry.blockPalette[this.id] = this.rawid;
 				}
 			}
 		}
 	}
 }
-
-blockRegistry['air'] = new Block('air', -1, '', {}, 0, 0, 'any');
-blockRegistry['air'].rawid = 0;
-blockIDmap[0] = 'air';
-blockPalette['air'] = 0;
 
 export class Command {
 	command: string = null;

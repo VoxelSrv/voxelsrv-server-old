@@ -1,11 +1,11 @@
 import { makeNoise2D, makeNoise3D, Noise2D, Noise3D } from 'open-simplex-noise';
 import * as tree from './parts/tree';
 import hash from 'murmur-numbers';
-import { blockPalette } from '../../lib/registry';
 import * as types from '../../types';
 import * as biome from './parts/biomes';
 import ndarray = require('ndarray');
 import { Chunk, World } from '../../lib/worlds';
+import type { Server } from '../../server';
 
 function getHighestBlock(chunk: types.IView3duint16, x: number, z: number) {
 	for (let y = 256 - 1; y >= 0; y = y - 1) {
@@ -24,6 +24,9 @@ export default class NormalGenerator {
 	biomeNoise1: Noise2D;
 	biomeNoise2: Noise2D;
 	biomeNoise3: Noise2D;
+
+	caveNoise1: Noise3D;
+	caveNoise2: Noise3D;
 	plantSeed: number;
 	biomeSpacing: number = 100;
 	blocks: any;
@@ -34,14 +37,18 @@ export default class NormalGenerator {
 		birchTree: -2,
 		cactus: -3,
 	};
+	_server: Server;
 
-	constructor(seed: number) {
+	constructor(seed: number, server: Server) {
+		this._server = server;
 		this.seed = seed;
 		this.biomeNoise1 = makeNoise2D(Math.round(seed * Math.sin(seed ^ 3) * 10000));
 		this.biomeNoise2 = makeNoise2D(Math.round(seed * Math.sin(seed ^ 4) * 10000));
 		this.biomeNoise3 = makeNoise2D(Math.round(seed * Math.sin(seed ^ 5) * 10000));
+		this.caveNoise1 = makeNoise3D(Math.round(seed * Math.cos(seed ^ 5) * 10000));
+		this.caveNoise2 = makeNoise3D(Math.round(seed * Math.cos(seed ^ 2) * 10000));
 		this.plantSeed = Math.round(seed * Math.sin(seed ^ 6) * 10000);
-		this.blocks = blockPalette;
+		this.blocks = server.registry.blockPalette;
 		this.hash = hash(this.plantSeed);
 
 		this.biomes = {
