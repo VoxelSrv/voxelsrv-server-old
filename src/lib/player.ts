@@ -179,13 +179,13 @@ export class Player {
 		this.chunks = {};
 		this._players.save(this.id, this.getObject());
 
-		/*this.inventory.on('slot-update', (data) => {
+		this.inventory.event.on('slot-update', (data) => {
 			this.sendPacket('PlayerSlotUpdate', {
 				slot: parseInt(data.slot),
 				data: JSON.stringify(data.data),
 				type: data.type,
 			});
-		});*/
+		});
 
 		this._server.emit('player-created', this);
 		this.updateChunks();
