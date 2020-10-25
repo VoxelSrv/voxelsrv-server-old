@@ -4,7 +4,7 @@
   "description": "Simple voxel game",
   "scripts": {
     "start": "ts-node index.ts",
-    "docs": "typedoc --out docs/ src/api/ --mode library"
+    "docs": "typedoc --out docs/ src/"
   },
   "keywords": [
     "voxel",
@@ -28,10 +28,10 @@
     "terminal-kit": "^1.44.0",
     "tiny-worker": "^2.3.0",
     "ts-node": "^9.0.0",
-    "typedoc": "0.17.0-3",
+    "typedoc": "^0.17.8",
     "typescript": "^4.0.3",
     "uuid": "^8.3.1",
-    "voxelsrv-protocol": "github:VoxelSrv/protocol#v2",
+    "voxelsrv-protocol": "^0.2.0-beta.7",
     "ws": "^7.3.1"
   }
 }

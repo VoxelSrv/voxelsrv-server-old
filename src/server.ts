@@ -4,10 +4,10 @@ import * as fs from 'fs';
 import { Registry } from './lib/registry';
 import * as console from './lib/console';
 import { WorldManager } from './lib/worlds';
-import { EntityManager } from './lib/entity';
+import { Entity, EntityManager } from './lib/entity';
 import * as permissions from './lib/permissions';
 import * as configs from './lib/configs';
-import { PlayerManager } from './lib/player';
+import { Player, PlayerManager } from './lib/player';
 import * as chat from './lib/chat';
 import * as semver from 'semver';
 
@@ -164,7 +164,7 @@ export class Server extends EventEmitter {
 
 				socket.send('PlayerEntity', { uuid: player.entity.id });
 
-				Object.entries(player.world.entities).forEach((data: any) => {
+				Object.entries(player.world.entities).forEach((data) => {
 					socket.send('EntityCreate', {
 						uuid: data[0],
 						data: JSON.stringify(data[1].getObject().data),
