@@ -7,7 +7,7 @@
 	  "voxelsrv-server": "./bin.js"
   },
   "scripts": {
-    "start": "ts-node start.js",
+    "start": "ts-node start.ts",
     "docs": "typedoc --out docs/ src/"
   },
   "keywords": [

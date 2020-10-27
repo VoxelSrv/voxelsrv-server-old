@@ -222,8 +222,9 @@ export class Server extends EventEmitter {
 		for (const file of this.config.plugins) {
 			try {
 				let plugin: IPlugin;
-				plugin = (await import(file))(this);
-
+				if (file.startsWith('local:')) plugin = require(`${process.cwd()}/plugins/${file.slice(6)}`)(this);
+				else plugin = require(file)(this);
+				
 				if (!semver.satisfies(serverVersion, plugin.supported)) {
 					console.warn([
 						new chat.ChatComponent('Plugin ', 'orange'),
@@ -238,7 +239,6 @@ export class Server extends EventEmitter {
 					else if (!min && !!max && semver.gt(serverVersion, max)) console.warn(`It only support versions ${max} or older.`);
 				}
 
-				plugin._start(this);
 				this.plugins[plugin.name] = plugin;
 			} catch (e) {
 				console.error(`Can't load plugin ${file}!`);
