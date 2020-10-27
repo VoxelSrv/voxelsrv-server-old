@@ -79,11 +79,11 @@ class Server extends events_1.EventEmitter {
         Promise.resolve().then(() => __importStar(require('./lib/console-exec'))).then((x) => {
             x.startCmd(this.registry.commands);
         });
-        this.config = configs.load('', 'config');
+        this.config = { ...values_1.serverDefaultConfig, ...configs.load('', 'config') };
         permissions.loadGroups(configs.load('', 'permissions'));
         configs.save('', 'config', this.config);
         this.emit('config-update', this.config);
-        if (this.config.loadPlugins)
+        if (this.config.plugins.length > 0)
             await this.loadPlugins();
         this.registry._loadPalette();
         await this.initDefaults();

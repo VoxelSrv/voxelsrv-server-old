@@ -15,7 +15,7 @@ import fetch from 'node-fetch';
 import normalGenerator from './default/worldgen/normal';
 //import flatGenerator from './default/worldgen/flat';
 
-import { serverVersion, serverProtocol, invalidNicknameRegex, IServerConfig, heartbeatServer } from './values';
+import { serverVersion, serverProtocol, invalidNicknameRegex, IServerConfig, heartbeatServer, serverDefaultConfig } from './values';
 import { BaseSocket } from './socket';
 
 export class Server extends EventEmitter {
@@ -69,14 +69,14 @@ export class Server extends EventEmitter {
 			x.startCmd(this.registry.commands);
 		});
 
-		this.config = configs.load('', 'config');
+		this.config = { ...serverDefaultConfig, ...configs.load('', 'config') };
 
 		permissions.loadGroups(configs.load('', 'permissions'));
 		configs.save('', 'config', this.config);
 
 		this.emit('config-update', this.config);
 
-		if (this.config.loadPlugins) await this.loadPlugins();
+		if (this.config.plugins.length > 0) await this.loadPlugins();
 
 		this.registry._loadPalette();
 
