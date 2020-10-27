@@ -13,7 +13,6 @@ import * as chat from './chat';
 import { PlayerInventory, ArmorInventory } from './inventory';
 import { PlayerPermissionHolder } from './permissions';
 
-import { serverConfig } from '../values';
 import * as pClient from 'voxelsrv-protocol/js/client';
 import { BaseSocket } from '../socket';
 
@@ -127,7 +126,7 @@ export class Player {
 					maxHealth: 20,
 					model: 'player',
 					texture: 'entity/steve',
-					position: serverConfig.world.spawn,
+					position: this._server.config.world.spawn,
 					rotation: 0,
 					pitch: 0,
 					hitbox: [0.55, 1.9, 0.55],
@@ -283,7 +282,7 @@ export class Player {
 	async updateChunks() {
 		const chunk = this.entity.chunkID;
 		const loadedchunks = { ...this.chunks };
-		for (let w = 0; w <= serverConfig.viewDistance; w++) {
+		for (let w = 0; w <= this._server.config.viewDistance; w++) {
 			for (let x = 0 - w; x <= 0 + w; x++) {
 				for (let z = 0 - w; z <= 0 + w; z++) {
 					const cid: types.XZ = [chunk[0] + x, chunk[1] + z];

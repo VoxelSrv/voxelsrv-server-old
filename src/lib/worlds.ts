@@ -9,7 +9,6 @@ import { Block } from './registry';
 import * as pako from 'pako';
 
 import ndarray = require('ndarray');
-import { serverConfig } from '../values';
 
 export class WorldManager {
 	readonly chunkWitdh = 32;
@@ -99,7 +98,7 @@ export class World {
 		this.folder = './worlds/' + name;
 		this.chunkFolder = './worlds/' + name + '/chunks';
 
-		if (serverConfig.world.save) {
+		if (this._server.config.world.save) {
 			if (!fs.existsSync(this.folder)) fs.mkdirSync(this.folder);
 			if (!fs.existsSync(this.chunkFolder)) fs.mkdirSync(this.chunkFolder);
 
@@ -181,7 +180,7 @@ export class World {
 	}
 
 	saveAll(): void {
-		if (!serverConfig.world.save) return;
+		if (!this._server.config.world.save) return;
 		const chunklist = Object.keys(this.chunks);
 
 		fs.writeFile(this.folder + '/world.json', JSON.stringify(this.getSettings()), function (err) {
@@ -230,7 +229,7 @@ export class World {
 	}
 
 	unloadChunk(id: types.XZ) {
-		if (serverConfig.world.save) this.saveChunk(id);
+		if (this._server.config.world.save) this.saveChunk(id);
 		delete this.chunks[id.toString()];
 	}
 

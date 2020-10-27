@@ -5,7 +5,7 @@ import { isThisTypeNode } from 'typescript';
 
 // Generic Inventory for mobs/block like chest, etc
 
-interface InventoryObject {
+export interface InventoryObject {
 	items: any;
 	size: number;
 	tempslot?: IItemStack;

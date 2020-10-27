@@ -10,26 +10,13 @@ import * as configs from './lib/configs';
 import { Player, PlayerManager } from './lib/player';
 import * as chat from './lib/chat';
 import * as semver from 'semver';
-
-
-import startHeartbeat from './lib/heartbeat';
+import fetch from 'node-fetch';
 
 import normalGenerator from './default/worldgen/normal';
 //import flatGenerator from './default/worldgen/flat';
 
-import { serverVersion, serverProtocol, serverConfig, setConfig, invalidNicknameRegex } from './values';
+import { serverVersion, serverProtocol, invalidNicknameRegex, IServerConfig, heartbeatServer } from './values';
 import { BaseSocket } from './socket';
-
-let server: Server;
-
-export function getServerInstance(): Server {
-	return server;
-}
-
-export function startServer(): Server {
-	server = new Server();
-	return server;
-}
 
 export class Server extends EventEmitter {
 	playerCount: number = 0;
@@ -37,8 +24,10 @@ export class Server extends EventEmitter {
 	worlds: WorldManager;
 	players: PlayerManager;
 	entities: EntityManager;
+	config: IServerConfig;
+	heartbeatID: number;
 
-	plugins: {[index: string]: IPlugin} = {}
+	plugins: { [index: string]: IPlugin } = {};
 	constructor() {
 		super();
 		this.registry = new Registry(this);
@@ -59,7 +48,7 @@ export class Server extends EventEmitter {
 	}
 
 	private async initDefWorld() {
-		if (this.worlds.exist('default') == false) this.worlds.create('default', serverConfig.world.seed, serverConfig.world.generator);
+		if (this.worlds.exist('default') == false) this.worlds.create('default', this.config.world.seed, this.config.world.generator);
 		else this.worlds.load('default');
 	}
 
@@ -80,15 +69,14 @@ export class Server extends EventEmitter {
 			x.startCmd(this.registry.commands);
 		});
 
-		const config = configs.load('', 'config');
-		setConfig(config);
+		this.config = configs.load('', 'config');
 
 		permissions.loadGroups(configs.load('', 'permissions'));
-		configs.save('', 'config', serverConfig);
+		configs.save('', 'config', this.config);
 
-		this.emit('config-update', config);
+		this.emit('config-update', this.config);
 
-		if (serverConfig.loadPlugins) await this.loadPlugins();
+		if (this.config.loadPlugins) await this.loadPlugins();
 
 		this.registry._loadPalette();
 
@@ -100,17 +88,25 @@ export class Server extends EventEmitter {
 
 		await this.initDefWorld();
 
-		if (serverConfig.public) startHeartbeat();
+		if (this.config.public) this.heartbeatPing();
 
-		console.log('^yServer started on port: ^:' + serverConfig.port);
+		console.log('^yServer started on port: ^:' + this.config.port);
+	}
+
+	heartbeatPing() {
+		fetch(`http://${heartbeatServer}/addServer?ip=${this.config.address}:${this.config.port}`)
+			.then((res) => res.json())
+			.then((json) => {
+				this.heartbeatID = json.id;
+			});
 	}
 
 	async connectPlayer(socket: BaseSocket) {
 		socket.send('LoginRequest', {
-			name: serverConfig.name,
-			motd: serverConfig.motd,
+			name: this.config.name,
+			motd: this.config.motd,
 			protocol: serverProtocol,
-			maxplayers: serverConfig.maxplayers,
+			maxplayers: this.config.maxplayers,
 			numberplayers: this.playerCount,
 			software: `VoxelSrv-Server`,
 		});
@@ -120,7 +116,7 @@ export class Server extends EventEmitter {
 		socket.on('LoginResponse', (data) => {
 			loginTimeout = false;
 
-			if (this.playerCount >= serverConfig.maxplayers) {
+			if (this.playerCount >= this.config.maxplayers) {
 				socket.send('PlayerKick', { reason: 'Server is full', time: Date.now() });
 				socket.close();
 				return;
@@ -223,16 +219,17 @@ export class Server extends EventEmitter {
 	}
 
 	async loadPlugins() {
-		const pluginFiles = fs.readdirSync('./plugins');
-	
-		for (const file of pluginFiles) {
+		for (const file of this.config.plugins) {
 			try {
 				let plugin: IPlugin;
-				if (file.endsWith('.ts') || file.endsWith('.js')) plugin = await import(`${process.cwd()}/plugins/${file}`);
-				else if (fs.existsSync(`./plugins/${file}/index.ts`) || fs.existsSync(`${process.cwd()}/plugins/${file}/index.js`)) plugin = await import(`${process.cwd()}/plugins/${file}/`);
-				else continue;
+				plugin = (await import(file))(this);
+
 				if (!semver.satisfies(serverVersion, plugin.supported)) {
-					console.warn([new chat.ChatComponent('Plugin ', 'orange'), new chat.ChatComponent(file, 'yellow'),  new chat.ChatComponent(' might not support this version of server!', 'orange')]);
+					console.warn([
+						new chat.ChatComponent('Plugin ', 'orange'),
+						new chat.ChatComponent(file, 'yellow'),
+						new chat.ChatComponent(' might not support this version of server!', 'orange'),
+					]);
 					const min = semver.minVersion(plugin.supported);
 					const max = semver.maxSatisfying(plugin.supported);
 					if (!!min && !!max && (semver.gt(serverVersion, max) || semver.lt(serverVersion, min)))
@@ -240,12 +237,12 @@ export class Server extends EventEmitter {
 					else if (!!min && !max && semver.lt(serverVersion, min)) console.warn(`It only support versions ${min} or newer.`);
 					else if (!min && !!max && semver.gt(serverVersion, max)) console.warn(`It only support versions ${max} or older.`);
 				}
-	
-				plugin._start(this)
+
+				plugin._start(this);
 				this.plugins[plugin.name] = plugin;
 			} catch (e) {
 				console.error(`Can't load plugin ${file}!`);
-				console.obj(e)
+				console.obj(e);
 			}
 		}
 	}
@@ -259,11 +256,9 @@ function verifyLogin(data) {
 	return 0;
 }
 
-
 export interface IPlugin {
 	name: string;
 	version: string;
 	supported: string;
-	_start: (server: Server) => void 
 	[index: string]: any;
 }

@@ -1,6 +1,6 @@
 import * as types from './types';
 
-export const serverVersion = '0.2.0-beta.8.1';
+export const serverVersion = '0.2.0-beta.9';
 export const serverProtocol = 2;
 
 export interface IServerConfig {
@@ -19,7 +19,7 @@ export interface IServerConfig {
 		generator: string;
 		save: boolean;
 	};
-	loadPlugins: boolean;
+	plugins: string[];
 	[index: string]: any;
 }
 
@@ -39,13 +39,9 @@ export const serverDefaultConfig: IServerConfig = {
 		generator: 'normal',
 		save: true,
 	},
-	loadPlugins: true,
+	plugins: []
 };
 
-export let serverConfig: IServerConfig = serverDefaultConfig;
-
-export function setConfig(config: object) {
-	serverConfig = { ...serverDefaultConfig, ...config };
-}
-
 export const invalidNicknameRegex = new RegExp('[^a-zA-Z0-9_]');
+
+export const heartbeatServer = 'pb4.eu:9001';

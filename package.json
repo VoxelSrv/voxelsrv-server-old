@@ -1,9 +1,13 @@
 {
   "name": "voxelsrv-server",
-  "version": "0.2.0-beta",
-  "description": "Simple voxel game",
+  "version": "0.2.0-beta.8.2",
+  "description": "Server for VoxelSrv game",
+  "main": "dist/index.js",
+  "bin": {
+	  "voxelsrv-server": "./bin.js"
+  },
   "scripts": {
-    "start": "ts-node index.ts",
+    "start": "ts-node start.js",
     "docs": "typedoc --out docs/ src/"
   },
   "keywords": [
