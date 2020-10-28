@@ -15,6 +15,7 @@ export class BaseSocket {
 	}
 
 	close() {
+		this.emit('close', true)
 		this.listeners = {};
 	}
 
@@ -63,6 +64,7 @@ export class WSSocket extends BaseSocket {
 	}
 
 	close() {
+		this.emit('close', true)
 		this.listeners = {};
 		this.socket.close();
 	}

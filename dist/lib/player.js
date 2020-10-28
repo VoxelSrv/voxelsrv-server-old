@@ -116,7 +116,7 @@ class Player {
             this.world = this._players._worlds.get('default');
             this.inventory = new inventory_1.PlayerInventory(10, null, this._server);
             this.hookInventory = null;
-            this.permissions = new permissions_1.PlayerPermissionHolder({}, ['default']);
+            this.permissions = new permissions_1.PlayerPermissionHolder(this._server.permissions, {}, ['default']);
             this.movement = { ...exports.defaultPlayerMovement };
             this._server.emit('player-firstjoin', this);
             this._server.emit('player-join', this);
@@ -138,9 +138,9 @@ class Player {
             this.world = this._players._worlds.get(data.world);
             this.inventory = new inventory_1.PlayerInventory(10, data.inventory, this._server);
             if (!!data.permissions)
-                this.permissions = new permissions_1.PlayerPermissionHolder(data.permissions, [...data.permissionparents, 'default']);
+                this.permissions = new permissions_1.PlayerPermissionHolder(this._server.permissions, data.permissions, [...data.permissionparents, 'default']);
             else
-                this.permissions = new permissions_1.PlayerPermissionHolder({}, ['default']);
+                this.permissions = new permissions_1.PlayerPermissionHolder(this._server.permissions, {}, ['default']);
             this.movement = { ...exports.defaultPlayerMovement, ...data.movement };
             this._server.emit('player-join', this);
         }
@@ -219,6 +219,9 @@ class Player {
     }
     kick(reason) {
         this.sendPacket('PlayerKick', { reason: reason, date: Date.now() });
+        setTimeout(() => {
+            this.socket.close();
+        }, 50);
     }
     updateMovement(key, value) {
         this.sendPacket('PlayerUpdateMovement', { key: key, value: value });

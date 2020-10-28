@@ -78,7 +78,7 @@ class NormalGenerator {
         return y <= value ? this.blocks.stone : y <= this.waterLevel ? this.blocks.water : 0;
     }
     getBiome(x, z) {
-        const rand = this.hash(200, x, z) / 20;
+        const rand = this.hash(200, x, z) / 100;
         const wierdness = this.biomeNoise1(x / 600, z / 600) + 1 + rand;
         const heat = this.biomeNoise2(x / 300, z / 300) + 1 + rand;
         const water = this.biomeNoise3(x / 400, z / 400) + 1 + rand;

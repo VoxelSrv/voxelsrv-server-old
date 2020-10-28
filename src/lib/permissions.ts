@@ -1,28 +1,39 @@
+import type { Server } from "../server";
+
 type PermissionList = { [index: string]: boolean | null };
 type Parents = { [index: string]: PermissionHolder };
 
-export let groups = {};
 
-export function loadGroups(groups2) {
+export class PermissionManager {
+groups = {};
+_server: Server
+
+constructor(server) {
+	this._server
+}
+
+loadGroups(groups2) {
 	Object.entries(groups2).forEach((group: [string, any]) => {
-		groups[group[0]] = new PermissionHolder(group[1].permissions);
+		this.groups[group[0]] = new PermissionHolder(group[1].permissions);
 	});
 }
 
-export function createGroup(name: string, group: PermissionHolder) {
-	groups[name] = group;
+createGroup(name: string, group: PermissionHolder) {
+	this.groups[name] = group;
 }
 
-export function removeGroup(name: string) {
-	if (groups[name] != undefined) delete groups[name];
+removeGroup(name: string) {
+	if (this.groups[name] != undefined) delete this.groups[name];
 }
 
-export function getGroup(name: string) {
-	if (groups[name] != undefined) return groups[name];
+getGroup(name: string) {
+	if (this.groups[name] != undefined) return this.groups[name];
 }
 
-export function getAllGroups() {
-	return groups;
+getAllGroups() {
+	return this.groups;
+}
+
 }
 
 export class PermissionHolder {
@@ -70,10 +81,13 @@ export class PermissionHolder {
 export class PlayerPermissionHolder extends PermissionHolder {
 	parents: Parents = {};
 
-	constructor(permissions: PermissionList = {}, parents: Array<string> = []) {
+	_pm: PermissionManager
+	constructor(pm: PermissionManager, permissions: PermissionList = {}, parents: Array<string> = []) {
 		super(permissions);
+		this._pm = pm
+
 		parents.forEach((parent) => {
-			if (groups[parent] != undefined) this.parents[parent] = groups[parent];
+			if (pm.groups[parent] != undefined) this.parents[parent] = pm.groups[parent];
 		});
 	}
 
@@ -116,7 +130,7 @@ export class PlayerPermissionHolder extends PermissionHolder {
 	}
 
 	addParent(parent: string) {
-		if (groups[parent] != undefined) this.parents[parent] = groups[parent];
+		if (this._pm.groups[parent] != undefined) this.parents[parent] = this._pm.groups[parent];
 	}
 
 	removeParent(parent: string) {

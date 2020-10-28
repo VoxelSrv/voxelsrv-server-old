@@ -1,31 +1,32 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.PlayerPermissionHolder = exports.PermissionHolder = exports.getAllGroups = exports.getGroup = exports.removeGroup = exports.createGroup = exports.loadGroups = exports.groups = void 0;
-exports.groups = {};
-function loadGroups(groups2) {
-    Object.entries(groups2).forEach((group) => {
-        exports.groups[group[0]] = new PermissionHolder(group[1].permissions);
-    });
+exports.PlayerPermissionHolder = exports.PermissionHolder = exports.PermissionManager = void 0;
+class PermissionManager {
+    constructor(server) {
+        this.groups = {};
+        this._server;
+    }
+    loadGroups(groups2) {
+        Object.entries(groups2).forEach((group) => {
+            this.groups[group[0]] = new PermissionHolder(group[1].permissions);
+        });
+    }
+    createGroup(name, group) {
+        this.groups[name] = group;
+    }
+    removeGroup(name) {
+        if (this.groups[name] != undefined)
+            delete this.groups[name];
+    }
+    getGroup(name) {
+        if (this.groups[name] != undefined)
+            return this.groups[name];
+    }
+    getAllGroups() {
+        return this.groups;
+    }
 }
-exports.loadGroups = loadGroups;
-function createGroup(name, group) {
-    exports.groups[name] = group;
-}
-exports.createGroup = createGroup;
-function removeGroup(name) {
-    if (exports.groups[name] != undefined)
-        delete exports.groups[name];
-}
-exports.removeGroup = removeGroup;
-function getGroup(name) {
-    if (exports.groups[name] != undefined)
-        return exports.groups[name];
-}
-exports.getGroup = getGroup;
-function getAllGroups() {
-    return exports.groups;
-}
-exports.getAllGroups = getAllGroups;
+exports.PermissionManager = PermissionManager;
 class PermissionHolder {
     constructor(permissions = {}) {
         this.permissions = {};
@@ -61,12 +62,13 @@ class PermissionHolder {
 }
 exports.PermissionHolder = PermissionHolder;
 class PlayerPermissionHolder extends PermissionHolder {
-    constructor(permissions = {}, parents = []) {
+    constructor(pm, permissions = {}, parents = []) {
         super(permissions);
         this.parents = {};
+        this._pm = pm;
         parents.forEach((parent) => {
-            if (exports.groups[parent] != undefined)
-                this.parents[parent] = exports.groups[parent];
+            if (pm.groups[parent] != undefined)
+                this.parents[parent] = pm.groups[parent];
         });
     }
     check(perm) {
@@ -103,8 +105,8 @@ class PlayerPermissionHolder extends PermissionHolder {
         return null;
     }
     addParent(parent) {
-        if (exports.groups[parent] != undefined)
-            this.parents[parent] = exports.groups[parent];
+        if (this._pm.groups[parent] != undefined)
+            this.parents[parent] = this._pm.groups[parent];
     }
     removeParent(parent) {
         if (this.parents[parent] != undefined)

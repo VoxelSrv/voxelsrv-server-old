@@ -1,30 +1,8 @@
 "use strict";
-var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    Object.defineProperty(o, k2, { enumerable: true, get: function() { return m[k]; } });
-}) : (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    o[k2] = m[k];
-}));
-var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
-    Object.defineProperty(o, "default", { enumerable: true, value: v });
-}) : function(o, v) {
-    o["default"] = v;
-});
-var __importStar = (this && this.__importStar) || function (mod) {
-    if (mod && mod.__esModule) return mod;
-    var result = {};
-    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
-    __setModuleDefault(result, mod);
-    return result;
-};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.setup = void 0;
-const console = __importStar(require("../lib/console"));
 const chat_1 = require("../lib/chat");
-const configs = __importStar(require("../lib/configs"));
 const registry_1 = require("../lib/registry");
-const permissions_1 = require("../lib/permissions");
 function setup(registry, server) {
     async function helpCommand(executor, arg) {
         executor.send([new chat_1.ChatComponent('List of all commands:', '#9ed0ff', 'Lato-Bold')]);
@@ -69,17 +47,7 @@ function setup(registry, server) {
             executor.send([new chat_1.ChatComponent(`You don't have required permission to use this command!`, 'red')]);
             return;
         }
-        console.log('^rStopping server...');
-        configs.save('', 'permissions', permissions_1.groups);
-        Object.values(server.players.getAll()).forEach((player) => {
-            player.kick('Server close');
-        });
-        Object.values(server.worlds.worlds).forEach((world) => {
-            world.unload();
-        });
-        setTimeout(() => {
-            process.exit();
-        }, 1000);
+        server.stopServer();
     }
     registry.addCommand(new registry_1.Command('/stop', stopCommand, 'Stops the server (console only)'));
     function give(executor, arg) {

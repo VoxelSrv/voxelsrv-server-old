@@ -50,6 +50,8 @@ class PlainsBiome extends BaseBiome {
                 return this.block.grass;
             else if (upBlock == this.block.stone && up3Block != this.block.stone)
                 return this.block.dirt;
+            else if (upBlock == this.block.water)
+                return this.block.dirt;
             else
                 return this.block.stone;
         }
@@ -95,7 +97,11 @@ class IcePlainsBiome extends BaseBiome {
         if (block == this.block.stone) {
             if (upBlock == 0)
                 return this.block.grass_snow;
+            if (upBlock == this.block.water)
+                return this.block.dirt;
             else if (upBlock == this.block.stone && up3Block != this.block.stone)
+                return this.block.dirt;
+            else if (upBlock == this.block.water)
                 return this.block.dirt;
             else
                 return this.block.stone;
@@ -134,6 +140,8 @@ class ForestBiome extends BaseBiome {
         if (block == this.block.stone) {
             if (upBlock == 0)
                 return this.block.grass;
+            if (upBlock == this.block.water)
+                return this.block.dirt;
             else if (upBlock == this.block.stone && up3Block != this.block.stone)
                 return this.block.dirt;
             else
@@ -172,14 +180,17 @@ class DesertBiome extends BaseBiome {
         const block = get(y);
         const upBlock = get(y + 1);
         const up3Block = get(y + 3);
+        const up6Block = get(y + 6);
         const bottomBlock = get(y - 1);
         if (y == 0)
             return this.block.bedrock;
         else if (block == this.block.stone) {
-            if (!upBlock)
+            if (upBlock == this.block.water || upBlock == this.block.air)
                 return this.block.sand;
             else if (upBlock && !up3Block)
                 return this.block.sand;
+            else if (upBlock == this.block.stone && !up6Block)
+                return this.block.sandstone;
             else
                 return this.block.stone;
         }
@@ -227,6 +238,8 @@ class MountainsBiome extends BaseBiome {
                 return this.block.grass;
             else if (upBlock == this.block.stone && up3Block != this.block.stone)
                 return this.block.dirt;
+            else if (upBlock == this.block.water)
+                return this.block.dirt;
             return this.block.stone;
         }
         else if (bottomBlock == this.block.stone && block == 0) {
@@ -273,6 +286,8 @@ class IceMountainsBiome extends MountainsBiome {
             else if (upBlock == 0)
                 return this.block.grass_snow;
             else if (upBlock == this.block.stone && up3Block != this.block.stone)
+                return this.block.dirt;
+            else if (upBlock == this.block.water)
                 return this.block.dirt;
             return this.block.stone;
         }
@@ -330,6 +345,7 @@ class BeachBiome extends BaseBiome {
         const block = get(y);
         const upBlock = get(y + 1);
         const up3Block = get(y + 3);
+        const up6Block = get(y + 6);
         const bottomBlock = get(y - 1);
         if (y == 0)
             return this.block.bedrock;
@@ -338,6 +354,8 @@ class BeachBiome extends BaseBiome {
                 return this.block.sand;
             else if (upBlock == this.block.stone && up3Block != this.block.stone)
                 return this.block.sand;
+            else if (upBlock == this.block.stone && !up6Block)
+                return this.block.sandstone;
             else
                 return this.block.stone;
         }

@@ -2,7 +2,6 @@ import * as console from '../lib/console';
 import { ChatComponent, ChatMessage } from '../lib/chat';
 import * as configs from '../lib/configs';
 import { Registry, Command } from '../lib/registry';
-import { groups } from '../lib/permissions';
 import type { Server } from '../server';
 
 export function setup(registry: Registry, server: Server) {
@@ -52,20 +51,7 @@ export function setup(registry: Registry, server: Server) {
 			return;
 		}
 
-		console.log('^rStopping server...');
-		configs.save('', 'permissions', groups);
-
-		Object.values(server.players.getAll()).forEach((player) => {
-			player.kick('Server close');
-		});
-
-		Object.values(server.worlds.worlds).forEach((world) => {
-			world.unload();
-		});
-
-		setTimeout(() => {
-			process.exit();
-		}, 1000);
+		server.stopServer();
 	}
 
 	registry.addCommand(new Command('/stop', stopCommand, 'Stops the server (console only)'));

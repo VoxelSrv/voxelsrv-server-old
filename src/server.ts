@@ -5,7 +5,7 @@ import { Registry } from './lib/registry';
 import * as console from './lib/console';
 import { WorldManager } from './lib/worlds';
 import { Entity, EntityManager } from './lib/entity';
-import * as permissions from './lib/permissions';
+import { PermissionManager } from './lib/permissions';
 import * as configs from './lib/configs';
 import { Player, PlayerManager } from './lib/player';
 import * as chat from './lib/chat';
@@ -24,16 +24,22 @@ export class Server extends EventEmitter {
 	worlds: WorldManager;
 	players: PlayerManager;
 	entities: EntityManager;
+	permissions: PermissionManager;
 	config: IServerConfig;
 	heartbeatID: number;
+
+	status: string = 'none';
 
 	plugins: { [index: string]: IPlugin } = {};
 	constructor() {
 		super();
+		this.setMaxListeners(200);
+
+		this.status = 'starting';
 		this.registry = new Registry(this);
 		this.worlds = new WorldManager(this);
 		this.entities = new EntityManager(this);
-
+		this.permissions = new PermissionManager(this);
 		this.players = new PlayerManager(this);
 
 		this.startServer();
@@ -65,18 +71,21 @@ export class Server extends EventEmitter {
 				}
 			}
 		});
-		import('./lib/console-exec').then((x) => {
-			x.startCmd(this.registry.commands);
-		});
 
 		this.config = { ...serverDefaultConfig, ...configs.load('', 'config') };
 
-		permissions.loadGroups(configs.load('', 'permissions'));
+		this.permissions.loadGroups(configs.load('', 'permissions'));
 		configs.save('', 'config', this.config);
 
 		this.emit('config-update', this.config);
 
-		if (this.config.plugins.length > 0) await this.loadPlugins();
+		if (this.config.consoleInput) {
+			import('./lib/console-exec').then((x) => {
+				x.startCmd(this.registry.commands);
+			});
+		}
+
+		if (this.config.plugins.length > 0) this.loadPluginsList(this.config.plugins);
 
 		this.registry._loadPalette();
 
@@ -89,6 +98,8 @@ export class Server extends EventEmitter {
 		await this.initDefWorld();
 
 		if (this.config.public) this.heartbeatPing();
+
+		this.status = 'active';
 
 		console.log('^yServer started on port: ^:' + this.config.port);
 	}
@@ -138,13 +149,14 @@ export class Server extends EventEmitter {
 				});
 				socket.close();
 			} else {
-				this.emit('player-connection', id);
+				this.emit('player-connection', id, socket);
 				var player = this.players.create(id, data, socket);
 
 				socket.send('LoginSuccess', {
 					xPos: player.entity.data.position[0],
 					yPos: player.entity.data.position[1],
 					zPos: player.entity.data.position[2],
+
 					inventory: JSON.stringify(player.inventory.getObject()),
 					blocksDef: JSON.stringify(this.registry._blockRegistryObject),
 					itemsDef: JSON.stringify(this.registry._itemRegistryObject),
@@ -218,33 +230,69 @@ export class Server extends EventEmitter {
 		}, 10000);
 	}
 
-	async loadPlugins() {
-		for (const file of this.config.plugins) {
+	loadPluginsList(list: string[]) {
+		this.emit('plugin-load-list', list);
+		for (const file of list) {
 			try {
 				let plugin: IPlugin;
 				if (file.startsWith('local:')) plugin = require(`${process.cwd()}/plugins/${file.slice(6)}`)(this);
 				else plugin = require(file)(this);
-				
-				if (!semver.satisfies(serverVersion, plugin.supported)) {
-					console.warn([
-						new chat.ChatComponent('Plugin ', 'orange'),
-						new chat.ChatComponent(file, 'yellow'),
-						new chat.ChatComponent(' might not support this version of server!', 'orange'),
-					]);
-					const min = semver.minVersion(plugin.supported);
-					const max = semver.maxSatisfying(plugin.supported);
-					if (!!min && !!max && (semver.gt(serverVersion, max) || semver.lt(serverVersion, min)))
-						console.warn(`It only support versions from ${min} to ${max}.`);
-					else if (!!min && !max && semver.lt(serverVersion, min)) console.warn(`It only support versions ${min} or newer.`);
-					else if (!min && !!max && semver.gt(serverVersion, max)) console.warn(`It only support versions ${max} or older.`);
-				}
 
-				this.plugins[plugin.name] = plugin;
+				this.loadPlugin(plugin);
 			} catch (e) {
+				this.emit('plugin-error', file);
 				console.error(`Can't load plugin ${file}!`);
 				console.obj(e);
 			}
 		}
+	}
+
+	loadPlugin(plugin: IPlugin) {
+		if (!semver.satisfies(serverVersion, plugin.supported)) {
+			console.warn([
+				new chat.ChatComponent('Plugin ', 'orange'),
+				new chat.ChatComponent(plugin.name, 'yellow'),
+				new chat.ChatComponent(' might not support this version of server!', 'orange'),
+			]);
+			const min = semver.minVersion(plugin.supported);
+			const max = semver.maxSatisfying(plugin.supported);
+			if (!!min && !!max && (semver.gt(serverVersion, max) || semver.lt(serverVersion, min)))
+				console.warn(`It only support versions from ${min} to ${max}.`);
+			else if (!!min && !max && semver.lt(serverVersion, min)) console.warn(`It only support versions ${min} or newer.`);
+			else if (!min && !!max && semver.gt(serverVersion, max)) console.warn(`It only support versions ${max} or older.`);
+		}
+
+		this.emit('plugin-load', plugin);
+		this.plugins[plugin.name] = plugin;
+	}
+
+	stopServer() {
+		this.status = 'stopping';
+
+		this.emit('server-stop', this);
+
+		console.log('^rStopping server...');
+		configs.save('', 'permissions', this.permissions.groups);
+
+		Object.values(this.players.getAll()).forEach((player) => {
+			player.kick('Server close');
+		});
+
+		Object.values(this.worlds.worlds).forEach((world) => {
+			world.unload();
+		});
+
+		setTimeout(() => {
+			this.emit('server-stopped', this);
+			this.removeAllListeners();
+			Object.keys(this).forEach((x) => {
+				Object.keys(this[x]).forEach((y) => {
+					if (typeof this[x][y] == 'object') this[x][y] = null;
+				});
+
+				if (typeof this[x] == 'object') this[x] = null;
+			});
+		}, 2000);
 	}
 }
 

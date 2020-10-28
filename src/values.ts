@@ -1,6 +1,6 @@
 import * as types from './types';
 
-export const serverVersion = '0.2.0-beta.9';
+export const serverVersion = '0.2.0-beta.10';
 export const serverProtocol = 2;
 
 export interface IServerConfig {
@@ -20,6 +20,7 @@ export interface IServerConfig {
 		save: boolean;
 	};
 	plugins: string[];
+	consoleInput: boolean;
 	[index: string]: any;
 }
 
@@ -39,7 +40,8 @@ export const serverDefaultConfig: IServerConfig = {
 		generator: 'normal',
 		save: true,
 	},
-	plugins: []
+	plugins: [],
+	consoleInput: true,
 };
 
 export const invalidNicknameRegex = new RegExp('[^a-zA-Z0-9_]');

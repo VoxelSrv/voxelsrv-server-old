@@ -1,1 +1,1 @@
-require('./dist/index.js').startServer()
+require('./dist/index.js').startServer();

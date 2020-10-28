@@ -37,6 +37,9 @@ function startServer() {
     wss.on('connection', (s) => {
         server.connectPlayer(new socket_1.WSSocket(s));
     });
+    server.on('server-stopped', () => {
+        process.exit();
+    });
     return server;
 }
 exports.startServer = startServer;

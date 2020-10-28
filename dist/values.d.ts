@@ -1,5 +1,5 @@
 import * as types from './types';
-export declare const serverVersion = "0.2.0-beta.9";
+export declare const serverVersion = "0.2.0-beta.10";
 export declare const serverProtocol = 2;
 export interface IServerConfig {
     port: number;
@@ -18,6 +18,7 @@ export interface IServerConfig {
         save: boolean;
     };
     plugins: string[];
+    consoleInput: boolean;
     [index: string]: any;
 }
 export declare const serverDefaultConfig: IServerConfig;

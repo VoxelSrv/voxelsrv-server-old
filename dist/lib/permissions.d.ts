@@ -1,15 +1,20 @@
+import type { Server } from "../server";
 declare type PermissionList = {
     [index: string]: boolean | null;
 };
 declare type Parents = {
     [index: string]: PermissionHolder;
 };
-export declare let groups: {};
-export declare function loadGroups(groups2: any): void;
-export declare function createGroup(name: string, group: PermissionHolder): void;
-export declare function removeGroup(name: string): void;
-export declare function getGroup(name: string): any;
-export declare function getAllGroups(): {};
+export declare class PermissionManager {
+    groups: {};
+    _server: Server;
+    constructor(server: any);
+    loadGroups(groups2: any): void;
+    createGroup(name: string, group: PermissionHolder): void;
+    removeGroup(name: string): void;
+    getGroup(name: string): any;
+    getAllGroups(): {};
+}
 export declare class PermissionHolder {
     readonly permissions: PermissionList;
     constructor(permissions?: PermissionList);
@@ -20,7 +25,8 @@ export declare class PermissionHolder {
 }
 export declare class PlayerPermissionHolder extends PermissionHolder {
     parents: Parents;
-    constructor(permissions?: PermissionList, parents?: Array<string>);
+    _pm: PermissionManager;
+    constructor(pm: PermissionManager, permissions?: PermissionList, parents?: Array<string>);
     check(perm: string | string[]): null | boolean;
     checkStrict(perm: string | string[]): null | boolean;
     addParent(parent: string): void;

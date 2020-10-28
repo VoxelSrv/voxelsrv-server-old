@@ -49,6 +49,7 @@ export class PlainsBiome extends BaseBiome {
 		if (block == this.block.stone) {
 			if (upBlock == 0) return this.block.grass;
 			else if (upBlock == this.block.stone && up3Block != this.block.stone) return this.block.dirt;
+			else if (upBlock == this.block.water) return this.block.dirt;
 			else return this.block.stone;
 		} else if (bottomBlock == this.block.stone && block == 0) {
 			if (this.hash2(x, z) >= 0.9995) return this.feature.oakTree;
@@ -90,11 +91,12 @@ export class IcePlainsBiome extends BaseBiome {
 		if (y == 0) return this.block.bedrock;
 		if (block == this.block.stone) {
 			if (upBlock == 0) return this.block.grass_snow;
+			if (upBlock == this.block.water) return this.block.dirt;
 			else if (upBlock == this.block.stone && up3Block != this.block.stone) return this.block.dirt;
+			else if (upBlock == this.block.water) return this.block.dirt;
 			else return this.block.stone;
 		} else if (bottomBlock == this.block.stone && block == 0) {
-
-		} else if (bottomBlock == this.block.stone && block == this.block.water && upBlock == 0 && get(y - 2 ) == this.block.stone) { 
+		} else if (bottomBlock == this.block.stone && block == this.block.water && upBlock == 0 && get(y - 2) == this.block.stone) {
 			return this.block.ice;
 		}
 
@@ -130,6 +132,7 @@ export class ForestBiome extends BaseBiome {
 		if (y == 0) return this.block.bedrock;
 		if (block == this.block.stone) {
 			if (upBlock == 0) return this.block.grass;
+			if (upBlock == this.block.water) return this.block.dirt;
 			else if (upBlock == this.block.stone && up3Block != this.block.stone) return this.block.dirt;
 			else return this.block.stone;
 		} else if (bottomBlock == this.block.stone && block == 0) {
@@ -162,12 +165,14 @@ export class DesertBiome extends BaseBiome {
 		const block = get(y);
 		const upBlock = get(y + 1);
 		const up3Block = get(y + 3);
+		const up6Block = get(y + 6);
 		const bottomBlock = get(y - 1);
 
 		if (y == 0) return this.block.bedrock;
 		else if (block == this.block.stone) {
-			if (!upBlock) return this.block.sand;
+			if (upBlock == this.block.water || upBlock == this.block.air) return this.block.sand;
 			else if (upBlock && !up3Block) return this.block.sand;
+			else if (upBlock == this.block.stone && !up6Block) return this.block.sandstone;
 			else return this.block.stone;
 		} else if (bottomBlock == this.block.stone && block == 0) {
 			if (this.hash2(x, z) <= 0.01) return this.feature.cactus;
@@ -209,6 +214,8 @@ export class MountainsBiome extends BaseBiome {
 				if (upBlock == 0) return this.hash(x, y, z) <= 0.1 ? this.block.cobblestone : this.block.stone;
 			} else if (upBlock == 0) return this.block.grass;
 			else if (upBlock == this.block.stone && up3Block != this.block.stone) return this.block.dirt;
+			else if (upBlock == this.block.water) return this.block.dirt;
+
 			return this.block.stone;
 		} else if (bottomBlock == this.block.stone && block == 0) {
 			if (y > 120) return this.block.air;
@@ -225,11 +232,9 @@ export class MountainsBiome extends BaseBiome {
 		const mountaines = Math.abs(this.heightNoise(x / 80, z / 80));
 		const layer = this.heightNoise(x / 5, z / 5);
 
-
-		return minNegative(mountaines - (dim * dim2)/2) * 100 + layer + 80;
+		return minNegative(mountaines - (dim * dim2) / 2) * 100 + layer + 80;
 	}
 }
-
 
 export class IceMountainsBiome extends MountainsBiome {
 	id: string = 'icemountains';
@@ -249,18 +254,17 @@ export class IceMountainsBiome extends MountainsBiome {
 				if (upBlock == 0) return this.hash(x, y, z) <= 0.1 ? this.block.cobblestone : this.block.snow;
 			} else if (upBlock == 0) return this.block.grass_snow;
 			else if (upBlock == this.block.stone && up3Block != this.block.stone) return this.block.dirt;
+			else if (upBlock == this.block.water) return this.block.dirt;
+
 			return this.block.stone;
 		} else if (bottomBlock == this.block.stone && block == 0) {
-
-		} else if (bottomBlock == this.block.stone && block == this.block.water && upBlock == 0 && get(y - 2 ) == this.block.stone) { 
+		} else if (bottomBlock == this.block.stone && block == this.block.water && upBlock == 0 && get(y - 2) == this.block.stone) {
 			return this.block.ice;
 		}
-
 
 		return this.block.air;
 	}
 }
-
 
 export class OceanBiome extends BaseBiome {
 	id: string = 'ocean';
@@ -277,7 +281,6 @@ export class OceanBiome extends BaseBiome {
 			else if (upBlock == this.block.stone && up3Block != this.block.stone) return this.block.gravel;
 			else return this.block.stone;
 		} else if (bottomBlock == this.block.stone && block == 0) {
-
 		}
 
 		return this.block.air;
@@ -302,15 +305,16 @@ export class BeachBiome extends BaseBiome {
 		const block = get(y);
 		const upBlock = get(y + 1);
 		const up3Block = get(y + 3);
+		const up6Block = get(y + 6);
 		const bottomBlock = get(y - 1);
 
 		if (y == 0) return this.block.bedrock;
 		if (block == this.block.stone) {
 			if (upBlock == this.block.water || upBlock == this.block.air) return this.block.sand;
 			else if (upBlock == this.block.stone && up3Block != this.block.stone) return this.block.sand;
+			else if (upBlock == this.block.stone && !up6Block) return this.block.sandstone;
 			else return this.block.stone;
 		} else if (bottomBlock == this.block.stone && block == 0) {
-
 		}
 
 		return this.block.air;
@@ -327,7 +331,6 @@ export class BeachBiome extends BaseBiome {
 	}
 }
 
-
 function minNegative(x: number): number {
-	return x > 0 ? x : x / 3
+	return x > 0 ? x : x / 3;
 }
