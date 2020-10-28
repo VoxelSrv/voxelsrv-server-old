@@ -1,39 +1,37 @@
-import type { Server } from "../server";
+import type { Server } from '../server';
 
 type PermissionList = { [index: string]: boolean | null };
 type Parents = { [index: string]: PermissionHolder };
 
-
 export class PermissionManager {
-groups = {};
-_server: Server
+	groups = {};
+	_server: Server;
 
-constructor(server) {
-	this._server
-}
+	constructor(server) {
+		this._server = server;
+	}
 
-loadGroups(groups2) {
-	Object.entries(groups2).forEach((group: [string, any]) => {
-		this.groups[group[0]] = new PermissionHolder(group[1].permissions);
-	});
-}
+	loadGroups(groups2) {
+		Object.entries(groups2).forEach((group: [string, any]) => {
+			this.groups[group[0]] = new PermissionHolder(group[1].permissions);
+		});
+	}
 
-createGroup(name: string, group: PermissionHolder) {
-	this.groups[name] = group;
-}
+	createGroup(name: string, group: PermissionHolder) {
+		this.groups[name] = group;
+	}
 
-removeGroup(name: string) {
-	if (this.groups[name] != undefined) delete this.groups[name];
-}
+	removeGroup(name: string) {
+		if (this.groups[name] != undefined) delete this.groups[name];
+	}
 
-getGroup(name: string) {
-	if (this.groups[name] != undefined) return this.groups[name];
-}
+	getGroup(name: string) {
+		if (this.groups[name] != undefined) return this.groups[name];
+	}
 
-getAllGroups() {
-	return this.groups;
-}
-
+	getAllGroups() {
+		return this.groups;
+	}
 }
 
 export class PermissionHolder {
@@ -81,10 +79,10 @@ export class PermissionHolder {
 export class PlayerPermissionHolder extends PermissionHolder {
 	parents: Parents = {};
 
-	_pm: PermissionManager
+	_pm: PermissionManager;
 	constructor(pm: PermissionManager, permissions: PermissionList = {}, parents: Array<string> = []) {
 		super(permissions);
-		this._pm = pm
+		this._pm = pm;
 
 		parents.forEach((parent) => {
 			if (pm.groups[parent] != undefined) this.parents[parent] = pm.groups[parent];
@@ -119,7 +117,7 @@ export class PlayerPermissionHolder extends PermissionHolder {
 		const pathString: string = Array.isArray(perm) ? perm.join('.') : perm;
 
 		if (this.permissions[pathString] != undefined) return this.permissions[pathString];
-		
+
 		let returned = null;
 		for (let x in this.parents) {
 			returned = this.parents[x].checkStrict(perm);

@@ -6,7 +6,9 @@ export declare class BaseBiome {
         [index: string]: number;
     };
     heightNoise: Noise2D;
+    heightNoise2: Noise2D;
     caveNoise: Noise3D;
+    caveNoise2: Noise3D;
     seed: number;
     hash: hash;
     hash2: hash;
@@ -22,14 +24,14 @@ export declare class BaseBiome {
 export declare class PlainsBiome extends BaseBiome {
     id: string;
     height: number;
+    mountainNoise: Noise2D;
+    constructor(blocks: any, feature: any, seed: any);
     getBlock(x: number, y: number, z: number, get: Function): number;
     getHeightMap(x: number, y: number, z: number): number;
 }
-export declare class IcePlainsBiome extends BaseBiome {
+export declare class IcePlainsBiome extends PlainsBiome {
     id: string;
-    height: number;
     getBlock(x: number, y: number, z: number, get: Function): number;
-    getHeightMap(x: number, y: number, z: number): number;
 }
 export declare class ForestBiome extends BaseBiome {
     id: string;
@@ -42,6 +44,8 @@ export declare class ForestBiome extends BaseBiome {
 export declare class DesertBiome extends BaseBiome {
     id: string;
     height: number;
+    mountainNoise: Noise2D;
+    constructor(blocks: any, feature: any, seed: any);
     getBlock(x: number, y: number, z: number, get: Function): number;
     getHeightMap(x: number, y: number, z: number): number;
 }

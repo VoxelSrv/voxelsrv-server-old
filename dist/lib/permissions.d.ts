@@ -1,4 +1,4 @@
-import type { Server } from "../server";
+import type { Server } from '../server';
 declare type PermissionList = {
     [index: string]: boolean | null;
 };

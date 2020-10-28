@@ -15,7 +15,9 @@ class BaseBiome {
         this.block = blocks;
         this.feature = feature;
         this.heightNoise = open_simplex_noise_1.makeNoise2D(Math.round(seed * 60 * Math.sin(seed ^ 3) * 10000));
+        this.heightNoise2 = open_simplex_noise_1.makeNoise2D(Math.round(seed * 60 * 10000));
         this.caveNoise = open_simplex_noise_1.makeNoise3D(Math.round(seed * Math.sin(seed ^ 2) * 10000));
+        this.caveNoise2 = open_simplex_noise_1.makeNoise3D(Math.round(seed * 10000));
         this.hash = murmur_numbers_1.default(seed ^ (2 * 10000));
         this.hash2 = murmur_numbers_1.default(seed * 3 * 10000);
     }
@@ -33,10 +35,11 @@ class BaseBiome {
 }
 exports.BaseBiome = BaseBiome;
 class PlainsBiome extends BaseBiome {
-    constructor() {
-        super(...arguments);
+    constructor(blocks, feature, seed) {
+        super(blocks, feature, seed);
         this.id = 'plains';
         this.height = 120;
+        this.mountainNoise = open_simplex_noise_1.makeNoise2D(seed * 5238 + 132);
     }
     getBlock(x, y, z, get) {
         const block = get(y);
@@ -69,23 +72,23 @@ class PlainsBiome extends BaseBiome {
     }
     getHeightMap(x, y, z) {
         const dim = this.caveNoise(x / 70, y / 70, z / 70);
-        const dim2 = this.caveNoise(x / 40, y / 40, z / 40);
+        const dim2 = this.caveNoise2(x / 40, y / 40, z / 40);
         const layer1 = this.heightNoise(x / 120, z / 120) + 0.4;
-        const layer2 = this.heightNoise(x / 10, z / 10);
+        const layer2 = this.heightNoise2(x / 10, z / 10);
+        const mountain = this.mountainNoise(x / 60, z / 60) + 1;
         const h = layer1 + (layer2 + 1) / 4;
         //lerp(noise1, noise2, clamp(noiseBlend * blendAmplitide)) * mainAmplitude
         //const r = (dim * (1 - layer1) + dim2 * layer1) * (60 * Math.abs(layer2)) + 50;
         //const r = Math.floor((dim + dim2 + layer1 + layer2 - 3) / 8) + 50
         //const r = Math.floor((dim * 30 + dim2 * 20 + layer1 * 20 + layer2 * 10 - 3) / 65) + 50
-        return (dim * (1 - h) + dim2 * h) * 14 + 70;
+        return (dim * (1 - h) + dim2 * h) * 14 * mountain + 70;
     }
 }
 exports.PlainsBiome = PlainsBiome;
-class IcePlainsBiome extends BaseBiome {
+class IcePlainsBiome extends PlainsBiome {
     constructor() {
         super(...arguments);
         this.id = 'iceplains';
-        this.height = 120;
     }
     getBlock(x, y, z, get) {
         const block = get(y);
@@ -112,14 +115,6 @@ class IcePlainsBiome extends BaseBiome {
             return this.block.ice;
         }
         return this.block.air;
-    }
-    getHeightMap(x, y, z) {
-        const dim = this.caveNoise(x / 70, y / 70, z / 70);
-        const dim2 = this.caveNoise(x / 40, y / 40, z / 40);
-        const layer1 = this.heightNoise(x / 120, z / 120) + 0.4;
-        const layer2 = this.heightNoise(x / 10, z / 10) + 0.1;
-        const h = layer1 + (layer2 + 1) / 3;
-        return (dim * (1 - h) + dim2 * h) * 14 + 70;
     }
 }
 exports.IcePlainsBiome = IcePlainsBiome;
@@ -161,9 +156,9 @@ class ForestBiome extends BaseBiome {
     }
     getHeightMap(x, y, z) {
         const dim = this.caveNoise(x / 70, y / 70, z / 70);
-        const dim2 = this.caveNoise(x / 40, y / 40, z / 40);
+        const dim2 = this.caveNoise2(x / 40, y / 40, z / 40);
         const layer1 = this.heightNoise(x / 120, z / 120);
-        const layer2 = this.heightNoise(x / 10, z / 10);
+        const layer2 = this.heightNoise2(x / 10, z / 10);
         const mountain = this.mountainNoise(x / 60, z / 60) + 1;
         const h = layer1 + (layer2 + 1) / 4;
         return (dim * (1 - h) + dim2 * h) * (14 + mountain * 10) + 72;
@@ -171,10 +166,11 @@ class ForestBiome extends BaseBiome {
 }
 exports.ForestBiome = ForestBiome;
 class DesertBiome extends BaseBiome {
-    constructor() {
-        super(...arguments);
+    constructor(blocks, feature, seed) {
+        super(blocks, feature, seed);
         this.id = 'desert';
         this.height = 120;
+        this.mountainNoise = open_simplex_noise_1.makeNoise2D(seed * 5238 + 132);
     }
     getBlock(x, y, z, get) {
         const block = get(y);
@@ -204,9 +200,10 @@ class DesertBiome extends BaseBiome {
     }
     getHeightMap(x, y, z) {
         const dim = this.caveNoise(x / 70, y / 70, z / 70);
-        const dim2 = this.caveNoise(x / 40, y / 40, z / 40);
+        const dim2 = this.caveNoise2(x / 40, y / 40, z / 40) + 0.2;
         const layer1 = this.heightNoise(x / 120, z / 120);
-        return Math.abs(dim * (1 - layer1) + dim2 * layer1) * 24 + 73;
+        const mountain = this.mountainNoise(x / 60, z / 60) + 1;
+        return Math.abs(dim * (1 - layer1) + dim2 * layer1) * 24 * mountain + 73;
     }
 }
 exports.DesertBiome = DesertBiome;

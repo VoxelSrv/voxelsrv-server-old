@@ -4,7 +4,7 @@ exports.PlayerPermissionHolder = exports.PermissionHolder = exports.PermissionMa
 class PermissionManager {
     constructor(server) {
         this.groups = {};
-        this._server;
+        this._server = server;
     }
     loadGroups(groups2) {
         Object.entries(groups2).forEach((group) => {

@@ -5,7 +5,9 @@ export class BaseBiome {
 	id: string = 'base';
 	block: { [index: string]: number } = {};
 	heightNoise: Noise2D;
+	heightNoise2: Noise2D;
 	caveNoise: Noise3D;
+	caveNoise2: Noise3D;
 	seed: number;
 	hash: hash;
 	hash2: hash;
@@ -16,7 +18,9 @@ export class BaseBiome {
 		this.block = blocks;
 		this.feature = feature;
 		this.heightNoise = makeNoise2D(Math.round(seed * 60 * Math.sin(seed ^ 3) * 10000));
+		this.heightNoise2 = makeNoise2D(Math.round(seed * 60 * 10000));
 		this.caveNoise = makeNoise3D(Math.round(seed * Math.sin(seed ^ 2) * 10000));
+		this.caveNoise2 = makeNoise3D(Math.round(seed * 10000));
 		this.hash = hash(seed ^ (2 * 10000));
 		this.hash2 = hash(seed * 3 * 10000);
 	}
@@ -39,6 +43,11 @@ export class BaseBiome {
 export class PlainsBiome extends BaseBiome {
 	id: string = 'plains';
 	height: number = 120;
+	mountainNoise: Noise2D;
+	constructor(blocks, feature, seed) {
+		super(blocks, feature, seed);
+		this.mountainNoise = makeNoise2D(seed * 5238 + 132);
+	}
 	getBlock(x: number, y: number, z: number, get: Function): number {
 		const block = get(y);
 		const upBlock = get(y + 1);
@@ -63,9 +72,11 @@ export class PlainsBiome extends BaseBiome {
 
 	getHeightMap(x: number, y: number, z: number): number {
 		const dim = this.caveNoise(x / 70, y / 70, z / 70);
-		const dim2 = this.caveNoise(x / 40, y / 40, z / 40);
+		const dim2 = this.caveNoise2(x / 40, y / 40, z / 40);
+
 		const layer1 = this.heightNoise(x / 120, z / 120) + 0.4;
-		const layer2 = this.heightNoise(x / 10, z / 10);
+		const layer2 = this.heightNoise2(x / 10, z / 10);
+		const mountain = this.mountainNoise(x / 60, z / 60) + 1;
 
 		const h = layer1 + (layer2 + 1) / 4;
 
@@ -75,13 +86,12 @@ export class PlainsBiome extends BaseBiome {
 		//const r = Math.floor((dim + dim2 + layer1 + layer2 - 3) / 8) + 50
 		//const r = Math.floor((dim * 30 + dim2 * 20 + layer1 * 20 + layer2 * 10 - 3) / 65) + 50
 
-		return (dim * (1 - h) + dim2 * h) * 14 + 70;
+		return (dim * (1 - h) + dim2 * h) * 14 * mountain + 70;
 	}
 }
 
-export class IcePlainsBiome extends BaseBiome {
+export class IcePlainsBiome extends PlainsBiome {
 	id: string = 'iceplains';
-	height: number = 120;
 	getBlock(x: number, y: number, z: number, get: Function): number {
 		const block = get(y);
 		const upBlock = get(y + 1);
@@ -101,17 +111,6 @@ export class IcePlainsBiome extends BaseBiome {
 		}
 
 		return this.block.air;
-	}
-
-	getHeightMap(x: number, y: number, z: number): number {
-		const dim = this.caveNoise(x / 70, y / 70, z / 70);
-		const dim2 = this.caveNoise(x / 40, y / 40, z / 40);
-		const layer1 = this.heightNoise(x / 120, z / 120) + 0.4;
-		const layer2 = this.heightNoise(x / 10, z / 10) + 0.1;
-
-		const h = layer1 + (layer2 + 1) / 3;
-
-		return (dim * (1 - h) + dim2 * h) * 14 + 70;
 	}
 }
 
@@ -147,9 +146,9 @@ export class ForestBiome extends BaseBiome {
 
 	getHeightMap(x: number, y: number, z: number): number {
 		const dim = this.caveNoise(x / 70, y / 70, z / 70);
-		const dim2 = this.caveNoise(x / 40, y / 40, z / 40);
+		const dim2 = this.caveNoise2(x / 40, y / 40, z / 40);
 		const layer1 = this.heightNoise(x / 120, z / 120);
-		const layer2 = this.heightNoise(x / 10, z / 10);
+		const layer2 = this.heightNoise2(x / 10, z / 10);
 		const mountain = this.mountainNoise(x / 60, z / 60) + 1;
 
 		const h = layer1 + (layer2 + 1) / 4;
@@ -161,6 +160,11 @@ export class ForestBiome extends BaseBiome {
 export class DesertBiome extends BaseBiome {
 	id: string = 'desert';
 	height: number = 120;
+	mountainNoise: Noise2D;
+	constructor(blocks, feature, seed) {
+		super(blocks, feature, seed);
+		this.mountainNoise = makeNoise2D(seed * 5238 + 132);
+	}
 	getBlock(x: number, y: number, z: number, get: Function): number {
 		const block = get(y);
 		const upBlock = get(y + 1);
@@ -184,10 +188,12 @@ export class DesertBiome extends BaseBiome {
 
 	getHeightMap(x: number, y: number, z: number): number {
 		const dim = this.caveNoise(x / 70, y / 70, z / 70);
-		const dim2 = this.caveNoise(x / 40, y / 40, z / 40);
+		const dim2 = this.caveNoise2(x / 40, y / 40, z / 40) + 0.2;
 		const layer1 = this.heightNoise(x / 120, z / 120);
+		const mountain = this.mountainNoise(x / 60, z / 60) + 1;
 
-		return Math.abs(dim * (1 - layer1) + dim2 * layer1) * 24 + 73;
+
+		return Math.abs(dim * (1 - layer1) + dim2 * layer1) * 24 * mountain + 73;
 	}
 }
 
