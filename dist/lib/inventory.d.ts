@@ -3,14 +3,18 @@ import { IItemStack, ItemStack } from './registry';
 import { EventEmitter } from 'events';
 import type { Server } from '../server';
 export interface InventoryObject {
-    items: any;
+    items: {
+        [index: number]: any;
+    };
     size: number;
     tempslot?: IItemStack;
     selected?: number;
 }
 export declare type InventoryTypes = PlayerInventory | Inventory | ArmorInventory;
 export declare class Inventory {
-    items: object;
+    items: {
+        [index: number]: any;
+    };
     readonly size: number;
     lastUpdate: number;
     readonly event: EventEmitter;

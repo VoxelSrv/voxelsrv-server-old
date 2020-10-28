@@ -6,7 +6,7 @@ import { isThisTypeNode } from 'typescript';
 // Generic Inventory for mobs/block like chest, etc
 
 export interface InventoryObject {
-	items: any;
+	items: {[index: number]: any};
 	size: number;
 	tempslot?: IItemStack;
 	selected?: number;
@@ -15,7 +15,7 @@ export interface InventoryObject {
 export type InventoryTypes = PlayerInventory | Inventory | ArmorInventory;
 
 export class Inventory {
-	items: object;
+	items: {[index: number]: any};
 	readonly size: number;
 	lastUpdate: number;
 	readonly event: EventEmitter;

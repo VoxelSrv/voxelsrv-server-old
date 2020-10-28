@@ -1,4 +1,5 @@
 Official server software of VoxelSrv.
+
 For game client, check this repo: https://github.com/VoxelSrv/voxelsrv
 
 If you are interested with the project check out our [Discord server](https://discord.gg/K9PdsDh)!
