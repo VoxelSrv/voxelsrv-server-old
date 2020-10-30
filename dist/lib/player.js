@@ -35,7 +35,10 @@ class PlayerManager {
         this._entities = server.entities;
         this._worlds = server.worlds;
         server.on('entity-create', (data) => {
-            this.sendPacketAll('EntityCreate', data);
+            this.sendPacketAll('EntityCreate', {
+                uuid: data.uuid,
+                data: JSON.stringify(data.entity.getObject().data),
+            });
         });
         server.on('entity-move', (data) => {
             this.sendPacketAll('EntityMove', data);
