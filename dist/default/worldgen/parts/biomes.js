@@ -253,8 +253,9 @@ class MountainsBiome extends BaseBiome {
         const dim = this.caveNoise(x / 180, y / 80, z / 180);
         const dim2 = this.caveNoise(x / 20, y / 20, z / 20);
         const mountaines = Math.abs(this.heightNoise(x / 80, z / 80));
-        const layer = this.heightNoise(x / 5, z / 5);
-        return minNegative(mountaines - (dim * dim2) / 2) * 100 + layer + 80;
+        const layer = this.heightNoise(x / 5, z / 5) + 1;
+        const layer2 = this.heightNoise2(x / 10, z / 10) + 1;
+        return minNegative(mountaines - (dim * dim2) / 2) * 100 + layer * 2 + layer2 * 3 + 80;
     }
 }
 exports.MountainsBiome = MountainsBiome;

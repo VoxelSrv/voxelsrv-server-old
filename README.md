@@ -1,4 +1,4 @@
-Official server software of VoxelSrv.
+Official server software for VoxelSrv.
 
 For game client, check this repo: https://github.com/VoxelSrv/voxelsrv
 

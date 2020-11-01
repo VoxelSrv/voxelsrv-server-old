@@ -211,7 +211,7 @@ export class World {
 		});
 	}
 
-	readChunk(id: types.XZ): { chunk: types.IView3duint16; metadata: format.Ichunk } {
+	readChunk(id: types.XZ): { chunk: types.IView3duint16; metadata: any } {
 		const idS = id.toString();
 
 		const exist = this.existChunk(id);
@@ -302,7 +302,7 @@ export class World {
 export class Chunk {
 	id: types.XZ;
 	data: types.IView3duint16;
-	metadata: object;
+	metadata: any;
 	lastUse: number;
 	forceload: boolean;
 

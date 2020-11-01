@@ -82,8 +82,10 @@ export default class NormalGenerator {
 		const water = this.biomeNoise3(x / 400, z / 400) + 1 + rand;
 
 		if (water > 1.3) return this.biomes.ocean;
-		else if (water > 1.15) return this.biomes.beach;
-		else if (heat > 1.5) {
+		else if (water > 1.15) {
+			if (wierdness > 1.5) return this.biomes.mountains;
+			return this.biomes.beach;
+		} else if (heat > 1.5) {
 			return this.biomes.desert;
 		} else if (heat > 0.5) {
 			if (wierdness > 1.5) return this.biomes.mountains;

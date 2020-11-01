@@ -21,10 +21,17 @@ var __importStar = (this && this.__importStar) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.save = exports.load = void 0;
 const fs = __importStar(require("fs"));
+const console_1 = require("./console");
 function load(namespace, config) {
     if (fs.existsSync(`./config/${namespace}/${config}.json`)) {
-        const data = fs.readFileSync(`./config/${namespace}/${config}.json`);
-        return JSON.parse(data.toString());
+        try {
+            const data = fs.readFileSync(`./config/${namespace}/${config}.json`);
+            return JSON.parse(data.toString());
+        }
+        catch (e) {
+            console_1.error(`Invalid config file (./config/${namespace}/${config}.json)!\n${e}`);
+            return {};
+        }
     }
     else
         return {};
@@ -35,7 +42,7 @@ function save(namespace, config, data) {
         fs.mkdirSync(`./config/${namespace}`, { recursive: true });
     fs.writeFile(`./config/${namespace}/${config}.json`, JSON.stringify(data, null, 2), function (err) {
         if (err)
-            console.error(`Cant save config ${namespace}/${config}! Reason: ${err}`);
+            console_1.error(`Cant save config ${namespace}/${config}! Reason: ${err}`);
     });
 }
 exports.save = save;

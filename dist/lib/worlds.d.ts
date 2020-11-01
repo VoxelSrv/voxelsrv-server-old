@@ -1,6 +1,5 @@
 import * as types from '../types';
 import type { Server } from '../server';
-import * as format from '../formats/world';
 import { Block } from './registry';
 export declare class WorldManager {
     readonly chunkWitdh = 32;
@@ -46,7 +45,7 @@ export declare class World {
     saveChunk(id: types.XZ): Promise<void>;
     readChunk(id: types.XZ): {
         chunk: types.IView3duint16;
-        metadata: format.Ichunk;
+        metadata: any;
     };
     unloadChunk(id: types.XZ): void;
     getSettings(): object;
@@ -58,7 +57,7 @@ export declare class World {
 export declare class Chunk {
     id: types.XZ;
     data: types.IView3duint16;
-    metadata: object;
+    metadata: any;
     lastUse: number;
     forceload: boolean;
     constructor(id: types.XZ, blockdata: types.IView3duint16, metadata: object, bool: boolean);
