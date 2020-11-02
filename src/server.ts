@@ -113,6 +113,7 @@ export class Server extends EventEmitter {
 	}
 
 	async connectPlayer(socket: BaseSocket) {
+		if (this.status != 'active') return;
 		socket.send('LoginRequest', {
 			name: this.config.name,
 			motd: this.config.motd,

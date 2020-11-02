@@ -109,6 +109,8 @@ class Server extends events_1.EventEmitter {
         });
     }
     async connectPlayer(socket) {
+        if (this.status != 'active')
+            return;
         socket.send('LoginRequest', {
             name: this.config.name,
             motd: this.config.motd,

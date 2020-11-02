@@ -161,13 +161,14 @@ class Player {
         this.updateChunks();
         this._chunksInterval = setInterval(async () => {
             if (this._chunksToSend.length > 0) {
+                const chunk = await this.world.getChunk(this._chunksToSend[0]);
                 this.sendPacket('WorldChunkLoad', {
                     x: this._chunksToSend[0][0],
                     y: 0,
                     z: this._chunksToSend[0][1],
                     type: true,
                     compressed: false,
-                    data: (await this.world.getChunk(this._chunksToSend[0])).data.data,
+                    data: Buffer.from(chunk.data.data.buffer, chunk.data.data.byteOffset),
                 });
                 this._chunksToSend.shift();
             }

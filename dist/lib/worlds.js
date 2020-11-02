@@ -180,7 +180,7 @@ class World {
         if (chunk == undefined || chunk.metadata == undefined || chunk.data == undefined)
             return;
         const message = format.chunk.create({
-            blocks: chunk.data.data,
+            blocks: Buffer.from(chunk.data.data.buffer, chunk.data.data.byteOffset),
             version: chunk.metadata.ver,
             stage: chunk.metadata.stage,
         });
@@ -198,9 +198,9 @@ class World {
         let meta = null;
         if (exist) {
             const data = fs.readFileSync(this.chunkFolder + '/' + idS + '.chk');
-            const array = pako.inflate(data, new Uint16Array(this._worldMen.chunkWitdh * this._worldMen.chunkHeight * this._worldMen.chunkWitdh));
+            const array = pako.inflate(data);
             const decoded = format.chunk.decode(array);
-            chunk = new ndarray(decoded.blocks, [this._worldMen.chunkWitdh, this._worldMen.chunkHeight, this._worldMen.chunkWitdh]);
+            chunk = new ndarray(new Uint16Array(decoded.blocks.buffer, decoded.blocks.byteOffset), [this._worldMen.chunkWitdh, this._worldMen.chunkHeight, this._worldMen.chunkWitdh]);
             meta = { stage: decoded.stage, version: decoded.version };
         }
         return { chunk: chunk, metadata: meta };
