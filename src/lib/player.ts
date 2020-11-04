@@ -465,8 +465,8 @@ export class Player {
 		else {
 			const blockID = this.world.chunks[local.id.toString()].data.get(Math.floor(local.pos[0]), Math.floor(local.pos[1]), Math.floor(local.pos[2]))
 			const block = this._server.registry.blocks[this._server.registry.blockIDmap[blockID]]
-			
-			if (block.options.solid != false && block.options.fluid != true) data.cancel = true;
+			if (block == undefined || block.options == undefined) data.cancel = true;
+			else if (block.options.solid != false && block.options.fluid != true) data.cancel = true;
 		}
 		const pos = this.entity.data.position;
 		const move: types.XYZ = [data.x, data.y, data.z];
