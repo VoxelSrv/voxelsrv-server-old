@@ -1,5 +1,5 @@
 import type { EntityManager, Entity } from './entity';
-import type { WorldManager, World } from './worlds';
+import { WorldManager, World } from './worlds';
 import type { Server } from '../server';
 import * as types from '../types';
 import * as chat from './chat';
@@ -39,6 +39,15 @@ export declare class Player {
     permissions: PlayerPermissionHolder;
     chunks: types.anyobject;
     movement: PlayerMovement;
+    crafting: {
+        items: {
+            0: any;
+            1: any;
+            2: any;
+            3: any;
+        };
+        result: any;
+    };
     _chunksToSend: any[];
     _chunksInterval: any;
     _players: PlayerManager;

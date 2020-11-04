@@ -76,7 +76,7 @@ export class World {
 	seed: number;
 	generator: any;
 	version: number;
-	chunks: object;
+	chunks: {[index: string]: Chunk};
 	entities: object;
 	folder: string;
 	chunkFolder: string;

@@ -184,11 +184,6 @@ class PlayerInventory extends Inventory {
                     slot: x,
                     type: type,
                 });
-                inv.event.emit('slot-update', {
-                    data: inv.items[x],
-                    slot: x,
-                    type: 'main',
-                });
                 this.event.emit('slot-update', {
                     data: this.tempslot,
                     slot: -1,
@@ -203,11 +198,6 @@ class PlayerInventory extends Inventory {
                     data: inv.items[x],
                     slot: x,
                     type: type,
-                });
-                inv.event.emit('slot-update', {
-                    data: inv.items[x],
-                    slot: x,
-                    type: 'main',
                 });
                 this.event.emit('slot-update', {
                     data: this.tempslot,
@@ -261,11 +251,6 @@ class PlayerInventory extends Inventory {
                 data: inv.items[x],
                 slot: x,
                 type: type,
-            });
-            inv.event.emit('slot-update', {
-                data: inv.items[x],
-                slot: x,
-                type: 'main',
             });
             this.event.emit('slot-update', {
                 data: this.tempslot,

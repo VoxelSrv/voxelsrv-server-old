@@ -35,7 +35,7 @@ class Registry {
         this.finalized = false;
         this._server = null;
         this._server = server;
-        this.blocks['air'] = new Block('air', -1, '', {}, 0, 0, 'any');
+        this.blocks['air'] = new Block('air', -1, '', { solid: false }, 0, 0, 'any');
         this.blocks['air'].rawid = 0;
         this.blockIDmap[0] = 'air';
         this.blockPalette['air'] = 0;

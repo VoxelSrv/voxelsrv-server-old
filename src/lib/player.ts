@@ -2,7 +2,7 @@ import * as vec from 'gl-vec3';
 import * as pako from 'pako';
 
 import type { EntityManager, Entity } from './entity';
-import type { WorldManager, World, Chunk } from './worlds';
+import { WorldManager, World,  globalToChunk } from './worlds';
 import type { ItemStack, Registry } from './registry';
 import type { Server } from '../server';
 import * as fs from 'fs';
@@ -104,6 +104,10 @@ export class Player {
 	permissions: PlayerPermissionHolder;
 	chunks: types.anyobject;
 	movement: PlayerMovement;
+	crafting = {
+		items: { 0: null, 1: null, 2: null, 3: null },
+		result: null,
+	};
 	_chunksToSend = [];
 	_chunksInterval: any;
 
@@ -195,7 +199,7 @@ export class Player {
 
 		this._chunksInterval = setInterval(async () => {
 			if (this._chunksToSend.length > 0) {
-				const chunk = await this.world.getChunk(this._chunksToSend[0])
+				const chunk = await this.world.getChunk(this._chunksToSend[0]);
 				this.sendPacket('WorldChunkLoad', {
 					x: this._chunksToSend[0][0],
 					y: 0,
@@ -265,9 +269,9 @@ export class Player {
 
 	kick(reason: string) {
 		this.sendPacket('PlayerKick', { reason: reason, date: Date.now() });
-		setTimeout(()=> {
+		setTimeout(() => {
 			this.socket.close();
-		}, 50)
+		}, 50);
 	}
 
 	updateMovement(key: string, value: number) {
@@ -398,13 +402,21 @@ export class Player {
 				inventory = this.entity.data.armor;
 				type = 'armor';
 				break;
+			case 'crafting':
+				inventory = this.crafting;
+				type = 'crafting';
+				break;
+			default:
+				this.kick('Invalid inventory');
+				return;
 		}
 
-		if (-2 < data.slot && data.slot <= this.inventory.size) {
+		if (-2 < data.slot && data.slot <= this.inventory.size && (type != 'crafting' || data.slot < 4)) {
 			if (data.type == 'left') this.inventory.action_left(inventory, data.slot, type);
 			else if (data.type == 'right') this.inventory.action_right(inventory, data.slot, type);
 			else if (data.type == 'switch') this.inventory.action_switch(data.slot, data.slot2);
 			else if (-1 < data.slot && data.slot < 9 && data.type == 'select') this.inventory.select(data.slot);
+		} else if (type == 'crafting' && data.slot < 4) {
 		}
 	}
 
@@ -445,9 +457,17 @@ export class Player {
 	action_move(data: pClient.IActionMove & { cancel: boolean }) {
 		if (data.x == undefined || data.y == undefined || data.z == undefined) return;
 
-		data.cancel = false;
-		if (this.world.chunks[this.entity.chunkID.toString()] == undefined) data.cancel = true;
+		const local = globalToChunk([data.x, data.y, data.z]);
 
+		data.cancel = false;
+
+		if (this.world.chunks[local.id.toString()] == undefined) data.cancel = true;
+		else {
+			const blockID = this.world.chunks[local.id.toString()].data.get(Math.floor(local.pos[0]), Math.floor(local.pos[1]), Math.floor(local.pos[2]))
+			const block = this._server.registry.blocks[this._server.registry.blockIDmap[blockID]]
+			
+			if (block.options.solid != false && block.options.fluid != true) data.cancel = true;
+		}
 		const pos = this.entity.data.position;
 		const move: types.XYZ = [data.x, data.y, data.z];
 

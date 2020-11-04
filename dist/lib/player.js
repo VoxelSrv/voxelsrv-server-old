@@ -21,6 +21,7 @@ var __importStar = (this && this.__importStar) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.defaultPlayerMovement = exports.Player = exports.PlayerManager = void 0;
 const vec = __importStar(require("gl-vec3"));
+const worlds_1 = require("./worlds");
 const fs = __importStar(require("fs"));
 const console = __importStar(require("./console"));
 const chat = __importStar(require("./chat"));
@@ -93,6 +94,10 @@ class PlayerManager {
 exports.PlayerManager = PlayerManager;
 class Player {
     constructor(id, name, socket, players) {
+        this.crafting = {
+            items: { 0: null, 1: null, 2: null, 3: null },
+            result: null,
+        };
         this._chunksToSend = [];
         this.id = id;
         this.nickname = name;
@@ -345,8 +350,15 @@ class Player {
                 inventory = this.entity.data.armor;
                 type = 'armor';
                 break;
+            case 'crafting':
+                inventory = this.crafting;
+                type = 'crafting';
+                break;
+            default:
+                this.kick('Invalid inventory');
+                return;
         }
-        if (-2 < data.slot && data.slot <= this.inventory.size) {
+        if (-2 < data.slot && data.slot <= this.inventory.size && (type != 'crafting' || data.slot < 4)) {
             if (data.type == 'left')
                 this.inventory.action_left(inventory, data.slot, type);
             else if (data.type == 'right')
@@ -355,6 +367,8 @@ class Player {
                 this.inventory.action_switch(data.slot, data.slot2);
             else if (-1 < data.slot && data.slot < 9 && data.type == 'select')
                 this.inventory.select(data.slot);
+        }
+        else if (type == 'crafting' && data.slot < 4) {
         }
     }
     action_chatsend(data) {
@@ -394,9 +408,16 @@ class Player {
     action_move(data) {
         if (data.x == undefined || data.y == undefined || data.z == undefined)
             return;
+        const local = worlds_1.globalToChunk([data.x, data.y, data.z]);
         data.cancel = false;
-        if (this.world.chunks[this.entity.chunkID.toString()] == undefined)
+        if (this.world.chunks[local.id.toString()] == undefined)
             data.cancel = true;
+        else {
+            const blockID = this.world.chunks[local.id.toString()].data.get(Math.floor(local.pos[0]), Math.floor(local.pos[1]), Math.floor(local.pos[2]));
+            const block = this._server.registry.blocks[this._server.registry.blockIDmap[blockID]];
+            if (block.options.solid != false && block.options.fluid != true)
+                data.cancel = true;
+        }
         const pos = this.entity.data.position;
         const move = [data.x, data.y, data.z];
         for (let x = 0; x <= 5; x++) {
