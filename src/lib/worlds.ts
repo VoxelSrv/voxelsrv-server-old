@@ -6,7 +6,7 @@ import type { Server } from '../server';
 import * as format from '../formats/world';
 import { Block } from './registry';
 
-import * as pako from 'pako';
+import * as zlib from 'zlib';
 
 import ndarray = require('ndarray');
 
@@ -76,7 +76,7 @@ export class World {
 	seed: number;
 	generator: any;
 	version: number;
-	chunks: {[index: string]: Chunk};
+	chunks: { [index: string]: Chunk };
 	entities: object;
 	folder: string;
 	chunkFolder: string;
@@ -127,36 +127,27 @@ export class World {
 
 	async getChunk(id: types.XZ): Promise<Chunk> {
 		const idS = id.toString();
-		const chunkIDs = this.getNeighborIDsChunks(id);
-		const chunks = {};
 
-		await chunkIDs.forEach(async (cid) => {
-			chunks[cid.toString()] = await this.getRawChunk(cid, true);
-		});
+		if (this.chunks[idS] != undefined && this.chunks[idS].metadata.stage > 0) {
+			this.chunks[idS].keepAlive();
+			return this.chunks[idS];
+		}
+
+		if (this.existChunk(id)) {
+			const data = this.readChunk(id);
+			this.chunks[idS] = new Chunk(id, data.chunk, data.metadata, false);
+			this.chunks[idS].keepAlive();
+		} else {
+			this.chunks[idS] = new Chunk(id, await this.generator.generateBaseChunk(id), { ...this._worldMen._baseMetadata }, false);
+			this.chunks[idS].keepAlive();
+		}
 
 		if (this.chunks[idS].metadata.stage < 1) {
 			await this.generator.generateChunk(id, this.chunks[idS].data, this);
 			this.chunks[idS].metadata.stage = 1;
 		}
-		return this.chunks[idS];
-	}
 
-	async getRawChunk(id: types.XZ, bool: boolean): Promise<Chunk> {
-		const idS = id.toString();
-		if (this.chunks[idS] != undefined) {
-			this.chunks[idS].keepAlive();
-			return this.chunks[idS];
-		} else if (this.existChunk(id)) {
-			const data = this.readChunk(id);
-			this.chunks[idS] = new Chunk(id, data.chunk, data.metadata, false);
-			this.chunks[idS].keepAlive();
-			return this.chunks[idS];
-		}
-		if (bool) {
-			this.chunks[idS] = new Chunk(id, await this.generator.generateBaseChunk(id), { ...this._worldMen._baseMetadata }, false);
-			this.chunks[idS].keepAlive();
-			return this.chunks[idS];
-		}
+		return this.chunks[idS];
 	}
 
 	getNeighborIDsChunks(id: types.XZ): types.XZ[] {
@@ -205,7 +196,7 @@ export class World {
 		});
 
 		const buffer = format.chunk.encode(message).finish();
-		const data = pako.deflate(buffer);
+		const data = zlib.deflateSync(buffer);
 
 		fs.writeFile(this.chunkFolder + '/' + idS + '.chk', data, function (err) {
 			if (err) console.error('Cant save chunk ' + id + '! Reason: ' + err);
@@ -220,10 +211,14 @@ export class World {
 		let meta = null;
 		if (exist) {
 			const data = fs.readFileSync(this.chunkFolder + '/' + idS + '.chk');
-			const array = pako.inflate(data);
+			const array = zlib.inflateSync(data);
 			const decoded = format.chunk.decode(array);
 
-			chunk = new ndarray(new Uint16Array(decoded.blocks.buffer, decoded.blocks.byteOffset), [this._worldMen.chunkWitdh, this._worldMen.chunkHeight, this._worldMen.chunkWitdh]);
+			chunk = new ndarray(new Uint16Array(decoded.blocks.buffer, decoded.blocks.byteOffset), [
+				this._worldMen.chunkWitdh,
+				this._worldMen.chunkHeight,
+				this._worldMen.chunkWitdh,
+			]);
 			meta = { stage: decoded.stage, version: decoded.version };
 		}
 		return { chunk: chunk, metadata: meta };
@@ -282,12 +277,7 @@ export class World {
 		chunk.data.set(local.pos[0], local.pos[1], local.pos[2], id);
 	}
 
-	async setRawBlock(data: types.XYZ, block: number) {
-		const local = globalToChunk(data);
-		const chunk = await this.getRawChunk(local.id, true);
-		chunk.keepAlive();
-		chunk.data.set(local.pos[0], local.pos[1], local.pos[2], block);
-	}
+	async setRawBlock(data: types.XYZ, block: number) {}
 
 	unload() {
 		this.saveAll();

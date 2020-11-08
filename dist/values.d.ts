@@ -1,5 +1,5 @@
 import * as types from './types';
-export declare const serverVersion = "0.2.0-beta.11.2";
+export declare const serverVersion = "0.2.0-beta.12-test1";
 export declare const serverProtocol = 2;
 export interface IServerConfig {
     port: number;
@@ -16,6 +16,7 @@ export interface IServerConfig {
         spawn: types.XYZ;
         generator: string;
         save: boolean;
+        worldGenWorkers: number;
     };
     plugins: string[];
     consoleInput: boolean;

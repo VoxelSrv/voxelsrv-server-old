@@ -2,7 +2,7 @@ import { Noise2D, Noise3D } from 'open-simplex-noise';
 import hash from 'murmur-numbers';
 import * as types from '../../types';
 import * as biome from './parts/biomes';
-import { World } from '../../lib/worlds';
+import type { World } from '../../lib/worlds';
 import type { Server } from '../../server';
 export default class NormalGenerator {
     name: string;
@@ -26,6 +26,8 @@ export default class NormalGenerator {
         cactus: number;
     };
     _server: Server;
+    _worker: any[];
+    _lastWorkerUsed: number;
     constructor(seed: number, server: Server);
     getBlock(x: number, y: number, z: number, biomes: any): number;
     getBiome(x: number, z: number): biome.BaseBiome;

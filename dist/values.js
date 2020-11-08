@@ -1,7 +1,7 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.heartbeatServer = exports.invalidNicknameRegex = exports.serverDefaultConfig = exports.serverProtocol = exports.serverVersion = void 0;
-exports.serverVersion = '0.2.0-beta.11.2';
+exports.serverVersion = '0.2.0-beta.12-test1';
 exports.serverProtocol = 2;
 exports.serverDefaultConfig = {
     port: 3000,
@@ -18,6 +18,7 @@ exports.serverDefaultConfig = {
         spawn: [0, 100, 0],
         generator: 'normal',
         save: true,
+        worldGenWorkers: 1,
     },
     plugins: [],
     consoleInput: true,

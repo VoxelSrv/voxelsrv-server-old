@@ -165,12 +165,13 @@ class Player {
         this._server.emit('player-created', this);
         this.updateChunks();
         this._chunksInterval = setInterval(async () => {
-            if (this._chunksToSend.length > 0) {
-                const chunk = await this.world.getChunk(this._chunksToSend[0]);
+            if (this._chunksToSend[0] != undefined) {
+                const id = this._chunksToSend[0];
+                const chunk = await this.world.getChunk(id);
                 this.sendPacket('WorldChunkLoad', {
-                    x: this._chunksToSend[0][0],
+                    x: id[0],
                     y: 0,
-                    z: this._chunksToSend[0][1],
+                    z: id[1],
                     type: true,
                     compressed: false,
                     data: Buffer.from(chunk.data.data.buffer, chunk.data.data.byteOffset),

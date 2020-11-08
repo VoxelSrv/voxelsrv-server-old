@@ -40,7 +40,6 @@ export declare class World {
     constructor(name: string, seed: number, generator: string, ver: number, server: Server);
     stringToID(id: string): types.XZ;
     getChunk(id: types.XZ): Promise<Chunk>;
-    getRawChunk(id: types.XZ, bool: boolean): Promise<Chunk>;
     getNeighborIDsChunks(id: types.XZ): types.XZ[];
     existChunk(id: types.XZ): boolean;
     saveAll(): void;

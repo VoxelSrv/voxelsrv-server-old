@@ -23,7 +23,7 @@ exports.validateID = exports.getRandomSeed = exports.globalToLocal = exports.chu
 const fs = __importStar(require("fs"));
 const console = __importStar(require("./console"));
 const format = __importStar(require("../formats/world"));
-const pako = __importStar(require("pako"));
+const zlib = __importStar(require("zlib"));
 const ndarray = require("ndarray");
 class WorldManager {
     constructor(server) {
@@ -118,34 +118,24 @@ class World {
     }
     async getChunk(id) {
         const idS = id.toString();
-        const chunkIDs = this.getNeighborIDsChunks(id);
-        const chunks = {};
-        await chunkIDs.forEach(async (cid) => {
-            chunks[cid.toString()] = await this.getRawChunk(cid, true);
-        });
+        if (this.chunks[idS] != undefined && this.chunks[idS].metadata.stage > 0) {
+            this.chunks[idS].keepAlive();
+            return this.chunks[idS];
+        }
+        if (this.existChunk(id)) {
+            const data = this.readChunk(id);
+            this.chunks[idS] = new Chunk(id, data.chunk, data.metadata, false);
+            this.chunks[idS].keepAlive();
+        }
+        else {
+            this.chunks[idS] = new Chunk(id, await this.generator.generateBaseChunk(id), { ...this._worldMen._baseMetadata }, false);
+            this.chunks[idS].keepAlive();
+        }
         if (this.chunks[idS].metadata.stage < 1) {
             await this.generator.generateChunk(id, this.chunks[idS].data, this);
             this.chunks[idS].metadata.stage = 1;
         }
         return this.chunks[idS];
-    }
-    async getRawChunk(id, bool) {
-        const idS = id.toString();
-        if (this.chunks[idS] != undefined) {
-            this.chunks[idS].keepAlive();
-            return this.chunks[idS];
-        }
-        else if (this.existChunk(id)) {
-            const data = this.readChunk(id);
-            this.chunks[idS] = new Chunk(id, data.chunk, data.metadata, false);
-            this.chunks[idS].keepAlive();
-            return this.chunks[idS];
-        }
-        if (bool) {
-            this.chunks[idS] = new Chunk(id, await this.generator.generateBaseChunk(id), { ...this._worldMen._baseMetadata }, false);
-            this.chunks[idS].keepAlive();
-            return this.chunks[idS];
-        }
     }
     getNeighborIDsChunks(id) {
         const obj = [];
@@ -185,7 +175,7 @@ class World {
             stage: chunk.metadata.stage,
         });
         const buffer = format.chunk.encode(message).finish();
-        const data = pako.deflate(buffer);
+        const data = zlib.deflateSync(buffer);
         fs.writeFile(this.chunkFolder + '/' + idS + '.chk', data, function (err) {
             if (err)
                 console.error('Cant save chunk ' + id + '! Reason: ' + err);
@@ -198,9 +188,13 @@ class World {
         let meta = null;
         if (exist) {
             const data = fs.readFileSync(this.chunkFolder + '/' + idS + '.chk');
-            const array = pako.inflate(data);
+            const array = zlib.inflateSync(data);
             const decoded = format.chunk.decode(array);
-            chunk = new ndarray(new Uint16Array(decoded.blocks.buffer, decoded.blocks.byteOffset), [this._worldMen.chunkWitdh, this._worldMen.chunkHeight, this._worldMen.chunkWitdh]);
+            chunk = new ndarray(new Uint16Array(decoded.blocks.buffer, decoded.blocks.byteOffset), [
+                this._worldMen.chunkWitdh,
+                this._worldMen.chunkHeight,
+                this._worldMen.chunkWitdh,
+            ]);
             meta = { stage: decoded.stage, version: decoded.version };
         }
         return { chunk: chunk, metadata: meta };
@@ -255,12 +249,7 @@ class World {
         const chunk = await this.getChunk(local.id);
         chunk.data.set(local.pos[0], local.pos[1], local.pos[2], id);
     }
-    async setRawBlock(data, block) {
-        const local = globalToChunk(data);
-        const chunk = await this.getRawChunk(local.id, true);
-        chunk.keepAlive();
-        chunk.data.set(local.pos[0], local.pos[1], local.pos[2], block);
-    }
+    async setRawBlock(data, block) { }
     unload() {
         this.saveAll();
         clearInterval(this.autoSaveInterval);

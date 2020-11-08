@@ -1,6 +1,6 @@
 import * as types from './types';
 
-export const serverVersion = '0.2.0-beta.11.2';
+export const serverVersion = '0.2.0-beta.12-test1';
 export const serverProtocol = 2;
 
 export interface IServerConfig {
@@ -18,6 +18,7 @@ export interface IServerConfig {
 		spawn: types.XYZ;
 		generator: string;
 		save: boolean;
+		worldGenWorkers: number;
 	};
 	plugins: string[];
 	consoleInput: boolean;
@@ -39,6 +40,7 @@ export const serverDefaultConfig: IServerConfig = {
 		spawn: [0, 100, 0],
 		generator: 'normal',
 		save: true,
+		worldGenWorkers: 1,
 	},
 	plugins: [],
 	consoleInput: true,

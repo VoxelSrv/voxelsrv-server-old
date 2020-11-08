@@ -1,13 +1,11 @@
 import { makeNoise2D, makeNoise3D, Noise2D, Noise3D } from 'open-simplex-noise';
-import { spawn, Thread, Worker } from 'threads';
-
 import * as tree from './parts/tree';
 import hash from 'murmur-numbers';
 import * as types from '../../types';
 import * as biome from './parts/biomes';
 import ndarray = require('ndarray');
-import type { Chunk, World } from '../../lib/worlds';
-import type { Server } from '../../server';
+
+import { expose } from 'threads/worker';
 
 function getHighestBlock(chunk: types.IView3duint16, x: number, z: number) {
 	for (let y = 256 - 1; y >= 0; y = y - 1) {
@@ -17,8 +15,22 @@ function getHighestBlock(chunk: types.IView3duint16, x: number, z: number) {
 	return null;
 }
 
-export default class NormalGenerator {
-	name: string = 'normal';
+let generator: NormalGenerator;
+
+const x = {
+	setupGenerator(seed, blocks) {
+		generator = new NormalGenerator(seed, blocks);
+	},
+
+	generateBaseChunk(id: types.XZ, chunk): Uint16Array {
+		const data = generator.generateBaseChunk(id, chunk);
+		return data.data;
+	},
+};
+
+expose(x);
+
+class NormalGenerator {
 	chunkWitdh: number = 32;
 	chunkHeight: number = 256;
 	waterLevel: number = 65;
@@ -40,19 +52,7 @@ export default class NormalGenerator {
 		cactus: -3,
 	};
 
-	_server: Server;
-	_worker = [];
-	_lastWorkerUsed = 0;
-
-	constructor(seed: number, server: Server) {
-		this._server = server;
-		for (let y = 0; y < server.config.world.worldGenWorkers; y++) {
-			spawn(new Worker('./normalWorker')).then((x) => {
-				this._worker.push(x);
-				x.setupGenerator(seed, server.registry.blockPalette);
-			});
-		}
-
+	constructor(seed: number, blocks) {
 		this.seed = seed;
 		this.biomeNoise1 = makeNoise2D(Math.round(seed * Math.sin(seed ^ 3) * 10000));
 		this.biomeNoise2 = makeNoise2D(Math.round(seed * Math.sin(seed ^ 4) * 10000));
@@ -60,7 +60,7 @@ export default class NormalGenerator {
 		this.caveNoise1 = makeNoise3D(Math.round(seed * Math.cos(seed ^ 5) * 10000));
 		this.caveNoise2 = makeNoise3D(Math.round(seed * Math.cos(seed ^ 2) * 10000));
 		this.plantSeed = Math.round(seed * Math.sin(seed ^ 6) * 10000);
-		this.blocks = server.registry.blockPalette;
+		this.blocks = blocks;
 		this.hash = hash(this.plantSeed);
 
 		this.biomes = {
@@ -140,81 +140,28 @@ export default class NormalGenerator {
 		};
 	}
 
-	generateBaseChunk(id: types.XZ, chunk: types.IView3duint16): Promise<types.IView3duint16> {
-		if (this._lastWorkerUsed >= this._worker.length) this._lastWorkerUsed = 0;
-		return this._worker[this._lastWorkerUsed].generateBaseChunk(id, chunk).then((data) => {
-			return new ndarray(data, [this.chunkWitdh, this.chunkHeight, this.chunkWitdh]);
-		});
-	}
-
-	async generateChunk(id: types.XZ, chunk: types.IView3duint16, world: World) {
+	generateBaseChunk(id: types.XZ, chunk): types.IView3duint16 {
 		const xoff = id[0] * this.chunkWitdh;
 		const zoff = id[1] * this.chunkWitdh;
 
 		let x: number, y: number, z: number;
-		let block: number;
-		let biome;
-		let chunkBase = new ndarray(new Uint16Array(chunk.data.slice(0)), [this.chunkWitdh, this.chunkHeight, this.chunkWitdh]);
-
-		function get(y1: number) {
-			return chunkBase.get(x, y1, z);
-		}
+		let biomes: { main: biome.BaseBiome; possible: { [index: string]: number }; height: number };
+		let chunkTemp = new ndarray(new Uint16Array(this.chunkWitdh * this.chunkHeight * this.chunkWitdh), [
+			this.chunkWitdh,
+			this.chunkHeight,
+			this.chunkWitdh,
+		]);
 
 		for (x = 0; x < this.chunkWitdh; x++) {
 			for (z = 0; z < this.chunkWitdh; z++) {
-				biome = this.getBiome(x + xoff, z + zoff);
-				for (y = 0; y <= 200; y++) {
-					block = biome.getBlock(x + xoff, y, z + zoff, get);
-					if (block > 0) {
-						chunk.set(x, y, z, block);
-					} else if (block < 0) {
-						if (block == this.features.oakTree)
-							await pasteStructure(chunk, tree.oakTree(this.hash(x + xoff, z + zoff, y, this.seed) * 100, this.hash, this.blocks), x, y, z, id, world);
-						else if (block == this.features.birchTree)
-							await pasteStructure(chunk, tree.birchTree(this.hash(x + xoff, z + zoff, y, this.seed) * 100, this.hash, this.blocks), x, y, z, id, world);
-						else if (block == this.features.cactus) {
-							chunk.set(x, y, z, this.blocks.cactus);
-							chunk.set(x, y + 1, z, this.blocks.cactus);
-							if (hash(x, z) > 0.5) chunk.set(x, y + 2, z, this.blocks.cactus);
-						}
-					}
+				biomes = this.getBiomesAt(x + xoff, z + zoff);
+				for (y = 0; y <= biomes.height; y++) {
+					chunkTemp.set(x, y, z, this.getBlock(x + xoff, y, z + zoff, biomes));
 				}
 			}
 		}
-	}
-}
 
-async function pasteStructure(chunk: types.IView3duint16, gen: types.IView3duint16, x: number, y: number, z: number, id: types.XZ, world: World) {
-	const xm = Math.round(gen.shape[0] / 2);
-	const zm = Math.round(gen.shape[2] / 2);
-	let alt = false;
-
-	for (var i = 0; i < gen.shape[0]; i++) {
-		// x
-		let x2 = x - xm + i;
-		if (x2 >= chunk.shape[0] || x2 < 0) alt = true;
-		for (var k = 0; k < gen.shape[2]; k++) {
-			// z
-			let z2 = z - zm + k;
-			if (z2 >= chunk.shape[2] || z2 < 0) alt = true;
-			if (alt) {
-				alt = false;
-
-				for (var j = 0; j < gen.shape[1]; j++) {
-					// y
-					if (gen.get(i, j, k) != 0) {
-						await world.setRawBlock([id[0] * 32 + x2, y + j, id[1] * 32 + z2], gen.get(i, j, k));
-					}
-				}
-			} else {
-				for (var j = 0; j < gen.shape[1]; j++) {
-					// y
-					if (gen.get(i, j, k) != 0) {
-						chunk.set(x2, y + j, z2, gen.get(i, j, k));
-					}
-				}
-			}
-		}
+		return chunkTemp;
 	}
 }
 

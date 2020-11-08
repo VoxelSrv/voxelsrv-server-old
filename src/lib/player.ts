@@ -2,7 +2,7 @@ import * as vec from 'gl-vec3';
 import * as pako from 'pako';
 
 import type { EntityManager, Entity } from './entity';
-import { WorldManager, World,  globalToChunk } from './worlds';
+import { WorldManager, World, globalToChunk } from './worlds';
 import type { ItemStack, Registry } from './registry';
 import type { Server } from '../server';
 import * as fs from 'fs';
@@ -15,6 +15,7 @@ import { PlayerPermissionHolder } from './permissions';
 
 import * as pClient from 'voxelsrv-protocol/js/client';
 import { BaseSocket } from '../socket';
+import { createUnparsedSourceFile } from 'typescript';
 
 export class PlayerManager {
 	players: { [index: string]: Player } = {};
@@ -198,12 +199,13 @@ export class Player {
 		this.updateChunks();
 
 		this._chunksInterval = setInterval(async () => {
-			if (this._chunksToSend.length > 0) {
-				const chunk = await this.world.getChunk(this._chunksToSend[0]);
+			if (this._chunksToSend[0] != undefined) {
+				const id = this._chunksToSend[0];
+				const chunk = await this.world.getChunk(id);
 				this.sendPacket('WorldChunkLoad', {
-					x: this._chunksToSend[0][0],
+					x: id[0],
 					y: 0,
-					z: this._chunksToSend[0][1],
+					z: id[1],
 					type: true,
 					compressed: false,
 					data: Buffer.from(chunk.data.data.buffer, chunk.data.data.byteOffset),
@@ -463,8 +465,8 @@ export class Player {
 
 		if (this.world.chunks[local.id.toString()] == undefined) data.cancel = true;
 		else {
-			const blockID = this.world.chunks[local.id.toString()].data.get(Math.floor(local.pos[0]), Math.floor(local.pos[1]), Math.floor(local.pos[2]))
-			const block = this._server.registry.blocks[this._server.registry.blockIDmap[blockID]]
+			const blockID = this.world.chunks[local.id.toString()].data.get(Math.floor(local.pos[0]), Math.floor(local.pos[1]), Math.floor(local.pos[2]));
+			const block = this._server.registry.blocks[this._server.registry.blockIDmap[blockID]];
 			if (block == undefined || block.options == undefined) data.cancel = true;
 			else if (block.options.solid != false && block.options.fluid != true) data.cancel = true;
 		}

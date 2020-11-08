@@ -1,6 +1,6 @@
 {
 	"name": "voxelsrv-server",
-	"version": "0.2.0-beta.11.2",
+	"version": "0.2.0-beta.12",
 	"description": "Server for VoxelSrv game",
 	"main": "dist/index.js",
 	"bin": {
@@ -33,11 +33,11 @@
 		"protobufjs": "^6.10.1",
 		"semver": "^7.3.2",
 		"terminal-kit": "^1.44.0",
-		"threads.js": "^0.6.1",
+		"threads": "^1.6.3",
 		"tiny-worker": "^2.3.0",
 		"uuid": "^8.3.1",
 		"voxelsrv-protocol": "0.2.0-beta.8",
-		"ws": "^7.3.1"
+		"ws": "^7.4.0"
 	},
 	"devDependencies": {
 		"@types/gl-vec3": "^1.1.0",
