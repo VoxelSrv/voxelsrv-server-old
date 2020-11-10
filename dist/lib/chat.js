@@ -35,7 +35,7 @@ exports.convertToPlain = convertToPlain;
 /*
  * Sends ChatMessage to multiple players (and console)
  */
-function sendMlt(readders, msg) {
+async function sendMlt(readders, msg) {
     exports.event.emit('send-message-mlt', readders, msg);
     readders.forEach((x) => x.send(msg));
 }

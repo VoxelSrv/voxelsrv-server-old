@@ -35,6 +35,7 @@ export declare class World {
     chunkFolder: string;
     autoSaveInterval: any;
     chunkUnloadInterval: any;
+    active: boolean;
     _server: Server;
     _worldMen: WorldManager;
     constructor(name: string, seed: number, generator: string, ver: number, server: Server);
@@ -44,7 +45,11 @@ export declare class World {
     existChunk(id: types.XZ): boolean;
     saveAll(): void;
     saveChunk(id: types.XZ): Promise<void>;
-    readChunk(id: types.XZ): {
+    readChunk(id: types.XZ): Promise<{
+        chunk: types.IView3duint16;
+        metadata: any;
+    }>;
+    readChunkSync(id: types.XZ): {
         chunk: types.IView3duint16;
         metadata: any;
     };

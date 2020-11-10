@@ -70,6 +70,7 @@ export declare class Player {
     teleport(pos: types.XYZ, eworld: string | World): void;
     move(pos: types.XYZ): void;
     send(msg: string | chat.ChatMessage): void;
+    sendChunk(id: types.XZ): void;
     rotate(rot: number | null, pitch: number | null): void;
     kick(reason: string): void;
     updateMovement(key: string, value: number): void;
@@ -87,7 +88,7 @@ export declare class Player {
     action_invclick(data: pClient.IActionInventoryClick & {
         cancel: boolean;
     }): void;
-    action_chatsend(data: pClient.IActionMessage & {
+    action_chatmessage(data: pClient.IActionMessage & {
         cancel: boolean;
     }): void;
     action_move(data: pClient.IActionMove & {

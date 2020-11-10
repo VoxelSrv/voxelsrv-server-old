@@ -1,7 +1,7 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.heartbeatServer = exports.invalidNicknameRegex = exports.serverDefaultConfig = exports.serverProtocol = exports.serverVersion = void 0;
-exports.serverVersion = '0.2.0-beta.12-test1';
+exports.serverVersion = '0.2.0-beta.12.2';
 exports.serverProtocol = 2;
 exports.serverDefaultConfig = {
     port: 3000,
@@ -11,7 +11,7 @@ exports.serverDefaultConfig = {
     public: false,
     maxplayers: 10,
     viewDistance: 5,
-    chunkTransportCompression: false,
+    chunkTransportCompression: true,
     world: {
         seed: 0,
         border: 24,

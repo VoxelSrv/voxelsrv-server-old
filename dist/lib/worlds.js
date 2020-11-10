@@ -21,9 +21,12 @@ var __importStar = (this && this.__importStar) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.validateID = exports.getRandomSeed = exports.globalToLocal = exports.chunkIDFromGlobal = exports.globalToChunk = exports.Chunk = exports.World = exports.WorldManager = void 0;
 const fs = __importStar(require("fs"));
-const console = __importStar(require("./console"));
+const console_1 = require("./console");
 const format = __importStar(require("../formats/world"));
 const zlib = __importStar(require("zlib"));
+const util_1 = require("util");
+const inflatePromise = util_1.promisify(zlib.inflate);
+const readFilePromise = util_1.promisify(fs.readFile);
 const ndarray = require("ndarray");
 class WorldManager {
     constructor(server) {
@@ -57,13 +60,13 @@ class WorldManager {
             }
         }
         catch (e) {
-            console.error(`Can't load world ${name}! Trying to recreate it...`);
+            console_1.error(`Can't load world ${name}! Trying to recreate it...`);
             this.create(name, 0, 'normal');
         }
     }
     unload(name) {
         this.worlds[name].unload();
-        console.log('Unloaded world ' + name);
+        console_1.log('Unloaded world ' + name);
     }
     exist(name) {
         return fs.existsSync('./worlds/' + name);
@@ -78,6 +81,7 @@ class WorldManager {
 exports.WorldManager = WorldManager;
 class World {
     constructor(name, seed, generator, ver, server) {
+        this.active = false;
         this._server = server;
         this._worldMen = server.worlds;
         this.name = name;
@@ -98,7 +102,7 @@ class World {
                 fs.mkdirSync(this.chunkFolder);
             fs.writeFile(this.folder + '/world.json', JSON.stringify(this.getSettings()), function (err) {
                 if (err)
-                    console.error('Cant save world ' + this.name + '! Reason: ' + err);
+                    console_1.error('Cant save world ' + this.name + '! Reason: ' + err);
             });
             this.autoSaveInterval = setInterval(async () => {
                 this.saveAll();
@@ -123,7 +127,7 @@ class World {
             return this.chunks[idS];
         }
         if (this.existChunk(id)) {
-            const data = this.readChunk(id);
+            const data = await this.readChunk(id);
             this.chunks[idS] = new Chunk(id, data.chunk, data.metadata, false);
             this.chunks[idS].keepAlive();
         }
@@ -158,7 +162,7 @@ class World {
         const chunklist = Object.keys(this.chunks);
         fs.writeFile(this.folder + '/world.json', JSON.stringify(this.getSettings()), function (err) {
             if (err)
-                console.error('Cant save world ' + this.name + '! Reason: ' + err);
+                console_1.error('Cant save world ' + this.name + '! Reason: ' + err);
         });
         chunklist.forEach((id) => {
             this.saveChunk(this.stringToID(id));
@@ -178,10 +182,28 @@ class World {
         const data = zlib.deflateSync(buffer);
         fs.writeFile(this.chunkFolder + '/' + idS + '.chk', data, function (err) {
             if (err)
-                console.error('Cant save chunk ' + id + '! Reason: ' + err);
+                console_1.error('Cant save chunk ' + id + '! Reason: ' + err);
         });
     }
-    readChunk(id) {
+    async readChunk(id) {
+        const idS = id.toString();
+        const exist = this.existChunk(id);
+        let chunk = null;
+        let meta = null;
+        if (exist) {
+            const data = await readFilePromise(this.chunkFolder + '/' + idS + '.chk');
+            const array = await inflatePromise(data);
+            const decoded = format.chunk.decode(array);
+            chunk = new ndarray(new Uint16Array(decoded.blocks.buffer, decoded.blocks.byteOffset), [
+                this._worldMen.chunkWitdh,
+                this._worldMen.chunkHeight,
+                this._worldMen.chunkWitdh,
+            ]);
+            meta = { stage: decoded.stage, version: decoded.version };
+        }
+        return { chunk: chunk, metadata: meta };
+    }
+    readChunkSync(id) {
         const idS = id.toString();
         const exist = this.existChunk(id);
         let chunk = null;
@@ -221,7 +243,7 @@ class World {
             return this._server.registry.blocks[this._server.registry.blockIDmap[id]];
         }
         else if (this.existChunk(local.id)) {
-            const data = this.readChunk(local.id);
+            const data = this.readChunkSync(local.id);
             this.chunks[cid] = new Chunk(local.id, data.chunk, data.metadata, false);
             this.chunks[cid].keepAlive();
             return this._server.registry.blocks[this._server.registry.blockIDmap[this.chunks[cid].data.get(local.pos[0], local.pos[1], local.pos[2])]];

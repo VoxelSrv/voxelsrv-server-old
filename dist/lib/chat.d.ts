@@ -21,6 +21,6 @@ export declare function convertFromPlain(text: string): ChatComponent[];
 export declare function convertToPlain(msg: ChatMessage): string;
 export declare function sendMlt(readders: Array<{
     send: Function;
-}>, msg: ChatMessage): void;
+}>, msg: ChatMessage): Promise<void>;
 export declare function validate(msg: ChatMessage): boolean;
 //# sourceMappingURL=chat.d.ts.map

@@ -74,6 +74,8 @@ function setup(registry) {
     registry.addItem(new registry_1.ItemBlock('pumpkin', 'Pumpkin', 'block/pumpkin_side', 64, 'pumpkin', false));
     registry.addItem(new registry_1.ItemBlock('water_bucket', 'Water bucket', 'item/water_bucket', 1, 'water', false));
     registry.addItem(new registry_1.ItemBlock('bucket', 'Bucket', 'item/bucket', 1, 'air', false));
+    registry.addItem(new registry_1.ItemBlock('ice', 'Ice', 'block/ice', 64, 'ice', false));
+    registry.addItem(new registry_1.ItemBlock('gravel', 'Gravel', 'block/gravel', 64, 'gravel', false));
 }
 exports.setup = setup;
 //# sourceMappingURL=items.js.map

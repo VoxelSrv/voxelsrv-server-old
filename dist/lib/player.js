@@ -21,9 +21,10 @@ var __importStar = (this && this.__importStar) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.defaultPlayerMovement = exports.Player = exports.PlayerManager = void 0;
 const vec = __importStar(require("gl-vec3"));
+const zlib = __importStar(require("zlib"));
 const worlds_1 = require("./worlds");
 const fs = __importStar(require("fs"));
-const console = __importStar(require("./console"));
+const console_1 = require("./console");
 const chat = __importStar(require("./chat"));
 const inventory_1 = require("./inventory");
 const permissions_1 = require("./permissions");
@@ -62,7 +63,7 @@ class PlayerManager {
             return r;
         }
         catch (e) {
-            console.error('Tried to load data of player ' + id + ', but it failed! Error: ', e);
+            console_1.error('Tried to load data of player ' + id + ', but it failed! Error: ', e);
         }
     }
     exist(id) {
@@ -73,7 +74,7 @@ class PlayerManager {
     save(id, data) {
         fs.writeFile('./players/' + id + '.json', JSON.stringify(data), function (err) {
             if (err)
-                console.error('Cant save player ' + id + '! Reason: ' + err);
+                console_1.error('Cant save player ' + id + '! Reason: ' + err);
         });
     }
     get(id) {
@@ -108,7 +109,7 @@ class Player {
         if (this._players.exist(this.id))
             data = this._players.read(this.id);
         if (data == null) {
-            this.entity = this._players._entities.create('player', {
+            this.entity = this._players._entities.recreate(this.id, 'player', {
                 name: name,
                 nametag: true,
                 health: 20,
@@ -130,7 +131,7 @@ class Player {
             this._server.emit('player-join', this);
         }
         else {
-            this.entity = this._players._entities.recreate(data.entity.id, 'player', {
+            this.entity = this._players._entities.recreate(this.id, 'player', {
                 name: data.entity.data.name,
                 nametag: data.entity.data.nametag,
                 health: data.entity.data.health,
@@ -167,18 +168,10 @@ class Player {
         this._chunksInterval = setInterval(async () => {
             if (this._chunksToSend[0] != undefined) {
                 const id = this._chunksToSend[0];
-                const chunk = await this.world.getChunk(id);
-                this.sendPacket('WorldChunkLoad', {
-                    x: id[0],
-                    y: 0,
-                    z: id[1],
-                    type: true,
-                    compressed: false,
-                    data: Buffer.from(chunk.data.data.buffer, chunk.data.data.byteOffset),
-                });
+                this.sendChunk(id);
                 this._chunksToSend.shift();
             }
-        }, 50);
+        }, 100);
     }
     getObject() {
         return {
@@ -213,15 +206,39 @@ class Player {
     }
     move(pos) {
         this._server.emit('player-move', { id: this.id, pos: pos });
-        const chunk = this.entity.chunkID.join('|');
+        const chunk = this.entity.chunkID.toString();
         this.entity.move(pos);
-        if (this.entity.chunkID.join('|') != chunk)
+        if (this.entity.chunkID.toString() != chunk)
             this.updateChunks();
     }
     send(msg) {
         if (typeof msg == 'string')
             msg = chat.convertFromPlain(msg);
         this.sendPacket('ChatMessage', { message: msg, time: Date.now() });
+    }
+    sendChunk(id) {
+        this.world.getChunk(id).then((chunk) => {
+            if (this._server.config.chunkTransportCompression) {
+                this.sendPacket('WorldChunkLoad', {
+                    x: id[0],
+                    y: 0,
+                    z: id[1],
+                    type: true,
+                    compressed: true,
+                    data: zlib.deflateSync(Buffer.from(chunk.data.data.buffer, chunk.data.data.byteOffset)),
+                });
+            }
+            else {
+                this.sendPacket('WorldChunkLoad', {
+                    x: id[0],
+                    y: 0,
+                    z: id[1],
+                    type: true,
+                    compressed: false,
+                    data: Buffer.from(chunk.data.data.buffer, chunk.data.data.byteOffset),
+                });
+            }
+        });
     }
     rotate(rot, pitch) {
         this._server.emit('player-rotate', { id: this.id, rot, pitch });
@@ -372,7 +389,7 @@ class Player {
         else if (type == 'crafting' && data.slot < 4) {
         }
     }
-    action_chatsend(data) {
+    action_chatmessage(data) {
         data.cancel = false;
         for (let x = 0; x <= 5; x++) {
             this._server.emit(`player-message-${x}`, this, data);
@@ -389,7 +406,7 @@ class Player {
                     this._players._server.registry.commands[command].trigger(this, arg);
                 }
                 catch (e) {
-                    console.error(`User ^R${this.nickname}^r tried to execute command ^R${command}^r and it failed! \n ^R`, e);
+                    console_1.error(`User ^R${this.nickname}^r tried to execute command ^R${command}^r and it failed! \n ^R`, e);
                     this.send([new chat.ChatComponent('An error occurred during the execution of this command!', 'red')]);
                 }
             }
@@ -403,7 +420,7 @@ class Player {
                 new chat.ChatComponent(data.message, 'white'),
             ];
             this._server.emit('chat-message', msg);
-            chat.sendMlt([console.executorchat, ...Object.values(this._players.getAll())], msg);
+            chat.sendMlt([console_1.executorchat, ...Object.values(this._players.getAll())], msg);
         }
     }
     action_move(data) {

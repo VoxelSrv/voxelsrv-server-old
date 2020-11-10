@@ -100,7 +100,7 @@ exports.executor = {
     name: '#console',
     id: '#console',
     send: log,
-    permissions: new permissions_1.PermissionHolder({ '*': true })
+    permissions: new permissions_1.PermissionHolder({ '*': true }),
 };
 exports.executorchat = { ...exports.executor, send: chat };
 exports.obj = console.log;

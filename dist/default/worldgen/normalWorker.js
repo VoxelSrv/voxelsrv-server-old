@@ -44,6 +44,9 @@ const x = {
         const data = generator.generateBaseChunk(id, chunk);
         return data.data;
     },
+    getBiomesAt(x, z) {
+        return generator.getBiomesAt(x, z);
+    },
 };
 worker_1.expose(x);
 class NormalGenerator {

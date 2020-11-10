@@ -110,6 +110,8 @@ class IcePlainsBiome extends PlainsBiome {
                 return this.block.stone;
         }
         else if (bottomBlock == this.block.stone && block == 0) {
+            if (this.hash2(x, z) >= 0.9985)
+                return this.feature.spruceTree;
         }
         else if (bottomBlock == this.block.stone && block == this.block.water && upBlock == 0 && get(y - 2) == this.block.stone) {
             return this.block.ice;

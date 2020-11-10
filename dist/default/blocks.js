@@ -11,7 +11,7 @@ function setup(registry) {
     registry.addBlock(new registry_1.Block('log', 0, ['block/log_top', 'block/log'], {}, 0, 0, 'any'));
     registry.addBlock(new registry_1.Block('sand', 0, ['block/sand'], {}, 0, 0, 'any'));
     registry.addBlock(new registry_1.Block('leaves', 0, ['block/leaves'], { opaque: false }, 0, 0, 'any'));
-    registry.addBlock(new registry_1.Block('water', 0, ['block/water'], { material: 'water', fluid: true, fluidDensity: 20.0, viscosity: 20.5 }, 0, 0, 'any'));
+    registry.addBlock(new registry_1.Block('water', 0, ['block/water'], { material: 'water', fluid: true, fluidDensity: 30.0, viscosity: 200.5 }, 0, 0, 'any'));
     registry.addBlock(new registry_1.Block('red_flower', 1, ['block/red_flower'], { solid: false, opaque: false }, 0, 0, 'any'));
     registry.addBlock(new registry_1.Block('grass_plant', 1, ['block/grass_plant'], { solid: false, opaque: false }, 0, 0, 'any'));
     registry.addBlock(new registry_1.Block('yellow_flower', 1, ['block/yellow_flower'], { solid: false, opaque: false }, 0, 0, 'any'));

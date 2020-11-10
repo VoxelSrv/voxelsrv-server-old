@@ -21,6 +21,7 @@ var __importStar = (this && this.__importStar) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.Command = exports.Block = exports.ItemArmor = exports.ItemTool = exports.ItemBlock = exports.Item = exports.ItemStack = exports.Registry = void 0;
 const fs = __importStar(require("fs"));
+const console_1 = require("../lib/console");
 class Registry {
     constructor(server) {
         this.items = {};
@@ -111,7 +112,7 @@ class Registry {
         });
         fs.writeFile('./worlds/blocks.json', JSON.stringify(this.blockPalette), function (err) {
             if (err)
-                console.error('Cant save block palette! Reason: ' + err);
+                console_1.error('Cant save block palette! Reason: ' + err);
         });
         this._server.emit('registry-finalize');
     }

@@ -24,6 +24,7 @@ export default class NormalGenerator {
         oakTree: number;
         birchTree: number;
         cactus: number;
+        spruceTree: number;
     };
     _server: Server;
     _worker: any[];
