@@ -7,6 +7,10 @@ import * as format from '../formats/world';
 import { Block } from './registry';
 
 import * as zlib from 'zlib';
+import { promisify } from 'util'
+
+const inflatePromise: (arg1: zlib.InputType) => Promise<Buffer> = promisify(zlib.inflate);
+const readFilePromise: (arg1: any) => Promise<Buffer> = promisify(fs.readFile)
 
 import ndarray = require('ndarray');
 
@@ -136,7 +140,7 @@ export class World {
 		}
 
 		if (this.existChunk(id)) {
-			const data = this.readChunk(id);
+			const data = await this.readChunk(id);
 			this.chunks[idS] = new Chunk(id, data.chunk, data.metadata, false);
 			this.chunks[idS].keepAlive();
 		} else {
@@ -205,7 +209,28 @@ export class World {
 		});
 	}
 
-	readChunk(id: types.XZ): { chunk: types.IView3duint16; metadata: any } {
+	async readChunk(id: types.XZ): Promise<{ chunk: types.IView3duint16; metadata: any }> {
+		const idS = id.toString();
+
+		const exist = this.existChunk(id);
+		let chunk = null;
+		let meta = null;
+		if (exist) {
+			const data: Buffer = await readFilePromise(this.chunkFolder + '/' + idS + '.chk');
+			const array: Buffer = await inflatePromise(data);
+			const decoded = format.chunk.decode(array);
+
+			chunk = new ndarray(new Uint16Array(decoded.blocks.buffer, decoded.blocks.byteOffset), [
+				this._worldMen.chunkWitdh,
+				this._worldMen.chunkHeight,
+				this._worldMen.chunkWitdh,
+			]);
+			meta = { stage: decoded.stage, version: decoded.version };
+		}
+		return { chunk: chunk, metadata: meta };
+	}
+
+	readChunkSync(id: types.XZ): { chunk: types.IView3duint16; metadata: any } {
 		const idS = id.toString();
 
 		const exist = this.existChunk(id);
@@ -249,7 +274,7 @@ export class World {
 			this.chunks[cid].keepAlive();
 			return this._server.registry.blocks[this._server.registry.blockIDmap[id]];
 		} else if (this.existChunk(local.id)) {
-			const data = this.readChunk(local.id);
+			const data = this.readChunkSync(local.id);
 			this.chunks[cid] = new Chunk(local.id, data.chunk, data.metadata, false);
 			this.chunks[cid].keepAlive();
 			return this._server.registry.blocks[this._server.registry.blockIDmap[this.chunks[cid].data.get(local.pos[0], local.pos[1], local.pos[2])]];
