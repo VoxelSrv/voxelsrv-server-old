@@ -46,7 +46,7 @@ export function convertToPlain(msg: ChatMessage) {
 /*
  * Sends ChatMessage to multiple players (and console)
  */
-export function sendMlt(readders: Array<{ send: Function }>, msg: ChatMessage) {
+export async function sendMlt(readders: Array<{ send: Function }>, msg: ChatMessage) {
 	event.emit('send-message-mlt', readders, msg);
 	readders.forEach((x) => x.send(msg));
 }

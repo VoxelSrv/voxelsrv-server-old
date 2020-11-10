@@ -26,6 +26,10 @@ const x = {
 		const data = generator.generateBaseChunk(id, chunk);
 		return data.data;
 	},
+
+	getBiomesAt(x, z) {
+		return generator.getBiomesAt(x, z);
+	},
 };
 
 expose(x);

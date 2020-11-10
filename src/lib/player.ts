@@ -1,12 +1,12 @@
 import * as vec from 'gl-vec3';
-import * as pako from 'pako';
+import * as zlib from 'zlib';
 
 import type { EntityManager, Entity } from './entity';
 import { WorldManager, World, globalToChunk } from './worlds';
 import type { ItemStack, Registry } from './registry';
 import type { Server } from '../server';
 import * as fs from 'fs';
-import * as console from './console';
+import { log, error, executorchat } from './console';
 import * as types from '../types';
 import * as chat from './chat';
 
@@ -15,7 +15,6 @@ import { PlayerPermissionHolder } from './permissions';
 
 import * as pClient from 'voxelsrv-protocol/js/client';
 import { BaseSocket } from '../socket';
-import { createUnparsedSourceFile } from 'typescript';
 
 export class PlayerManager {
 	players: { [index: string]: Player } = {};
@@ -61,7 +60,7 @@ export class PlayerManager {
 
 			return r;
 		} catch (e) {
-			console.error('Tried to load data of player ' + id + ', but it failed! Error: ', e);
+			error('Tried to load data of player ' + id + ', but it failed! Error: ', e);
 		}
 	}
 
@@ -73,7 +72,7 @@ export class PlayerManager {
 
 	save(id: string, data: Object) {
 		fs.writeFile('./players/' + id + '.json', JSON.stringify(data), function (err) {
-			if (err) console.error('Cant save player ' + id + '! Reason: ' + err);
+			if (err) error('Cant save player ' + id + '! Reason: ' + err);
 		});
 	}
 
@@ -125,7 +124,8 @@ export class Player {
 		if (this._players.exist(this.id)) data = this._players.read(this.id);
 
 		if (data == null) {
-			this.entity = this._players._entities.create(
+			this.entity = this._players._entities.recreate(
+				this.id,
 				'player',
 				{
 					name: name,
@@ -154,7 +154,7 @@ export class Player {
 			this._server.emit('player-join', this);
 		} else {
 			this.entity = this._players._entities.recreate(
-				data.entity.id,
+				this.id,
 				'player',
 				{
 					name: data.entity.data.name,
@@ -201,19 +201,10 @@ export class Player {
 		this._chunksInterval = setInterval(async () => {
 			if (this._chunksToSend[0] != undefined) {
 				const id = this._chunksToSend[0];
-				const chunk = await this.world.getChunk(id);
-				this.sendPacket('WorldChunkLoad', {
-					x: id[0],
-					y: 0,
-					z: id[1],
-					type: true,
-					compressed: false,
-					data: Buffer.from(chunk.data.data.buffer, chunk.data.data.byteOffset),
-				});
-
+				this.sendChunk(id);
 				this._chunksToSend.shift();
 			}
-		}, 50);
+		}, 100);
 	}
 
 	getObject() {
@@ -254,14 +245,38 @@ export class Player {
 
 	move(pos: types.XYZ) {
 		this._server.emit('player-move', { id: this.id, pos: pos });
-		const chunk = this.entity.chunkID.join('|');
+		const chunk = this.entity.chunkID.toString();
 		this.entity.move(pos);
-		if (this.entity.chunkID.join('|') != chunk) this.updateChunks();
+		if (this.entity.chunkID.toString() != chunk) this.updateChunks();
 	}
 
 	send(msg: string | chat.ChatMessage) {
 		if (typeof msg == 'string') msg = chat.convertFromPlain(msg);
 		this.sendPacket('ChatMessage', { message: msg, time: Date.now() });
+	}
+
+	sendChunk(id: types.XZ) {
+		this.world.getChunk(id).then((chunk) => {
+			if (this._server.config.chunkTransportCompression) {
+				this.sendPacket('WorldChunkLoad', {
+					x: id[0],
+					y: 0,
+					z: id[1],
+					type: true,
+					compressed: true,
+					data: zlib.deflateSync(Buffer.from(chunk.data.data.buffer, chunk.data.data.byteOffset)),
+				});
+			} else {
+				this.sendPacket('WorldChunkLoad', {
+					x: id[0],
+					y: 0,
+					z: id[1],
+					type: true,
+					compressed: false,
+					data: Buffer.from(chunk.data.data.buffer, chunk.data.data.byteOffset),
+				});
+			}
+		});
 	}
 
 	rotate(rot: number | null, pitch: number | null) {
@@ -422,7 +437,7 @@ export class Player {
 		}
 	}
 
-	action_chatsend(data: pClient.IActionMessage & { cancel: boolean }) {
+	action_chatmessage(data: pClient.IActionMessage & { cancel: boolean }) {
 		data.cancel = false;
 		for (let x = 0; x <= 5; x++) {
 			this._server.emit(`player-message-${x}`, this, data);
@@ -439,7 +454,7 @@ export class Player {
 				try {
 					this._players._server.registry.commands[command].trigger(this, arg);
 				} catch (e) {
-					console.error(`User ^R${this.nickname}^r tried to execute command ^R${command}^r and it failed! \n ^R`, e);
+					error(`User ^R${this.nickname}^r tried to execute command ^R${command}^r and it failed! \n ^R`, e);
 					this.send([new chat.ChatComponent('An error occurred during the execution of this command!', 'red')]);
 				}
 			} else this.send([new chat.ChatComponent("This command doesn't exist! Check /help for list of available commands.", 'red')]);
@@ -452,7 +467,7 @@ export class Player {
 
 			this._server.emit('chat-message', msg);
 
-			chat.sendMlt([console.executorchat, ...Object.values(this._players.getAll())], msg);
+			chat.sendMlt([executorchat, ...Object.values(this._players.getAll())], msg);
 		}
 	}
 

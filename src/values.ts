@@ -1,6 +1,6 @@
 import * as types from './types';
 
-export const serverVersion = '0.2.0-beta.12-test1';
+export const serverVersion = '0.2.0-beta.12';
 export const serverProtocol = 2;
 
 export interface IServerConfig {
@@ -22,6 +22,7 @@ export interface IServerConfig {
 	};
 	plugins: string[];
 	consoleInput: boolean;
+	//logs: boolean;
 	[index: string]: any;
 }
 
@@ -33,7 +34,7 @@ export const serverDefaultConfig: IServerConfig = {
 	public: false,
 	maxplayers: 10,
 	viewDistance: 5,
-	chunkTransportCompression: false,
+	chunkTransportCompression: true,
 	world: {
 		seed: 0,
 		border: 24,
@@ -44,6 +45,7 @@ export const serverDefaultConfig: IServerConfig = {
 	},
 	plugins: [],
 	consoleInput: true,
+	//logs: true
 };
 
 export const invalidNicknameRegex = new RegExp('[^a-zA-Z0-9_]');

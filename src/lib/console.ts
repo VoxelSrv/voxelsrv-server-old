@@ -84,7 +84,7 @@ export const executor = {
 	name: '#console',
 	id: '#console',
 	send: log,
-	permissions: new PermissionHolder({'*': true})
+	permissions: new PermissionHolder({ '*': true }),
 };
 
 export const executorchat = { ...executor, send: chat };

@@ -10,8 +10,9 @@ export function setup (registry: Registry) {
 	registry.addBlock(new Block('sand', 0, ['block/sand'], {}, 0, 0, 'any'));
 	registry.addBlock(new Block('leaves', 0, ['block/leaves'], { opaque: false }, 0, 0, 'any'));
 
-	registry.addBlock(new Block('water', 0, ['block/water'], { material: 'water', fluid: true, fluidDensity: 20.0, viscosity: 20.5 }, 0, 0, 'any'));
+	registry.addBlock(new Block('water', 0, ['block/water'], { material: 'water', fluid: true, fluidDensity: 30.0, viscosity: 200.5 }, 0, 0, 'any'));
 
+	
 	registry.addBlock(new Block('red_flower', 1, ['block/red_flower'], { solid: false, opaque: false }, 0, 0, 'any'));
 	registry.addBlock(new Block('grass_plant', 1, ['block/grass_plant'], { solid: false, opaque: false }, 0, 0, 'any'));
 	registry.addBlock(new Block('yellow_flower', 1, ['block/yellow_flower'], { solid: false, opaque: false }, 0, 0, 'any'));

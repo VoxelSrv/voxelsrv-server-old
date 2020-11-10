@@ -1,7 +1,6 @@
 import { IItemStack, ItemStack } from './registry';
 import { EventEmitter } from 'events';
 import type { Server } from '../server';
-import { isThisTypeNode } from 'typescript';
 
 // Generic Inventory for mobs/block like chest, etc
 

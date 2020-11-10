@@ -2,7 +2,7 @@ import { EventEmitter } from 'events';
 import * as fs from 'fs';
 
 import { Registry } from './lib/registry';
-import * as console from './lib/console';
+import { log, error, warn, executorchat } from './lib/console';
 import { WorldManager } from './lib/worlds';
 import { Entity, EntityManager } from './lib/entity';
 import { PermissionManager } from './lib/permissions';
@@ -59,14 +59,14 @@ export class Server extends EventEmitter {
 	}
 
 	private async startServer() {
-		console.log(`^yStarting VoxelSRV server version^: ${serverVersion} ^y[Protocol:^: ${serverProtocol}^y]`);
+		log(`^yStarting VoxelSRV server version^: ${serverVersion} ^y[Protocol:^: ${serverProtocol}^y]`);
 		['./plugins', './players', './worlds', './config'].forEach((element) => {
 			if (!fs.existsSync(element)) {
 				try {
 					fs.mkdirSync(element);
-					console.log(`^BCreated missing directory: ^w${element}`);
+					log(`^BCreated missing directory: ^w${element}`);
 				} catch (e) {
-					console.log(`^rCan't create directory: ^w${element}! Reason: ${e}`);
+					log(`^rCan't create directory: ^w${element}! Reason: ${e}`);
 					process.exit();
 				}
 			}
@@ -101,7 +101,7 @@ export class Server extends EventEmitter {
 
 		this.status = 'active';
 
-		console.log('^yServer started on port: ^:' + this.config.port);
+		log('^yServer started on port: ^:' + this.config.port);
 	}
 
 	heartbeatPing() {
@@ -181,43 +181,43 @@ export class Server extends EventEmitter {
 				});
 
 				const joinMsg = [new chat.ChatComponent(`${player.displayName} joined the game!`, '#b5f598')];
-				chat.sendMlt([console.executorchat, ...Object.values(this.players.getAll())], joinMsg);
+				chat.sendMlt([executorchat, ...Object.values(this.players.getAll())], joinMsg);
 				chat.event.emit('system-message', joinMsg);
 				this.playerCount = this.playerCount + 1;
 
 				socket.on('close', () => {
 					this.emit('player-disconnect', id);
 					const leaveMsg = [new chat.ChatComponent(`${player.displayName} left the game!`, '#f59898')];
-					chat.sendMlt([console.executorchat, ...Object.values(this.players.getAll())], leaveMsg);
+					chat.sendMlt([executorchat, ...Object.values(this.players.getAll())], leaveMsg);
 					chat.event.emit('system-message', leaveMsg);
 					player.remove();
 					this.playerCount = this.playerCount - 1;
 				});
-				socket.on('ActionMessage', (data) => {
-					player.action_chatsend(data);
+				socket.on('ActionMessage', async (data) => {
+					player.action_chatmessage(data);
 				});
 
-				socket.on('ActionBlockBreak', (data) => {
+				socket.on('ActionBlockBreak', async (data) => {
 					player.action_blockbreak(data);
 				});
 
-				socket.on('ActionBlockPlace', (data) => {
+				socket.on('ActionBlockPlace', async (data) => {
 					player.action_blockplace(data);
 				});
 
-				socket.on('ActionMove', (data) => {
+				socket.on('ActionMove', async (data) => {
 					player.action_move(data);
 				});
 
-				socket.on('ActionInventoryClick', (data) => {
+				socket.on('ActionInventoryClick', async (data) => {
 					player.action_invclick(data);
 				});
 
-				socket.on('ActionClick', (data) => {
+				socket.on('ActionClick', async (data) => {
 					player.action_click(data);
 				});
 
-				socket.on('ActionClickEntity', (data) => {
+				socket.on('ActionClickEntity', async (data) => {
 					player.action_click(data);
 				});
 			}
@@ -242,15 +242,15 @@ export class Server extends EventEmitter {
 				this.loadPlugin(plugin);
 			} catch (e) {
 				this.emit('plugin-error', file);
-				console.error(`Can't load plugin ${file}!`);
-				console.obj(e);
+				error(`Can't load plugin ${file}!`);
+				console.error(e);
 			}
 		}
 	}
 
 	loadPlugin(plugin: IPlugin) {
 		if (!semver.satisfies(serverVersion, plugin.supported)) {
-			console.warn([
+			warn([
 				new chat.ChatComponent('Plugin ', 'orange'),
 				new chat.ChatComponent(plugin.name, 'yellow'),
 				new chat.ChatComponent(' might not support this version of server!', 'orange'),
@@ -258,9 +258,9 @@ export class Server extends EventEmitter {
 			const min = semver.minVersion(plugin.supported);
 			const max = semver.maxSatisfying(plugin.supported);
 			if (!!min && !!max && (semver.gt(serverVersion, max) || semver.lt(serverVersion, min)))
-				console.warn(`It only support versions from ${min} to ${max}.`);
-			else if (!!min && !max && semver.lt(serverVersion, min)) console.warn(`It only support versions ${min} or newer.`);
-			else if (!min && !!max && semver.gt(serverVersion, max)) console.warn(`It only support versions ${max} or older.`);
+				warn(`It only support versions from ${min} to ${max}.`);
+			else if (!!min && !max && semver.lt(serverVersion, min)) warn(`It only support versions ${min} or newer.`);
+			else if (!min && !!max && semver.gt(serverVersion, max)) warn(`It only support versions ${max} or older.`);
 		}
 
 		this.emit('plugin-load', plugin);
@@ -272,7 +272,7 @@ export class Server extends EventEmitter {
 
 		this.emit('server-stop', this);
 
-		console.log('^rStopping server...');
+		log('^rStopping server...');
 		configs.save('', 'permissions', this.permissions.groups);
 
 		Object.values(this.players.getAll()).forEach((player) => {

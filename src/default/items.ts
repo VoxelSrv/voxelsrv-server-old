@@ -89,4 +89,7 @@ export function setup (registry: Registry) {
 
 	registry.addItem(new ItemBlock('water_bucket', 'Water bucket', 'item/water_bucket', 1, 'water', false));
 	registry.addItem(new ItemBlock('bucket', 'Bucket', 'item/bucket', 1, 'air', false));
+	registry.addItem(new ItemBlock('ice', 'Ice', 'block/ice', 64, 'ice', false));
+	registry.addItem(new ItemBlock('gravel', 'Gravel', 'block/gravel', 64, 'gravel', false));
+
 }

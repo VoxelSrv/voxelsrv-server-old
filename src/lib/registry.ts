@@ -1,5 +1,6 @@
 import * as fs from 'fs';
 import type { Server } from '../server';
+import { error } from '../lib/console';
 
 export class Registry {
 	items: { [index: string]: any } = {};
@@ -19,7 +20,7 @@ export class Registry {
 	constructor(server: Server) {
 		this._server = server;
 
-		this.blocks['air'] = new Block('air', -1, '', {solid: false}, 0, 0, 'any');
+		this.blocks['air'] = new Block('air', -1, '', { solid: false }, 0, 0, 'any');
 		this.blocks['air'].rawid = 0;
 		this.blockIDmap[0] = 'air';
 		this.blockPalette['air'] = 0;
@@ -108,7 +109,7 @@ export class Registry {
 		});
 
 		fs.writeFile('./worlds/blocks.json', JSON.stringify(this.blockPalette), function (err) {
-			if (err) console.error('Cant save block palette! Reason: ' + err);
+			if (err) error('Cant save block palette! Reason: ' + err);
 		});
 
 		this._server.emit('registry-finalize');

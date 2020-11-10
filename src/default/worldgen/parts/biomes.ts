@@ -106,6 +106,7 @@ export class IcePlainsBiome extends PlainsBiome {
 			else if (upBlock == this.block.water) return this.block.dirt;
 			else return this.block.stone;
 		} else if (bottomBlock == this.block.stone && block == 0) {
+			if (this.hash2(x, z) >= 0.9985) return this.feature.spruceTree;
 		} else if (bottomBlock == this.block.stone && block == this.block.water && upBlock == 0 && get(y - 2) == this.block.stone) {
 			return this.block.ice;
 		}
@@ -191,7 +192,6 @@ export class DesertBiome extends BaseBiome {
 		const dim2 = this.caveNoise2(x / 40, y / 40, z / 40) + 0.2;
 		const layer1 = this.heightNoise(x / 120, z / 120);
 		const mountain = this.mountainNoise(x / 60, z / 60) + 1;
-
 
 		return Math.abs(dim * (1 - layer1) + dim2 * layer1) * 24 * mountain + 73;
 	}

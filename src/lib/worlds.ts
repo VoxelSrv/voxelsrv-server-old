@@ -1,6 +1,6 @@
 import * as fs from 'fs';
 
-import * as console from './console';
+import { log, error } from './console';
 import * as types from '../types';
 import type { Server } from '../server';
 import * as format from '../formats/world';
@@ -48,14 +48,14 @@ export class WorldManager {
 				return null;
 			}
 		} catch (e) {
-			console.error(`Can't load world ${name}! Trying to recreate it...`);
+			error(`Can't load world ${name}! Trying to recreate it...`);
 			this.create(name, 0, 'normal');
 		}
 	}
 
 	unload(name: string): void {
 		this.worlds[name].unload();
-		console.log('Unloaded world ' + name);
+		log('Unloaded world ' + name);
 	}
 
 	exist(name: string): boolean {
@@ -82,6 +82,8 @@ export class World {
 	chunkFolder: string;
 	autoSaveInterval: any;
 	chunkUnloadInterval: any;
+	active: boolean = false;
+
 	_server: Server;
 	_worldMen: WorldManager;
 
@@ -103,7 +105,7 @@ export class World {
 			if (!fs.existsSync(this.chunkFolder)) fs.mkdirSync(this.chunkFolder);
 
 			fs.writeFile(this.folder + '/world.json', JSON.stringify(this.getSettings()), function (err) {
-				if (err) console.error('Cant save world ' + this.name + '! Reason: ' + err);
+				if (err) error('Cant save world ' + this.name + '! Reason: ' + err);
 			});
 
 			this.autoSaveInterval = setInterval(async () => {
@@ -175,7 +177,7 @@ export class World {
 		const chunklist = Object.keys(this.chunks);
 
 		fs.writeFile(this.folder + '/world.json', JSON.stringify(this.getSettings()), function (err) {
-			if (err) console.error('Cant save world ' + this.name + '! Reason: ' + err);
+			if (err) error('Cant save world ' + this.name + '! Reason: ' + err);
 		});
 
 		chunklist.forEach((id) => {
@@ -199,7 +201,7 @@ export class World {
 		const data = zlib.deflateSync(buffer);
 
 		fs.writeFile(this.chunkFolder + '/' + idS + '.chk', data, function (err) {
-			if (err) console.error('Cant save chunk ' + id + '! Reason: ' + err);
+			if (err) error('Cant save chunk ' + id + '! Reason: ' + err);
 		});
 	}
 

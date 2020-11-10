@@ -38,6 +38,7 @@ export default class NormalGenerator {
 		oakTree: -1,
 		birchTree: -2,
 		cactus: -3,
+		spruceTree: -4,
 	};
 
 	_server: Server;
@@ -47,7 +48,12 @@ export default class NormalGenerator {
 	constructor(seed: number, server: Server) {
 		this._server = server;
 		for (let y = 0; y < server.config.world.worldGenWorkers; y++) {
-			spawn(new Worker('./normalWorker')).then((x) => {
+			const worker = new Worker('./normalWorker');
+
+			// @ts-ignore
+			worker.setMaxListeners(1000);
+
+			spawn(worker).then((x) => {
 				this._worker.push(x);
 				x.setupGenerator(seed, server.registry.blockPalette);
 			});
@@ -142,9 +148,23 @@ export default class NormalGenerator {
 
 	generateBaseChunk(id: types.XZ, chunk: types.IView3duint16): Promise<types.IView3duint16> {
 		if (this._lastWorkerUsed >= this._worker.length) this._lastWorkerUsed = 0;
-		return this._worker[this._lastWorkerUsed].generateBaseChunk(id, chunk).then((data) => {
-			return new ndarray(data, [this.chunkWitdh, this.chunkHeight, this.chunkWitdh]);
-		});
+
+		if (this._worker[this._lastWorkerUsed] == undefined) {
+			return new Promise(async (resolve, reject) => {
+				while (this._worker[this._lastWorkerUsed] == undefined) {
+					await delay(100);
+				}
+				resolve(
+					new ndarray(await this._worker[this._lastWorkerUsed].generateBaseChunk(id, chunk), [this.chunkWitdh, this.chunkHeight, this.chunkWitdh])
+				);
+			});
+		} else
+			return this._worker[this._lastWorkerUsed]
+				.generateBaseChunk(id, chunk)
+				.then((data) => {
+					return new ndarray(data, [this.chunkWitdh, this.chunkHeight, this.chunkWitdh]);
+				})
+				.catch(() => {});
 	}
 
 	async generateChunk(id: types.XZ, chunk: types.IView3duint16, world: World) {
@@ -168,11 +188,40 @@ export default class NormalGenerator {
 					if (block > 0) {
 						chunk.set(x, y, z, block);
 					} else if (block < 0) {
-						if (block == this.features.oakTree)
-							await pasteStructure(chunk, tree.oakTree(this.hash(x + xoff, z + zoff, y, this.seed) * 100, this.hash, this.blocks), x, y, z, id, world);
-						else if (block == this.features.birchTree)
-							await pasteStructure(chunk, tree.birchTree(this.hash(x + xoff, z + zoff, y, this.seed) * 100, this.hash, this.blocks), x, y, z, id, world);
-						else if (block == this.features.cactus) {
+						if (block == this.features.oakTree) {
+							if (x > 29 || x < 3 || z > 29 || z < 3) continue;
+							await pasteStructure(
+								chunk,
+								tree.oakTree(this.hash(x + xoff, z + zoff, y, this.seed) * 100, this.hash, this.blocks),
+								x,
+								y,
+								z,
+								id,
+								world
+							);
+						} else if (block == this.features.birchTree) {
+							if (x > 29 || x < 3 || z > 29 || z < 3) continue;
+							await pasteStructure(
+								chunk,
+								tree.birchTree(this.hash(x + xoff, z + zoff, y, this.seed) * 100, this.hash, this.blocks),
+								x,
+								y,
+								z,
+								id,
+								world
+							);
+						} else if (block == this.features.spruceTree) {
+							if (x > 29 || x < 3 || z > 29 || z < 3) continue;
+							await pasteStructure(
+								chunk,
+								tree.spruceTree(this.hash(x + xoff, z + zoff, y, this.seed) * 100, this.hash, this.blocks),
+								x,
+								y,
+								z,
+								id,
+								world
+							);
+						} else if (block == this.features.cactus) {
 							chunk.set(x, y, z, this.blocks.cactus);
 							chunk.set(x, y + 1, z, this.blocks.cactus);
 							if (hash(x, z) > 0.5) chunk.set(x, y + 2, z, this.blocks.cactus);
@@ -220,4 +269,12 @@ async function pasteStructure(chunk: types.IView3duint16, gen: types.IView3duint
 
 function dist2(x: number, z: number): number {
 	return Math.sqrt(x * x + z * z);
+}
+
+function delay(t) {
+	return new Promise((resolve, reject) => {
+		setTimeout(() => {
+			resolve('');
+		}, t);
+	});
 }
