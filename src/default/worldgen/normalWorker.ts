@@ -54,6 +54,8 @@ class NormalGenerator {
 		oakTree: -1,
 		birchTree: -2,
 		cactus: -3,
+		spruceTree: -4,
+		yellowOakTree: -5,
 	};
 
 	constructor(seed: number, blocks) {
@@ -76,6 +78,7 @@ class NormalGenerator {
 			icemountains: new biome.IceMountainsBiome(this.blocks, this.features, seed),
 			ocean: new biome.OceanBiome(this.blocks, this.features, seed),
 			beach: new biome.BeachBiome(this.blocks, this.features, seed),
+			savanna: new biome.SavannaBiome(this.blocks, this.features, seed),
 		};
 	}
 
@@ -92,7 +95,7 @@ class NormalGenerator {
 	}
 
 	getBiome(x: number, z: number): biome.BaseBiome {
-		const rand = this.hash(200, x, z) / 100;
+		const rand = this.hash(200, x, z) / 90;
 		const wierdness = this.biomeNoise1(x / 600, z / 600) + 1 + rand;
 		const heat = this.biomeNoise2(x / 300, z / 300) + 1 + rand;
 		const water = this.biomeNoise3(x / 400, z / 400) + 1 + rand;
@@ -101,13 +104,13 @@ class NormalGenerator {
 		else if (water > 1.15) {
 			if (wierdness > 1.5) return this.biomes.mountains;
 			return this.biomes.beach;
-		} else if (heat > 1.5) {
+		} else if (heat > 1.4) {
 			return this.biomes.desert;
 		} else if (heat > 0.5) {
 			if (wierdness > 1.5) return this.biomes.mountains;
 			else if (wierdness > 1.3) return this.biomes.forest;
 			return this.biomes.plains;
-		} else if (heat <= 0.5) {
+		} else if (heat <= 0.6) {
 			if (wierdness > 1.5) return this.biomes.icemountains;
 			return this.biomes.iceplains;
 		}

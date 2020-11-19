@@ -338,6 +338,48 @@ export class BeachBiome extends BaseBiome {
 	}
 }
 
+export class SavannaBiome extends BaseBiome {
+	id: string = 'savanna';
+	height: number = 120;
+	mountainNoise: Noise2D;
+	constructor(blocks, feature, seed) {
+		super(blocks, feature, seed);
+		this.mountainNoise = makeNoise2D(seed * 5238 + 132);
+	}
+	getBlock(x: number, y: number, z: number, get: Function): number {
+		const block = get(y);
+		const upBlock = get(y + 1);
+		const up3Block = get(y + 3);
+		const bottomBlock = get(y - 1);
+
+		if (y == 0) return this.block.bedrock;
+		if (block == this.block.stone) {
+			if (upBlock == 0) return this.block.grass_yellow;
+			else if (upBlock == this.block.stone && up3Block != this.block.stone) return this.block.dirt;
+			else if (upBlock == this.block.water) return this.block.dirt;
+			else return this.block.stone;
+		} else if (bottomBlock == this.block.stone && block == 0) {
+			if (this.hash2(x, z) >= 0.9995) return this.feature.yellowOakTree;
+			else if (this.hash(x, z) >= 0.85) return this.block.grass_plant_yellow;
+		}
+
+		return this.block.air;
+	}
+
+	getHeightMap(x: number, y: number, z: number): number {
+		const dim = this.caveNoise(x / 70, y / 70, z / 70);
+		const dim2 = this.caveNoise2(x / 40, y / 40, z / 40);
+
+		const layer1 = this.heightNoise(x / 70, z / 70) + 0.4;
+		const layer2 = this.heightNoise2(x / 10, z / 10);
+		const mountain = this.mountainNoise(x / 60, z / 60) + 1;
+
+		const h = layer1 + (layer2 + 1) / 4;
+
+		return (dim * (1 - h) + dim2 * h) * 23 * mountain + 73;
+	}
+}
+
 function minNegative(x: number): number {
 	return x > 0 ? x : x / 3;
 }

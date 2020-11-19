@@ -1,11 +1,15 @@
 import * as protocol from './lib/protocol';
+import type WebSocket from 'ws';
 
 export class BaseSocket {
 	socket: any;
 	listeners: Object = {};
 	server: string;
+	ip: string = '0.0.0.0';
 
-	constructor() {}
+	constructor(ip: string) {
+		this.ip = ip;
+	}
 
 	send(type: string, data: Object) {
 		const packet = protocol.parseToMessage('server', type, data);
@@ -15,7 +19,7 @@ export class BaseSocket {
 	}
 
 	close() {
-		this.emit('close', true)
+		this.emit('close', true);
 		this.listeners = {};
 	}
 
@@ -38,8 +42,8 @@ export class BaseSocket {
 }
 
 export class WSSocket extends BaseSocket {
-	constructor(socket) {
-		super();
+	constructor(socket: WebSocket, ip: string) {
+		super(ip);
 
 		this.socket = socket;
 
@@ -50,7 +54,7 @@ export class WSSocket extends BaseSocket {
 		};
 
 		this.socket.on('error', () => {
-			this.emit('error', { reason: `Connection error!` } );
+			this.emit('error', { reason: `Connection error!` });
 		});
 
 		this.socket.on('close', () => {
@@ -64,7 +68,7 @@ export class WSSocket extends BaseSocket {
 	}
 
 	close() {
-		this.emit('close', true)
+		this.emit('close', true);
 		this.listeners = {};
 		this.socket.close();
 	}

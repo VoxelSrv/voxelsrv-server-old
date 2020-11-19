@@ -77,6 +77,9 @@ function setup(registry) {
     registry.addBlock(new registry_1.Block('pumpkin', 0, ['block/pumpkin_top', 'block/pumpkin_side', 'block/pumpkin_side'], {}, 0, 0, 'any'));
     registry.addBlock(new registry_1.Block('oak_sapling', 1, ['block/oak_sapling'], { solid: false, opaque: false }, 0, 0, 'any'));
     registry.addBlock(new registry_1.Block('ice', 0, ['block/ice'], {}, 0, 0, 'any'));
+    registry.addBlock(new registry_1.Block('grass_yellow', 0, ['block/grass_yellow_top', 'block/dirt', 'block/grass_yellow_side'], {}, 0, 0, 'any'));
+    registry.addBlock(new registry_1.Block('grass_plant_yellow', 1, ['block/grass_plant_yellow'], { solid: false, opaque: false }, 0, 0, 'any'));
+    registry.addBlock(new registry_1.Block('leaves_yellow', 0, ['block/leaves_yellow'], { opaque: false }, 0, 0, 'any'));
 }
 exports.setup = setup;
 //# sourceMappingURL=blocks.js.map

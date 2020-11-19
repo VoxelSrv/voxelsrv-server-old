@@ -1,4 +1,3 @@
-import * as console from '../lib/console';
 import { ChatComponent, ChatMessage } from '../lib/chat';
 import * as configs from '../lib/configs';
 import { Registry, Command } from '../lib/registry';
@@ -13,6 +12,42 @@ export function setup(registry: Registry, server: Server) {
 	}
 
 	registry.addCommand(new Command('/help', helpCommand, 'Displays list of all commands'));
+
+	function banCommand(executor, arg: Array<string>) {
+		if (!executor.permissions.check('server.ban')) {
+			executor.send([new ChatComponent(`You don't have required permission to use this command!`, 'red')]);
+			return;
+		}
+
+		const uuid = server.players.cache.uuid[arg[0]];
+		if (uuid == undefined) {
+			executor.send([new ChatComponent(`This player doesn't exist!`, 'red')])
+			return;
+		}
+		executor.send([new ChatComponent(`Player ${arg[0]} has been banned!`, 'green')]);
+		arg.shift();
+
+		server.players.banPlayer(uuid, arg.length != 0 ? arg.join(' ') : 'Unknown reason');
+	}
+
+	registry.addCommand(new Command('/ban', banCommand, 'Bans players'));
+
+	function ipBanCommand(executor, arg: Array<string>) {
+		if (!executor.permissions.check('server.ban')) {
+			executor.send([new ChatComponent(`You don't have required permission to use this command!`, 'red')]);
+			return;
+		}
+
+		let uuid = server.players.cache.ip[server.players.cache.uuid[arg[0]]];
+		if (uuid == undefined) uuid = arg[0];
+
+		arg.shift();
+		executor.send([new ChatComponent(`Player/IP ${uuid} has been banned!`, 'green')]);
+
+		server.players.banIP(uuid, arg.length != 0 ? arg.join(' ') : 'Unknown reason');
+	}
+
+	registry.addCommand(new Command('/banip', ipBanCommand, 'Bans players'));
 
 	function teleport(executor, arg) {
 		if (executor.id == '#console') return;

@@ -73,4 +73,12 @@ export declare class BeachBiome extends BaseBiome {
     getBlock(x: number, y: number, z: number, get: Function): number;
     getHeightMap(x: number, y: number, z: number): number;
 }
+export declare class SavannaBiome extends BaseBiome {
+    id: string;
+    height: number;
+    mountainNoise: Noise2D;
+    constructor(blocks: any, feature: any, seed: any);
+    getBlock(x: number, y: number, z: number, get: Function): number;
+    getHeightMap(x: number, y: number, z: number): number;
+}
 //# sourceMappingURL=biomes.d.ts.map

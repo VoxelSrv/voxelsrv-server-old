@@ -34,8 +34,10 @@ function startServer() {
     const cfg = JSON.parse(json.toString());
     const wss = new ws_1.default.Server({ port: cfg.port });
     const server = new server_1.Server();
-    wss.on('connection', (s) => {
-        server.connectPlayer(new socket_1.WSSocket(s));
+    wss.on('connection', (s, req) => {
+        // @ts-ignore
+        const ip = req.headers['x-forwarded-for'] || req.connection.remoteAddress;
+        server.connectPlayer(new socket_1.WSSocket(s, ip));
     });
     server.on('server-stopped', () => {
         process.exit();

@@ -9,6 +9,7 @@ import * as fs from 'fs';
 import { log, error, executorchat } from './console';
 import * as types from '../types';
 import * as chat from './chat';
+import * as config from './configs';
 
 import { PlayerInventory, ArmorInventory } from './inventory';
 import { PlayerPermissionHolder } from './permissions';
@@ -18,6 +19,9 @@ import { BaseSocket } from '../socket';
 
 export class PlayerManager {
 	players: { [index: string]: Player } = {};
+	banlist: { [index: string]: string } = {};
+	ipbanlist: { [index: string]: string } = {};
+	cache: { [index: string]: { [index: string]: string } } = {};
 	chunksToSend = [];
 	_server: Server;
 	_entities: EntityManager;
@@ -28,6 +32,12 @@ export class PlayerManager {
 		this._server = server;
 		this._entities = server.entities;
 		this._worlds = server.worlds;
+		const banlist = config.load('', 'banlist');
+		this.banlist = banlist.players != undefined ? banlist.players : {};
+		this.ipbanlist = banlist.ips != undefined ? banlist.ips : {};
+
+		this.cache.uuid = config.load('', '.cacheuuid');
+		this.cache.ip = config.load('', '.cacheip');
 
 		server.on('entity-create', (data) => {
 			this.sendPacketAll('EntityCreate', {
@@ -41,12 +51,19 @@ export class PlayerManager {
 		server.on('entity-remove', (data) => {
 			this.sendPacketAll('EntityRemove', data);
 		});
+
+		server.on('server-stop', () => {
+			this.saveCache();
+			this.saveBanlist();
+		});
 	}
 
 	create(id: string, data: any, socket: BaseSocket): Player {
 		this.players[id] = new Player(id, data.username, socket, this);
 
 		this._server.emit('player-create', this.players[id]);
+		this.cache.uuid[this.players[id].nickname] = this.players[id].id;
+		this.cache.ip[id] = this.players[id].ipAddress;
 
 		return this.players[id];
 	}
@@ -90,17 +107,59 @@ export class PlayerManager {
 			p.sendPacket(type, data);
 		});
 	}
+
+	isBanned(id: string): boolean {
+		return this.banlist[id] != undefined;
+	}
+
+	isIPBanned(ip: string): boolean {
+		return this.ipbanlist[ip] != undefined;
+	}
+
+	getBanReason(id: string): string {
+		return this.banlist[id];
+	}
+
+	getIPBanReason(ip: string): string {
+		return this.ipbanlist[ip];
+	}
+
+	banPlayer(id: string, reason: string = 'Unknown reason') {
+		this.banlist[id] = reason;
+		this._server.emit('player-ban', id, reason);
+		if (this.players[id] != undefined) this.players[id].kick(reason);
+		this.saveBanlist();
+	}
+
+	banIP(ip: string, reason: string = 'Unknown reason') {
+		this.ipbanlist[ip] = reason;
+		this._server.emit('player-ipban', ip, reason);
+		Object.values(this.players).forEach((player: Player) => {
+			if (player.ipAddress == ip) player.kick(reason);
+		});
+		this.saveBanlist();
+	}
+
+	saveBanlist() {
+		config.save('', 'banlist', { players: this.banlist, ips: this.ipbanlist });
+	}
+
+	saveCache() {
+		config.save('', '.cacheuuid', this.cache.uuid);
+		config.save('', '.cacheip', this.cache.ip);
+	}
 }
 
 export class Player {
 	readonly id: string;
 	readonly nickname: string;
+	readonly ipAddress: string = '0.0.0.0';
+	readonly socket: BaseSocket;
 	displayName: string;
 	entity: Entity;
 	world: World;
 	inventory: PlayerInventory;
 	hookInventory: any;
-	readonly socket: BaseSocket;
 	permissions: PlayerPermissionHolder;
 	chunks: types.anyobject;
 	movement: PlayerMovement;
@@ -108,6 +167,7 @@ export class Player {
 		items: { 0: null, 1: null, 2: null, 3: null },
 		result: null,
 	};
+
 	_chunksToSend = [];
 	_chunksInterval: any;
 
@@ -120,6 +180,7 @@ export class Player {
 		this.displayName = name;
 		this._players = players;
 		this._server = players._server;
+		this.ipAddress = socket.ip;
 		let data: types.anyobject | null;
 		if (this._players.exist(this.id)) data = this._players.read(this.id);
 
@@ -146,7 +207,7 @@ export class Player {
 
 			this.world = this._players._worlds.get('default');
 
-			this.inventory = new PlayerInventory(10, null, this._server);
+			this.inventory = new PlayerInventory(13, null, this._server);
 			this.hookInventory = null;
 			this.permissions = new PlayerPermissionHolder(this._server.permissions, {}, ['default']);
 			this.movement = { ...defaultPlayerMovement };
@@ -175,7 +236,7 @@ export class Player {
 
 			this.world = this._players._worlds.get(data.world);
 
-			this.inventory = new PlayerInventory(10, data.inventory, this._server);
+			this.inventory = new PlayerInventory(13, data.inventory, this._server);
 			if (!!data.permissions)
 				this.permissions = new PlayerPermissionHolder(this._server.permissions, data.permissions, [...data.permissionparents, 'default']);
 			else this.permissions = new PlayerPermissionHolder(this._server.permissions, {}, ['default']);
@@ -210,6 +271,7 @@ export class Player {
 	getObject() {
 		return {
 			id: this.id,
+			ipAddress: this.ipAddress,
 			nickname: this.nickname,
 			entity: this.entity.getObject(),
 			inventory: this.inventory.getObject(),
@@ -284,11 +346,19 @@ export class Player {
 		this.entity.rotate(rot, pitch);
 	}
 
-	kick(reason: string) {
+	kick(reason: string = '') {
 		this.sendPacket('PlayerKick', { reason: reason, date: Date.now() });
 		setTimeout(() => {
 			this.socket.close();
 		}, 50);
+	}
+
+	ban(reason: string = 'Unknown reason') {
+		this._players.banPlayer(this.id, reason);
+	}
+
+	banIP(reason: string = 'Unknown reason') {
+		this._players.banIP(this.ipAddress, reason);
 	}
 
 	updateMovement(key: string, value: number) {
@@ -471,7 +541,7 @@ export class Player {
 		}
 	}
 
-	action_move(data: pClient.IActionMove & { cancel: boolean }) {
+	async action_move(data: pClient.IActionMove & { cancel: boolean }) {
 		if (data.x == undefined || data.y == undefined || data.z == undefined) return;
 
 		const local = globalToChunk([data.x, data.y, data.z]);
@@ -485,7 +555,7 @@ export class Player {
 			if (block == undefined || block.options == undefined) data.cancel = true;
 			else if (block.options.solid != false && block.options.fluid != true) data.cancel = true;
 		}
-		const pos = this.entity.data.position;
+		const pos: types.XYZ = this.entity.data.position;
 		const move: types.XYZ = [data.x, data.y, data.z];
 
 		for (let x = 0; x <= 5; x++) {

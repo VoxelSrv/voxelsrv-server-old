@@ -3,7 +3,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.BeachBiome = exports.OceanBiome = exports.IceMountainsBiome = exports.MountainsBiome = exports.DesertBiome = exports.ForestBiome = exports.IcePlainsBiome = exports.PlainsBiome = exports.BaseBiome = void 0;
+exports.SavannaBiome = exports.BeachBiome = exports.OceanBiome = exports.IceMountainsBiome = exports.MountainsBiome = exports.DesertBiome = exports.ForestBiome = exports.IcePlainsBiome = exports.PlainsBiome = exports.BaseBiome = void 0;
 const open_simplex_noise_1 = require("open-simplex-noise");
 const murmur_numbers_1 = __importDefault(require("murmur-numbers"));
 class BaseBiome {
@@ -373,6 +373,49 @@ class BeachBiome extends BaseBiome {
     }
 }
 exports.BeachBiome = BeachBiome;
+class SavannaBiome extends BaseBiome {
+    constructor(blocks, feature, seed) {
+        super(blocks, feature, seed);
+        this.id = 'savanna';
+        this.height = 120;
+        this.mountainNoise = open_simplex_noise_1.makeNoise2D(seed * 5238 + 132);
+    }
+    getBlock(x, y, z, get) {
+        const block = get(y);
+        const upBlock = get(y + 1);
+        const up3Block = get(y + 3);
+        const bottomBlock = get(y - 1);
+        if (y == 0)
+            return this.block.bedrock;
+        if (block == this.block.stone) {
+            if (upBlock == 0)
+                return this.block.grass_yellow;
+            else if (upBlock == this.block.stone && up3Block != this.block.stone)
+                return this.block.dirt;
+            else if (upBlock == this.block.water)
+                return this.block.dirt;
+            else
+                return this.block.stone;
+        }
+        else if (bottomBlock == this.block.stone && block == 0) {
+            if (this.hash2(x, z) >= 0.9995)
+                return this.feature.yellowOakTree;
+            else if (this.hash(x, z) >= 0.85)
+                return this.block.grass_plant_yellow;
+        }
+        return this.block.air;
+    }
+    getHeightMap(x, y, z) {
+        const dim = this.caveNoise(x / 70, y / 70, z / 70);
+        const dim2 = this.caveNoise2(x / 40, y / 40, z / 40);
+        const layer1 = this.heightNoise(x / 70, z / 70) + 0.4;
+        const layer2 = this.heightNoise2(x / 10, z / 10);
+        const mountain = this.mountainNoise(x / 60, z / 60) + 1;
+        const h = layer1 + (layer2 + 1) / 4;
+        return (dim * (1 - h) + dim2 * h) * 23 * mountain + 73;
+    }
+}
+exports.SavannaBiome = SavannaBiome;
 function minNegative(x) {
     return x > 0 ? x : x / 3;
 }

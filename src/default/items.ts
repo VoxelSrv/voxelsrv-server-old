@@ -92,4 +92,8 @@ export function setup (registry: Registry) {
 	registry.addItem(new ItemBlock('ice', 'Ice', 'block/ice', 64, 'ice', false));
 	registry.addItem(new ItemBlock('gravel', 'Gravel', 'block/gravel', 64, 'gravel', false));
 
+	registry.addItem(new ItemBlock('grass_yellow', 'Yellow grass block', 'block/grass_yellow_side', 64, 'grass_yellow', false));
+	registry.addItem(new ItemBlock('grass_plant_yellow', 'Yellow grass plant', 'block/grass_plant_yellow', 64, 'grass_plant_yellow', false));
+	registry.addItem(new ItemBlock('leaves_yellow', 'Yellow leaves', 'block/leaves_yellow', 64, 'leaves_yellow', false));
+
 }

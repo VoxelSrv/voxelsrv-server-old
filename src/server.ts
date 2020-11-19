@@ -17,6 +17,8 @@ import normalGenerator from './default/worldgen/normal';
 
 import { serverVersion, serverProtocol, invalidNicknameRegex, IServerConfig, heartbeatServer, serverDefaultConfig } from './values';
 import { BaseSocket } from './socket';
+import { ILoginRequest } from 'voxelsrv-protocol/js/server';
+import { ILoginResponse } from 'voxelsrv-protocol/js/client';
 
 export class Server extends EventEmitter {
 	playerCount: number = 0;
@@ -125,8 +127,18 @@ export class Server extends EventEmitter {
 
 		let loginTimeout = true;
 
-		socket.on('LoginResponse', (data) => {
+		socket.on('LoginResponse', (data: ILoginResponse) => {
 			loginTimeout = false;
+
+			if (this.players.isBanned(data.uuid)) {
+				socket.send('PlayerKick', { reason: 'You are banned!\nReason: ' + this.players.getBanReason(data.uuid), time: Date.now() });
+				socket.close();
+				return;
+			} else if (this.players.isIPBanned(socket.ip)) {
+				socket.send('PlayerKick', { reason: 'You are banned!\nReason: ' + this.players.getIPBanReason(socket.ip), time: Date.now() });
+				socket.close();
+				return;
+			}
 
 			if (this.playerCount >= this.config.maxplayers) {
 				socket.send('PlayerKick', { reason: 'Server is full', time: Date.now() });
@@ -257,8 +269,7 @@ export class Server extends EventEmitter {
 			]);
 			const min = semver.minVersion(plugin.supported);
 			const max = semver.maxSatisfying(plugin.supported);
-			if (!!min && !!max && (semver.gt(serverVersion, max) || semver.lt(serverVersion, min)))
-				warn(`It only support versions from ${min} to ${max}.`);
+			if (!!min && !!max && (semver.gt(serverVersion, max) || semver.lt(serverVersion, min))) warn(`It only support versions from ${min} to ${max}.`);
 			else if (!!min && !max && semver.lt(serverVersion, min)) warn(`It only support versions ${min} or newer.`);
 			else if (!min && !!max && semver.gt(serverVersion, max)) warn(`It only support versions ${max} or older.`);
 		}

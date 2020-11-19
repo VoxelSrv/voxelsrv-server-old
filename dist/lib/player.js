@@ -26,16 +26,25 @@ const worlds_1 = require("./worlds");
 const fs = __importStar(require("fs"));
 const console_1 = require("./console");
 const chat = __importStar(require("./chat"));
+const config = __importStar(require("./configs"));
 const inventory_1 = require("./inventory");
 const permissions_1 = require("./permissions");
 class PlayerManager {
     constructor(server) {
         this.players = {};
+        this.banlist = {};
+        this.ipbanlist = {};
+        this.cache = {};
         this.chunksToSend = [];
         this._lastChunkUpdate = 0;
         this._server = server;
         this._entities = server.entities;
         this._worlds = server.worlds;
+        const banlist = config.load('', 'banlist');
+        this.banlist = banlist.players != undefined ? banlist.players : {};
+        this.ipbanlist = banlist.ips != undefined ? banlist.ips : {};
+        this.cache.uuid = config.load('', '.cacheuuid');
+        this.cache.ip = config.load('', '.cacheip');
         server.on('entity-create', (data) => {
             this.sendPacketAll('EntityCreate', {
                 uuid: data.uuid,
@@ -48,10 +57,16 @@ class PlayerManager {
         server.on('entity-remove', (data) => {
             this.sendPacketAll('EntityRemove', data);
         });
+        server.on('server-stop', () => {
+            this.saveCache();
+            this.saveBanlist();
+        });
     }
     create(id, data, socket) {
         this.players[id] = new Player(id, data.username, socket, this);
         this._server.emit('player-create', this.players[id]);
+        this.cache.uuid[this.players[id].nickname] = this.players[id].id;
+        this.cache.ip[id] = this.players[id].ipAddress;
         return this.players[id];
     }
     read(id) {
@@ -91,10 +106,46 @@ class PlayerManager {
             p.sendPacket(type, data);
         });
     }
+    isBanned(id) {
+        return this.banlist[id] != undefined;
+    }
+    isIPBanned(ip) {
+        return this.ipbanlist[ip] != undefined;
+    }
+    getBanReason(id) {
+        return this.banlist[id];
+    }
+    getIPBanReason(ip) {
+        return this.ipbanlist[ip];
+    }
+    banPlayer(id, reason = 'Unknown reason') {
+        this.banlist[id] = reason;
+        this._server.emit('player-ban', id, reason);
+        if (this.players[id] != undefined)
+            this.players[id].kick(reason);
+        this.saveBanlist();
+    }
+    banIP(ip, reason = 'Unknown reason') {
+        this.ipbanlist[ip] = reason;
+        this._server.emit('player-ipban', ip, reason);
+        Object.values(this.players).forEach((player) => {
+            if (player.ipAddress == ip)
+                player.kick(reason);
+        });
+        this.saveBanlist();
+    }
+    saveBanlist() {
+        config.save('', 'banlist', { players: this.banlist, ips: this.ipbanlist });
+    }
+    saveCache() {
+        config.save('', '.cacheuuid', this.cache.uuid);
+        config.save('', '.cacheip', this.cache.ip);
+    }
 }
 exports.PlayerManager = PlayerManager;
 class Player {
     constructor(id, name, socket, players) {
+        this.ipAddress = '0.0.0.0';
         this.crafting = {
             items: { 0: null, 1: null, 2: null, 3: null },
             result: null,
@@ -105,6 +156,7 @@ class Player {
         this.displayName = name;
         this._players = players;
         this._server = players._server;
+        this.ipAddress = socket.ip;
         let data;
         if (this._players.exist(this.id))
             data = this._players.read(this.id);
@@ -123,7 +175,7 @@ class Player {
                 armor: new inventory_1.ArmorInventory(null, this._server),
             }, 'default', null);
             this.world = this._players._worlds.get('default');
-            this.inventory = new inventory_1.PlayerInventory(10, null, this._server);
+            this.inventory = new inventory_1.PlayerInventory(13, null, this._server);
             this.hookInventory = null;
             this.permissions = new permissions_1.PlayerPermissionHolder(this._server.permissions, {}, ['default']);
             this.movement = { ...exports.defaultPlayerMovement };
@@ -145,7 +197,7 @@ class Player {
                 armor: new inventory_1.ArmorInventory(data.entity.data.armor, this._server),
             }, data.world, null);
             this.world = this._players._worlds.get(data.world);
-            this.inventory = new inventory_1.PlayerInventory(10, data.inventory, this._server);
+            this.inventory = new inventory_1.PlayerInventory(13, data.inventory, this._server);
             if (!!data.permissions)
                 this.permissions = new permissions_1.PlayerPermissionHolder(this._server.permissions, data.permissions, [...data.permissionparents, 'default']);
             else
@@ -176,6 +228,7 @@ class Player {
     getObject() {
         return {
             id: this.id,
+            ipAddress: this.ipAddress,
             nickname: this.nickname,
             entity: this.entity.getObject(),
             inventory: this.inventory.getObject(),
@@ -244,11 +297,17 @@ class Player {
         this._server.emit('player-rotate', { id: this.id, rot, pitch });
         this.entity.rotate(rot, pitch);
     }
-    kick(reason) {
+    kick(reason = '') {
         this.sendPacket('PlayerKick', { reason: reason, date: Date.now() });
         setTimeout(() => {
             this.socket.close();
         }, 50);
+    }
+    ban(reason = 'Unknown reason') {
+        this._players.banPlayer(this.id, reason);
+    }
+    banIP(reason = 'Unknown reason') {
+        this._players.banIP(this.ipAddress, reason);
     }
     updateMovement(key, value) {
         this.sendPacket('PlayerUpdateMovement', { key: key, value: value });
@@ -423,7 +482,7 @@ class Player {
             chat.sendMlt([console_1.executorchat, ...Object.values(this._players.getAll())], msg);
         }
     }
-    action_move(data) {
+    async action_move(data) {
         if (data.x == undefined || data.y == undefined || data.z == undefined)
             return;
         const local = worlds_1.globalToChunk([data.x, data.y, data.z]);

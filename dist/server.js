@@ -122,6 +122,16 @@ class Server extends events_1.EventEmitter {
         let loginTimeout = true;
         socket.on('LoginResponse', (data) => {
             loginTimeout = false;
+            if (this.players.isBanned(data.uuid)) {
+                socket.send('PlayerKick', { reason: 'You are banned!\nReason: ' + this.players.getBanReason(data.uuid), time: Date.now() });
+                socket.close();
+                return;
+            }
+            else if (this.players.isIPBanned(socket.ip)) {
+                socket.send('PlayerKick', { reason: 'You are banned!\nReason: ' + this.players.getIPBanReason(socket.ip), time: Date.now() });
+                socket.close();
+                return;
+            }
             if (this.playerCount >= this.config.maxplayers) {
                 socket.send('PlayerKick', { reason: 'Server is full', time: Date.now() });
                 socket.close();

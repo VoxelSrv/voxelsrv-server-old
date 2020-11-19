@@ -11,6 +11,34 @@ function setup(registry, server) {
         });
     }
     registry.addCommand(new registry_1.Command('/help', helpCommand, 'Displays list of all commands'));
+    function banCommand(executor, arg) {
+        if (!executor.permissions.check('server.ban')) {
+            executor.send([new chat_1.ChatComponent(`You don't have required permission to use this command!`, 'red')]);
+            return;
+        }
+        const uuid = server.players.cache.uuid[arg[0]];
+        if (uuid == undefined) {
+            executor.send([new chat_1.ChatComponent(`This player doesn't exist!`, 'red')]);
+            return;
+        }
+        executor.send([new chat_1.ChatComponent(`Player ${arg[0]} has been banned!`, 'green')]);
+        arg.shift();
+        server.players.banPlayer(uuid, arg.length != 0 ? arg.join(' ') : 'Unknown reason');
+    }
+    registry.addCommand(new registry_1.Command('/ban', banCommand, 'Bans players'));
+    function ipBanCommand(executor, arg) {
+        if (!executor.permissions.check('server.ban')) {
+            executor.send([new chat_1.ChatComponent(`You don't have required permission to use this command!`, 'red')]);
+            return;
+        }
+        let uuid = server.players.cache.ip[server.players.cache.uuid[arg[0]]];
+        if (uuid == undefined)
+            uuid = arg[0];
+        arg.shift();
+        executor.send([new chat_1.ChatComponent(`Player/IP ${uuid} has been banned!`, 'green')]);
+        server.players.banIP(uuid, arg.length != 0 ? arg.join(' ') : 'Unknown reason');
+    }
+    registry.addCommand(new registry_1.Command('/banip', ipBanCommand, 'Bans players'));
     function teleport(executor, arg) {
         if (executor.id == '#console')
             return;

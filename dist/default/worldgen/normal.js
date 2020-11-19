@@ -48,6 +48,7 @@ class NormalGenerator {
             birchTree: -2,
             cactus: -3,
             spruceTree: -4,
+            yellowOakTree: -5,
         };
         this._worker = [];
         this._lastWorkerUsed = 0;
@@ -79,6 +80,7 @@ class NormalGenerator {
             icemountains: new biome.IceMountainsBiome(this.blocks, this.features, seed),
             ocean: new biome.OceanBiome(this.blocks, this.features, seed),
             beach: new biome.BeachBiome(this.blocks, this.features, seed),
+            savanna: new biome.SavannaBiome(this.blocks, this.features, seed),
         };
     }
     getBlock(x, y, z, biomes) {
@@ -91,7 +93,7 @@ class NormalGenerator {
         return y <= value ? this.blocks.stone : y <= this.waterLevel ? this.blocks.water : 0;
     }
     getBiome(x, z) {
-        const rand = this.hash(200, x, z) / 100;
+        const rand = this.hash(200, x, z) / 90;
         const wierdness = this.biomeNoise1(x / 600, z / 600) + 1 + rand;
         const heat = this.biomeNoise2(x / 300, z / 300) + 1 + rand;
         const water = this.biomeNoise3(x / 400, z / 400) + 1 + rand;
@@ -102,8 +104,11 @@ class NormalGenerator {
                 return this.biomes.mountains;
             return this.biomes.beach;
         }
-        else if (heat > 1.5) {
+        else if (heat > 1.4) {
             return this.biomes.desert;
+        }
+        else if (heat > 1.15 && water < 1) {
+            return this.biomes.savanna;
         }
         else if (heat > 0.5) {
             if (wierdness > 1.5)
@@ -112,7 +117,7 @@ class NormalGenerator {
                 return this.biomes.forest;
             return this.biomes.plains;
         }
-        else if (heat <= 0.5) {
+        else if (heat <= 0.6) {
             if (wierdness > 1.5)
                 return this.biomes.icemountains;
             return this.biomes.iceplains;
@@ -204,6 +209,11 @@ class NormalGenerator {
                             chunk.set(x, y + 1, z, this.blocks.cactus);
                             if (murmur_numbers_1.default(x, z) > 0.5)
                                 chunk.set(x, y + 2, z, this.blocks.cactus);
+                        }
+                        else if (block == this.features.yellowOakTree) {
+                            if (x > 29 || x < 3 || z > 29 || z < 3)
+                                continue;
+                            await pasteStructure(chunk, tree.yellowOakTree(this.hash(x + xoff, z + zoff, y, this.seed) * 100, this.hash, this.blocks), x, y, z, id, world);
                         }
                     }
                 }

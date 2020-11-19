@@ -12,8 +12,11 @@ export function startServer() {
 	const wss = new WebSocket.Server({ port: cfg.port });
 	const server = new Server();
 
-	wss.on('connection', (s) => {
-		server.connectPlayer(new WSSocket(s));
+	wss.on('connection', (s, req) => {
+		// @ts-ignore
+		const ip: string = req.headers['x-forwarded-for'] || req.connection.remoteAddress;
+
+		server.connectPlayer(new WSSocket(s, ip));
 	});
 
 	server.on('server-stopped', () => {

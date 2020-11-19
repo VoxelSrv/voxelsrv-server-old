@@ -76,6 +76,9 @@ function setup(registry) {
     registry.addItem(new registry_1.ItemBlock('bucket', 'Bucket', 'item/bucket', 1, 'air', false));
     registry.addItem(new registry_1.ItemBlock('ice', 'Ice', 'block/ice', 64, 'ice', false));
     registry.addItem(new registry_1.ItemBlock('gravel', 'Gravel', 'block/gravel', 64, 'gravel', false));
+    registry.addItem(new registry_1.ItemBlock('grass_yellow', 'Yellow grass block', 'block/grass_yellow_side', 64, 'grass_yellow', false));
+    registry.addItem(new registry_1.ItemBlock('grass_plant_yellow', 'Yellow grass plant', 'block/grass_plant_yellow', 64, 'grass_plant_yellow', false));
+    registry.addItem(new registry_1.ItemBlock('leaves_yellow', 'Yellow leaves', 'block/leaves_yellow', 64, 'leaves_yellow', false));
 }
 exports.setup = setup;
 //# sourceMappingURL=items.js.map

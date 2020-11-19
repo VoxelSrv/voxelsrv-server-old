@@ -22,8 +22,10 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.WSSocket = exports.BaseSocket = void 0;
 const protocol = __importStar(require("./lib/protocol"));
 class BaseSocket {
-    constructor() {
+    constructor(ip) {
         this.listeners = {};
+        this.ip = '0.0.0.0';
+        this.ip = ip;
     }
     send(type, data) {
         const packet = protocol.parseToMessage('server', type, data);
@@ -54,8 +56,8 @@ class BaseSocket {
 }
 exports.BaseSocket = BaseSocket;
 class WSSocket extends BaseSocket {
-    constructor(socket) {
-        super();
+    constructor(socket, ip) {
+        super(ip);
         this.socket = socket;
         this.socket.binaryType = 'arraybuffer';
         this.socket.onopen = () => {

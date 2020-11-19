@@ -93,4 +93,9 @@ export function setup (registry: Registry) {
 	registry.addBlock(new Block('oak_sapling', 1, ['block/oak_sapling'], { solid: false, opaque: false }, 0, 0, 'any'));
 
 	registry.addBlock(new Block('ice', 0, ['block/ice'], {}, 0, 0, 'any'));
+
+	registry.addBlock(new Block('grass_yellow', 0, ['block/grass_yellow_top', 'block/dirt', 'block/grass_yellow_side'], {}, 0, 0, 'any'));
+	registry.addBlock(new Block('grass_plant_yellow', 1, ['block/grass_plant_yellow'], { solid: false, opaque: false }, 0, 0, 'any'));
+	registry.addBlock(new Block('leaves_yellow', 0, ['block/leaves_yellow'], { opaque: false }, 0, 0, 'any'));
+
 }

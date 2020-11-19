@@ -11,6 +11,17 @@ export declare class PlayerManager {
     players: {
         [index: string]: Player;
     };
+    banlist: {
+        [index: string]: string;
+    };
+    ipbanlist: {
+        [index: string]: string;
+    };
+    cache: {
+        [index: string]: {
+            [index: string]: string;
+        };
+    };
     chunksToSend: any[];
     _server: Server;
     _entities: EntityManager;
@@ -26,16 +37,25 @@ export declare class PlayerManager {
         [index: string]: Player;
     };
     sendPacketAll(type: string, data: any): void;
+    isBanned(id: string): boolean;
+    isIPBanned(ip: string): boolean;
+    getBanReason(id: string): string;
+    getIPBanReason(ip: string): string;
+    banPlayer(id: string, reason?: string): void;
+    banIP(ip: string, reason?: string): void;
+    saveBanlist(): void;
+    saveCache(): void;
 }
 export declare class Player {
     readonly id: string;
     readonly nickname: string;
+    readonly ipAddress: string;
+    readonly socket: BaseSocket;
     displayName: string;
     entity: Entity;
     world: World;
     inventory: PlayerInventory;
     hookInventory: any;
-    readonly socket: BaseSocket;
     permissions: PlayerPermissionHolder;
     chunks: types.anyobject;
     movement: PlayerMovement;
@@ -55,6 +75,7 @@ export declare class Player {
     constructor(id: string, name: string, socket: BaseSocket, players: PlayerManager);
     getObject(): {
         id: string;
+        ipAddress: string;
         nickname: string;
         entity: import("./entity").IEntityObject;
         inventory: import("./inventory").InventoryObject;
@@ -72,7 +93,9 @@ export declare class Player {
     send(msg: string | chat.ChatMessage): void;
     sendChunk(id: types.XZ): void;
     rotate(rot: number | null, pitch: number | null): void;
-    kick(reason: string): void;
+    kick(reason?: string): void;
+    ban(reason?: string): void;
+    banIP(reason?: string): void;
     updateMovement(key: string, value: number): void;
     updatePhysics(key: string, value: number): void;
     applyForce(x: number, y: number, z: number): void;
@@ -93,7 +116,7 @@ export declare class Player {
     }): void;
     action_move(data: pClient.IActionMove & {
         cancel: boolean;
-    }): void;
+    }): Promise<void>;
     action_click(data: pClient.IActionClick & {
         cancel: boolean;
     }): void;
