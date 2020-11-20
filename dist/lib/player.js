@@ -322,6 +322,14 @@ class Player {
     setTab(msg) {
         this.sendPacket('TabUpdate', { message: msg, time: Date.now() });
     }
+    setFog(mode, density, color, start, stop) {
+        if (color != undefined)
+            this.sendPacket('EnvironmentFogUpdate', { mode, density, colorRed: color[0], colorGreen: color[1], colorBlue: color[2], start, stop });
+        this.sendPacket('EnvironmentFogUpdate', { mode, density });
+    }
+    setSky(color, clouds) {
+        this.sendPacket('EnvironmentSkyUpdate', { colorRed: color[0], colorGreen: color[1], colorBlue: color[2], clouds });
+    }
     async updateChunks() {
         const chunk = this.entity.chunkID;
         const loadedchunks = { ...this.chunks };
@@ -512,7 +520,6 @@ class Player {
         }
         if (vec.dist(pos, move) < 20)
             this.move(move);
-        this.rotate(data.rotation, data.pitch);
     }
     action_click(data) {
         data.cancel = false;

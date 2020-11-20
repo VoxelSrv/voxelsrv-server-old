@@ -378,6 +378,16 @@ export class Player {
 		this.sendPacket('TabUpdate', { message: msg, time: Date.now() });
 	}
 
+	setFog(mode: number, density?: number, color?: [number, number, number], start?: number, stop?: number) {
+		if (color != undefined)
+			this.sendPacket('EnvironmentFogUpdate', { mode, density, colorRed: color[0], colorGreen: color[1], colorBlue: color[2], start, stop });
+		this.sendPacket('EnvironmentFogUpdate', { mode, density });
+	}
+
+	setSky(color: [number, number, number], clouds?: boolean) {
+		this.sendPacket('EnvironmentSkyUpdate', { colorRed: color[0], colorGreen: color[1], colorBlue: color[2], clouds });
+	}
+
 	async updateChunks() {
 		const chunk = this.entity.chunkID;
 		const loadedchunks = { ...this.chunks };
@@ -572,8 +582,6 @@ export class Player {
 		}
 
 		if (vec.dist(pos, move) < 20) this.move(move);
-
-		this.rotate(data.rotation, data.pitch);
 	}
 
 	action_click(data: pClient.IActionClick & { cancel: boolean }) {

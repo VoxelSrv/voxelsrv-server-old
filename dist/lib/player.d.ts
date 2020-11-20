@@ -100,6 +100,8 @@ export declare class Player {
     updatePhysics(key: string, value: number): void;
     applyForce(x: number, y: number, z: number): void;
     setTab(msg: chat.ChatMessage): void;
+    setFog(mode: number, density?: number, color?: [number, number, number], start?: number, stop?: number): void;
+    setSky(color: [number, number, number], clouds?: boolean): void;
     updateChunks(): Promise<void>;
     get getID(): string;
     action_blockbreak(data: pClient.IActionBlockBreak & {

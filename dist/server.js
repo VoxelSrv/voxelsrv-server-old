@@ -201,6 +201,13 @@ class Server extends events_1.EventEmitter {
                 socket.on('ActionMove', async (data) => {
                     player.action_move(data);
                 });
+                socket.on('ActionMoveLook', async (data) => {
+                    player.action_move(data);
+                    player.rotate(data.rotation, data.pitch);
+                });
+                socket.on('ActionLook', async (data) => {
+                    player.rotate(data.rotation, data.pitch);
+                });
                 socket.on('ActionInventoryClick', async (data) => {
                     player.action_invclick(data);
                 });

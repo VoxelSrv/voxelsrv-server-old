@@ -70,9 +70,15 @@ class WSSocket extends BaseSocket {
             this.emit('close', { reason: `Connection closed!` });
         });
         this.socket.on('message', (m) => {
-            const packet = protocol.parseToObject('client', new Uint8Array(m));
-            if (packet != null)
-                this.emit(packet.type, packet.data);
+            try {
+                const packet = protocol.parseToObject('client', new Uint8Array(m));
+                if (packet != null)
+                    this.emit(packet.type, packet.data);
+            }
+            catch (e) {
+                console.error('Invalid message', e);
+                socket.close();
+            }
         });
     }
     close() {
