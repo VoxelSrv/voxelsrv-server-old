@@ -1,7 +1,7 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.heartbeatServer = exports.invalidNicknameRegex = exports.serverDefaultConfig = exports.serverProtocol = exports.serverVersion = void 0;
-exports.serverVersion = '0.2.0-beta.15';
+exports.serverVersion = '0.2.0-beta.15.1';
 exports.serverProtocol = 3;
 exports.serverDefaultConfig = {
     port: 3000,
@@ -24,5 +24,5 @@ exports.serverDefaultConfig = {
     consoleInput: true,
 };
 exports.invalidNicknameRegex = new RegExp('[^a-zA-Z0-9_]');
-exports.heartbeatServer = 'localhost:9001';
+exports.heartbeatServer = 'pb4.eu:9001';
 //# sourceMappingURL=values.js.map
