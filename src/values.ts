@@ -1,6 +1,6 @@
 import * as types from './types';
 
-export const serverVersion = '0.2.0-beta.14';
+export const serverVersion = '0.2.0-beta.15';
 export const serverProtocol = 3;
 
 export interface IServerConfig {

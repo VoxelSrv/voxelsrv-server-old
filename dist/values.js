@@ -1,7 +1,7 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.heartbeatServer = exports.invalidNicknameRegex = exports.serverDefaultConfig = exports.serverProtocol = exports.serverVersion = void 0;
-exports.serverVersion = '0.2.0-beta.14';
+exports.serverVersion = '0.2.0-beta.15';
 exports.serverProtocol = 3;
 exports.serverDefaultConfig = {
     port: 3000,
