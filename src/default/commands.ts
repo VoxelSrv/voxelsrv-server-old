@@ -1,5 +1,4 @@
 import { ChatComponent, ChatMessage } from '../lib/chat';
-import * as configs from '../lib/configs';
 import { Registry, Command } from '../lib/registry';
 import type { Server } from '../server';
 
@@ -13,6 +12,29 @@ export function setup(registry: Registry, server: Server) {
 
 	registry.addCommand(new Command('/help', helpCommand, 'Displays list of all commands'));
 
+	function kickCommand(executor, arg: Array<string>) {
+		if (!executor.permissions.check('server.kick')) {
+			executor.send([new ChatComponent(`You don't have required permission to use this command!`, 'red')]);
+			return;
+		}
+
+		const uuid = server.players.cache.uuid[arg[0]];
+		if (uuid == undefined) {
+			executor.send([new ChatComponent(`This player doesn't exist!`, 'red')]);
+			return;
+		}
+
+		if (server.players.players[uuid]) {
+			executor.send([new ChatComponent(`Player ${arg[0]} has been kicked!`, 'green')]);
+			arg.shift();
+			server.players.players[uuid].kick(arg.length != 0 ? arg.join(' ') : 'Unknown reason');
+		} else {
+			executor.send([new ChatComponent(`You can't kick offline players!`, 'red')]);
+		}
+	}
+
+	registry.addCommand(new Command('/kick', kickCommand, 'Kicks players'));
+
 	function banCommand(executor, arg: Array<string>) {
 		if (!executor.permissions.check('server.ban')) {
 			executor.send([new ChatComponent(`You don't have required permission to use this command!`, 'red')]);
@@ -21,7 +43,7 @@ export function setup(registry: Registry, server: Server) {
 
 		const uuid = server.players.cache.uuid[arg[0]];
 		if (uuid == undefined) {
-			executor.send([new ChatComponent(`This player doesn't exist!`, 'red')])
+			executor.send([new ChatComponent(`This player doesn't exist!`, 'red')]);
 			return;
 		}
 		executor.send([new ChatComponent(`Player ${arg[0]} has been banned!`, 'green')]);

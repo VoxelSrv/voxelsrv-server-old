@@ -6,15 +6,15 @@ import { WorldManager, World, globalToChunk } from './worlds';
 import type { ItemStack, Registry } from './registry';
 import type { Server } from '../server';
 import * as fs from 'fs';
-import { log, error, executorchat } from './console';
 import * as types from '../types';
 import * as chat from './chat';
-import * as config from './configs';
 
 import { PlayerInventory, ArmorInventory } from './inventory';
 import { PlayerPermissionHolder } from './permissions';
 
 import * as pClient from 'voxelsrv-protocol/js/client';
+import * as pServer from 'voxelsrv-protocol/js/server';
+
 import { BaseSocket } from '../socket';
 
 export class PlayerManager {
@@ -32,12 +32,12 @@ export class PlayerManager {
 		this._server = server;
 		this._entities = server.entities;
 		this._worlds = server.worlds;
-		const banlist = config.load('', 'banlist');
+		const banlist = this._server.loadConfig('', 'banlist');
 		this.banlist = banlist.players != undefined ? banlist.players : {};
 		this.ipbanlist = banlist.ips != undefined ? banlist.ips : {};
 
-		this.cache.uuid = config.load('', '.cacheuuid');
-		this.cache.ip = config.load('', '.cacheip');
+		this.cache.uuid = this._server.loadConfig('', '.cacheuuid');
+		this.cache.ip = this._server.loadConfig('', '.cacheip');
 
 		server.on('entity-create', (data) => {
 			this.sendPacketAll('EntityCreate', {
@@ -77,7 +77,7 @@ export class PlayerManager {
 
 			return r;
 		} catch (e) {
-			error('Tried to load data of player ' + id + ', but it failed! Error: ', e);
+			this._server.log.error('Tried to load data of player ' + id + ', but it failed! Error: ', e);
 		}
 	}
 
@@ -89,7 +89,7 @@ export class PlayerManager {
 
 	save(id: string, data: Object) {
 		fs.writeFile('./players/' + id + '.json', JSON.stringify(data), function (err) {
-			if (err) error('Cant save player ' + id + '! Reason: ' + err);
+			if (err) this._server.log.error('Cant save player ' + id + '! Reason: ' + err);
 		});
 	}
 
@@ -141,12 +141,12 @@ export class PlayerManager {
 	}
 
 	saveBanlist() {
-		config.save('', 'banlist', { players: this.banlist, ips: this.ipbanlist });
+		this._server.saveConfig('', 'banlist', { players: this.banlist, ips: this.ipbanlist });
 	}
 
 	saveCache() {
-		config.save('', '.cacheuuid', this.cache.uuid);
-		config.save('', '.cacheip', this.cache.ip);
+		this._server.saveConfig('', '.cacheuuid', this.cache.uuid);
+		this._server.saveConfig('', '.cacheip', this.cache.ip);
 	}
 }
 
@@ -166,6 +166,14 @@ export class Player {
 	crafting = {
 		items: { 0: null, 1: null, 2: null, 3: null },
 		result: null,
+	};
+	cache = {
+		lastBlockCheck: {
+			x: 0,
+			y: 0,
+			z: 0,
+			status: false,
+		},
 	};
 
 	_chunksToSend = [];
@@ -324,7 +332,7 @@ export class Player {
 					x: id[0],
 					y: 0,
 					z: id[1],
-					type: true,
+					height: 8,
 					compressed: true,
 					data: zlib.deflateSync(Buffer.from(chunk.data.data.buffer, chunk.data.data.byteOffset)),
 				});
@@ -333,7 +341,7 @@ export class Player {
 					x: id[0],
 					y: 0,
 					z: id[1],
-					type: true,
+					height: 8,
 					compressed: false,
 					data: Buffer.from(chunk.data.data.buffer, chunk.data.data.byteOffset),
 				});
@@ -375,7 +383,7 @@ export class Player {
 	}
 
 	setTab(msg: chat.ChatMessage) {
-		this.sendPacket('TabUpdate', { message: msg, time: Date.now() });
+		this.sendPacket('UpdateTextBoard', { type: pServer.UpdateTextBoard.Type.TAB, message: msg, time: Date.now() });
 	}
 
 	setFog(mode: number, density?: number, color?: [number, number, number], start?: number, stop?: number) {
@@ -415,7 +423,7 @@ export class Player {
 					x: parseInt(cid[0]),
 					y: 0,
 					z: parseInt(cid[1]),
-					type: true,
+					height: 8,
 				});
 			}
 		});
@@ -476,7 +484,7 @@ export class Player {
 	}
 
 	action_invclick(data: pClient.IActionInventoryClick & { cancel: boolean }) {
-		if (data.inventory == undefined) data.inventory = 'main';
+		if (data.inventory == undefined) data.inventory = pClient.ActionInventoryClick.TypeInv.MAIN;
 
 		data.cancel = false;
 		for (let x = 0; x <= 5; x++) {
@@ -487,19 +495,19 @@ export class Player {
 		let inventory;
 		let type = 'main';
 		switch (data.inventory) {
-			case 'main':
+			case pClient.ActionInventoryClick.TypeInv.MAIN:
 				inventory = this.inventory;
 				type = 'main';
 				break;
-			case 'hook':
+			case pClient.ActionInventoryClick.TypeInv.HOOK:
 				inventory = this.hookInventory != null ? this.hookInventory : this.inventory;
 				type = 'hook';
 				break;
-			case 'armor':
+			case pClient.ActionInventoryClick.TypeInv.ARMOR:
 				inventory = this.entity.data.armor;
 				type = 'armor';
 				break;
-			case 'crafting':
+			case pClient.ActionInventoryClick.TypeInv.CRAFTING:
 				inventory = this.crafting;
 				type = 'crafting';
 				break;
@@ -508,13 +516,23 @@ export class Player {
 				return;
 		}
 
-		if (-2 < data.slot && data.slot <= this.inventory.size && (type != 'crafting' || data.slot < 4)) {
-			if (data.type == 'left') this.inventory.action_left(inventory, data.slot, type);
-			else if (data.type == 'right') this.inventory.action_right(inventory, data.slot, type);
-			else if (data.type == 'switch') this.inventory.action_switch(data.slot, data.slot2);
-			else if (-1 < data.slot && data.slot < 9 && data.type == 'select') this.inventory.select(data.slot);
-		} else if (type == 'crafting' && data.slot < 4) {
+		if (-2 < data.slot && data.slot <= this.inventory.size && (data.inventory != pClient.ActionInventoryClick.TypeInv.CRAFTING || data.slot < 4)) {
+			if (data.type == pClient.ActionInventoryClick.Type.LEFT) this.inventory.action_left(inventory, data.slot, type);
+			else if (data.type == pClient.ActionInventoryClick.Type.RIGHT) this.inventory.action_right(inventory, data.slot, type);
+		else if (data.type == pClient.ActionInventoryClick.Type.SELECT && -1 < data.slot && data.slot < 9) this.inventory.select(data.slot);
+
+		} else if (data.inventory == pClient.ActionInventoryClick.TypeInv.CRAFTING && data.slot < 4) {
 		}
+	}
+
+	action_blockpick(data: pClient.IActionInventoryPick & { cancel: boolean }) {
+		data.cancel = false;
+		for (let x = 0; x <= 5; x++) {
+			this._server.emit(`player-blockpick-${x}`, this, data);
+			if (data.cancel) return;
+		}
+
+		this.inventory.action_switch(data.slot, data.slot2);
 	}
 
 	action_chatmessage(data: pClient.IActionMessage & { cancel: boolean }) {
@@ -534,7 +552,7 @@ export class Player {
 				try {
 					this._players._server.registry.commands[command].trigger(this, arg);
 				} catch (e) {
-					error(`User ^R${this.nickname}^r tried to execute command ^R${command}^r and it failed! \n ^R`, e);
+					this._server.log.error(`User ^R${this.nickname}^r tried to execute command ^R${command}^r and it failed! \n ^R`, e);
 					this.send([new chat.ChatComponent('An error occurred during the execution of this command!', 'red')]);
 				}
 			} else this.send([new chat.ChatComponent("This command doesn't exist! Check /help for list of available commands.", 'red')]);
@@ -547,31 +565,47 @@ export class Player {
 
 			this._server.emit('chat-message', msg);
 
-			chat.sendMlt([executorchat, ...Object.values(this._players.getAll())], msg);
+			chat.sendMlt([this._server.log.executorchat, ...Object.values(this._players.getAll())], msg);
 		}
 	}
 
 	async action_move(data: pClient.IActionMove & { cancel: boolean }) {
 		if (data.x == undefined || data.y == undefined || data.z == undefined) return;
 
+		const blockPos = { x: Math.floor(data.x), y: Math.floor(data.y), z: Math.floor(data.z), status: false };
+		const pos: types.XYZ = this.entity.data.position;
+
+		if (
+			this.cache.lastBlockCheck.x == blockPos.x &&
+			this.cache.lastBlockCheck.y == blockPos.y &&
+			this.cache.lastBlockCheck.z == blockPos.z &&
+			this.cache.lastBlockCheck.status == true
+		) {
+			this.sendPacket('PlayerTeleport', { x: pos[0], y: pos[1], z: pos[2] });
+			return;
+		}
 		const local = globalToChunk([data.x, data.y, data.z]);
 
 		data.cancel = false;
 
-		if (this.world.chunks[local.id.toString()] == undefined) data.cancel = true;
-		else {
+		if (this.world.chunks[local.id.toString()] == undefined) {
+			data.cancel = true;
+		} else {
 			const blockID = this.world.chunks[local.id.toString()].data.get(Math.floor(local.pos[0]), Math.floor(local.pos[1]), Math.floor(local.pos[2]));
 			const block = this._server.registry.blocks[this._server.registry.blockIDmap[blockID]];
 			if (block == undefined || block.options == undefined) data.cancel = true;
 			else if (block.options.solid != false && block.options.fluid != true) data.cancel = true;
 		}
-		const pos: types.XYZ = this.entity.data.position;
+
+		blockPos.status = data.cancel;
+
 		const move: types.XYZ = [data.x, data.y, data.z];
 
 		for (let x = 0; x <= 5; x++) {
 			this._server.emit(`player-move-${x}`, this, data);
 			if (data.cancel) {
 				this.sendPacket('PlayerTeleport', { x: pos[0], y: pos[1], z: pos[2] });
+				this.cache.lastBlockCheck = blockPos;
 				return;
 			}
 		}
@@ -581,7 +615,8 @@ export class Player {
 			return;
 		}
 
-		if (vec.dist(pos, move) < 20) this.move(move);
+		this.cache.lastBlockCheck = blockPos;
+		if (vec.dist(pos, move) < 22) this.move(move);
 	}
 
 	action_click(data: pClient.IActionClick & { cancel: boolean }) {
@@ -622,7 +657,7 @@ export interface PlayerMovement {
 
 export const defaultPlayerMovement = {
 	airJumps: 0,
-	airMoveMult: 0.5,
+	airMoveMult: 0.3,
 	crouch: false,
 	crouchMoveMult: 0.8,
 	jumpForce: 6,
@@ -630,8 +665,8 @@ export const defaultPlayerMovement = {
 	jumpTime: 500,
 	jumping: false,
 	maxSpeed: 7.5,
-	moveForce: 30,
-	responsiveness: 15,
+	moveForce: 38,
+	responsiveness: 20,
 	running: false,
 	runningFriction: 0,
 	sprint: false,

@@ -1,69 +1,130 @@
-import { terminal as term } from 'terminal-kit';
 import { PermissionHolder } from './permissions';
+import * as fs from 'fs';
 
-import { EventEmitter } from 'events';
+import chalk from 'chalk';
 
-export const event = new EventEmitter();
+export class Logging {
+	logFile: fs.WriteStream;
 
-export function log(...args: any[]) {
-	for (var i = 0; i < arguments.length; i++) {
-		term('[' + hourNow() + '] ');
-		const msg = arguments[i];
-		if (Array.isArray(msg)) {
-			msg.forEach((el) => {
-				if (!!el.color && el.color.startsWith('#')) term.colorRgbHex(el.color, el.text);
-				else if (term[el.color] != undefined) term[el.color](el.text);
-				else term(el.text);
-			});
-		} else term(msg);
-		term('\n');
+	constructor(out: fs.WriteStream) {
+		this.logFile = out;
 	}
+
+	normal(...args: any[]) {
+		let out = '';
+		let cleanOut = '';
+		for (var i = 0; i < arguments.length; i++) {
+			const msg = arguments[i];
+			out = out + '[' + hourNow() + '] ';
+			cleanOut = out;
+
+			if (Array.isArray(msg)) {
+				msg.forEach((el) => {
+					if (!!el.color && el.color.startsWith('#')) out = out + chalk.hex(el.color)(el.text);
+					else if (el.color != undefined) out = out + chalk.keyword(el.color).bold(el.text).toString();
+					else out = out + chalk.reset(el.text).toString();
+					cleanOut = cleanOut + el.text;
+				});
+			} else {
+				out = out + msg;
+				cleanOut = cleanOut + msg;
+			}
+			console.log(out);
+
+			if (this.logFile != undefined) this.logFile.write(cleanOut + '\n');
+		}
+	}
+
+	chat(...args: any[]) {
+		let out = '';
+		let cleanOut = '';
+
+		for (var i = 0; i < arguments.length; i++) {
+			out = out + '[' + hourNow() + ' - Chat] ';
+			cleanOut = out;
+
+			const msg = arguments[i];
+			if (Array.isArray(msg)) {
+				msg.forEach((el) => {
+					if (!!el.color && el.color.startsWith('#')) out = out + chalk.hex(el.color).bold(el.text).toString();
+					else if (el.color != undefined) out = out + chalk.keyword(el.color).bold(el.text).toString();
+					else out = out + chalk.yellowBright(el.text);
+
+					cleanOut = cleanOut + el.text;
+				});
+			} else {
+				out = out + chalk.yellowBright(msg).toString();
+				cleanOut = cleanOut + msg;
+			}
+			console.log(out);
+
+			if (this.logFile != undefined) this.logFile.write(cleanOut + '\n');
+		}
+	}
+
+	warn(...args: any[]) {
+		let out = '';
+		let cleanOut = '';
+
+		for (var i = 0; i < arguments.length; i++) {
+			out = out + '[' + hourNow() + ' - Warn] ';
+			cleanOut = out;
+
+			const msg = arguments[i];
+			if (Array.isArray(msg)) {
+				msg.forEach((el) => {
+					if (!!el.color && el.color.startsWith('#')) out = out + chalk.hex(el.color).bold(el.text).toString();
+					else if (el.color != undefined) out = out + chalk.keyword(el.color).bold(el.text).toString();
+					else out = out + chalk.yellow(el.text).toString();
+
+					cleanOut = cleanOut + el.text;
+				});
+			} else {
+				out = out + chalk.yellow(msg).toString();
+				cleanOut = cleanOut + msg;
+			}
+			console.log(out);
+
+			if (this.logFile != undefined) this.logFile.write(cleanOut + '\n');
+		}
+	}
+
+	error(...args: any[]) {
+		let out = '';
+		let cleanOut = '';
+
+		for (var i = 0; i < arguments.length; i++) {
+			out = out + '[' + hourNow() + ' - Error] ';
+			cleanOut = out;
+			const msg = arguments[i];
+			if (Array.isArray(msg)) {
+				msg.forEach((el) => {
+					if (!!el.color && el.color.startsWith('#')) out = out + chalk.hex(el.color).bold(el.text);
+					else if (el.color != undefined) out = out + chalk.keyword(el.color).bold(el.text);
+					else out = out + chalk.red(el.text);
+
+					cleanOut = cleanOut + el.text;
+				});
+			} else {
+				out = out + chalk.red(msg).toString();
+				cleanOut = cleanOut + msg;
+			}
+			console.log(out);
+
+			if (this.logFile != undefined) this.logFile.write(cleanOut + '\n');
+		}
+	}
+
+	executor = {
+		name: '#console',
+		id: '#console',
+		send: (...args: any[]) => this.normal(...args),
+		permissions: new PermissionHolder({ '*': true }),
+	};
+
+	executorchat = { ...this.executor, send: (...args: any[]) => this.chat(...args)};
 }
 
-export function chat(...args: any[]) {
-	for (var i = 0; i < arguments.length; i++) {
-		term('[' + hourNow() + ' - ^yChat^:] ');
-		const msg = arguments[i];
-		if (Array.isArray(msg)) {
-			msg.forEach((el) => {
-				if (!!el.color && el.color.startsWith('#')) term.colorRgbHex(el.color, el.text);
-				else if (term[el.color] != undefined) term[el.color](el.text);
-				else term(el.text);
-			});
-		} else term(msg);
-		term('\n');
-	}
-}
-
-export function warn(...args: any[]) {
-	for (var i = 0; i < arguments.length; i++) {
-		term('[' + hourNow() + ' - ^RWarning^:] ^R');
-		const msg = arguments[i];
-		if (Array.isArray(msg)) {
-			msg.forEach((el) => {
-				if (!!el.color && el.color.startsWith('#')) term.colorRgbHex(el.color, el.text);
-				else if (term[el.color] != undefined) term[el.color](el.text);
-				else term(el.text);
-			});
-		} else term(msg);
-		term('\n');
-	}
-}
-
-export function error(...args: any[]) {
-	for (var i = 0; i < arguments.length; i++) {
-		term('[' + hourNow() + ' - ^rError!^:] ^r');
-		const msg = arguments[i];
-		if (Array.isArray(msg)) {
-			msg.forEach((el) => {
-				if (!!el.color && el.color.startsWith('#')) term.colorRgbHex(el.color, el.text);
-				else if (term[el.color] != undefined) term[el.color](el.text);
-				else term(el.text);
-			});
-		} else term(msg);
-		term('\n');
-	}
-}
 
 function hourNow(): string {
 	var date = new Date();
@@ -79,14 +140,3 @@ function hourNow(): string {
 		(seconds.length == 2 ? seconds : '0' + seconds)
 	);
 }
-
-export const executor = {
-	name: '#console',
-	id: '#console',
-	send: log,
-	permissions: new PermissionHolder({ '*': true }),
-};
-
-export const executorchat = { ...executor, send: chat };
-
-export const obj = console.log;

@@ -1,16 +1,15 @@
 import * as fs from 'fs';
 
-import { log, error } from './console';
 import * as types from '../types';
 import type { Server } from '../server';
 import * as format from '../formats/world';
 import { Block } from './registry';
 
 import * as zlib from 'zlib';
-import { promisify } from 'util'
+import { promisify } from 'util';
 
 const inflatePromise: (arg1: zlib.InputType) => Promise<Buffer> = promisify(zlib.inflate);
-const readFilePromise: (arg1: any) => Promise<Buffer> = promisify(fs.readFile)
+const readFilePromise: (arg1: any) => Promise<Buffer> = promisify(fs.readFile);
 
 import ndarray = require('ndarray');
 
@@ -52,14 +51,14 @@ export class WorldManager {
 				return null;
 			}
 		} catch (e) {
-			error(`Can't load world ${name}! Trying to recreate it...`);
+			this.server.log.error(`Can't load world ${name}! Trying to recreate it...`);
 			this.create(name, 0, 'normal');
 		}
 	}
 
 	unload(name: string): void {
 		this.worlds[name].unload();
-		log('Unloaded world ' + name);
+		this.server.log.normal('Unloaded world ' + name);
 	}
 
 	exist(name: string): boolean {
@@ -109,7 +108,7 @@ export class World {
 			if (!fs.existsSync(this.chunkFolder)) fs.mkdirSync(this.chunkFolder);
 
 			fs.writeFile(this.folder + '/world.json', JSON.stringify(this.getSettings()), function (err) {
-				if (err) error('Cant save world ' + this.name + '! Reason: ' + err);
+				if (err) this.server.log.error('Cant save world ' + this.name + '! Reason: ' + err);
 			});
 
 			this.autoSaveInterval = setInterval(async () => {
@@ -181,7 +180,7 @@ export class World {
 		const chunklist = Object.keys(this.chunks);
 
 		fs.writeFile(this.folder + '/world.json', JSON.stringify(this.getSettings()), function (err) {
-			if (err) error('Cant save world ' + this.name + '! Reason: ' + err);
+			if (err) this.server.log.error('Cant save world ' + this.name + '! Reason: ' + err);
 		});
 
 		chunklist.forEach((id) => {
@@ -205,7 +204,7 @@ export class World {
 		const data = zlib.deflateSync(buffer);
 
 		fs.writeFile(this.chunkFolder + '/' + idS + '.chk', data, function (err) {
-			if (err) error('Cant save chunk ' + id + '! Reason: ' + err);
+			if (err) this.server.log.console.error('Cant save chunk ' + id + '! Reason: ' + err);
 		});
 	}
 

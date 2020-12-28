@@ -1,6 +1,6 @@
 import * as types from './types';
 export declare const serverVersion = "0.2.0-beta.14";
-export declare const serverProtocol = 2;
+export declare const serverProtocol = 3;
 export interface IServerConfig {
     port: number;
     address: string;
@@ -24,5 +24,5 @@ export interface IServerConfig {
 }
 export declare const serverDefaultConfig: IServerConfig;
 export declare const invalidNicknameRegex: RegExp;
-export declare const heartbeatServer = "pb4.eu:9001";
+export declare const heartbeatServer = "localhost:9001";
 //# sourceMappingURL=values.d.ts.map

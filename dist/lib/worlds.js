@@ -21,7 +21,6 @@ var __importStar = (this && this.__importStar) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.validateID = exports.getRandomSeed = exports.globalToLocal = exports.chunkIDFromGlobal = exports.globalToChunk = exports.Chunk = exports.World = exports.WorldManager = void 0;
 const fs = __importStar(require("fs"));
-const console_1 = require("./console");
 const format = __importStar(require("../formats/world"));
 const zlib = __importStar(require("zlib"));
 const util_1 = require("util");
@@ -60,13 +59,13 @@ class WorldManager {
             }
         }
         catch (e) {
-            console_1.error(`Can't load world ${name}! Trying to recreate it...`);
+            this.server.log.error(`Can't load world ${name}! Trying to recreate it...`);
             this.create(name, 0, 'normal');
         }
     }
     unload(name) {
         this.worlds[name].unload();
-        console_1.log('Unloaded world ' + name);
+        this.server.log.normal('Unloaded world ' + name);
     }
     exist(name) {
         return fs.existsSync('./worlds/' + name);
@@ -102,7 +101,7 @@ class World {
                 fs.mkdirSync(this.chunkFolder);
             fs.writeFile(this.folder + '/world.json', JSON.stringify(this.getSettings()), function (err) {
                 if (err)
-                    console_1.error('Cant save world ' + this.name + '! Reason: ' + err);
+                    this.server.log.error('Cant save world ' + this.name + '! Reason: ' + err);
             });
             this.autoSaveInterval = setInterval(async () => {
                 this.saveAll();
@@ -162,7 +161,7 @@ class World {
         const chunklist = Object.keys(this.chunks);
         fs.writeFile(this.folder + '/world.json', JSON.stringify(this.getSettings()), function (err) {
             if (err)
-                console_1.error('Cant save world ' + this.name + '! Reason: ' + err);
+                this.server.log.error('Cant save world ' + this.name + '! Reason: ' + err);
         });
         chunklist.forEach((id) => {
             this.saveChunk(this.stringToID(id));
@@ -182,7 +181,7 @@ class World {
         const data = zlib.deflateSync(buffer);
         fs.writeFile(this.chunkFolder + '/' + idS + '.chk', data, function (err) {
             if (err)
-                console_1.error('Cant save chunk ' + id + '! Reason: ' + err);
+                this.server.log.console.error('Cant save chunk ' + id + '! Reason: ' + err);
         });
     }
     async readChunk(id) {

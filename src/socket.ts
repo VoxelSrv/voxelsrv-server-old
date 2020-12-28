@@ -1,4 +1,4 @@
-import * as protocol from './lib/protocol';
+import * as protocol from 'voxelsrv-protocol';
 import type WebSocket from 'ws';
 
 export class BaseSocket {

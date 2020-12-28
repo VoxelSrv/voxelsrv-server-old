@@ -1,6 +1,5 @@
 import * as fs from 'fs';
 import type { Server } from '../server';
-import { error } from '../lib/console';
 
 export class Registry {
 	items: { [index: string]: any } = {};
@@ -109,7 +108,7 @@ export class Registry {
 		});
 
 		fs.writeFile('./worlds/blocks.json', JSON.stringify(this.blockPalette), function (err) {
-			if (err) error('Cant save block palette! Reason: ' + err);
+			if (err) this._server.log.error('Cant save block palette! Reason: ' + err);
 		});
 
 		this._server.emit('registry-finalize');

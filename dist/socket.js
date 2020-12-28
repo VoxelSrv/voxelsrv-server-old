@@ -20,7 +20,7 @@ var __importStar = (this && this.__importStar) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.WSSocket = exports.BaseSocket = void 0;
-const protocol = __importStar(require("./lib/protocol"));
+const protocol = __importStar(require("voxelsrv-protocol"));
 class BaseSocket {
     constructor(ip) {
         this.listeners = {};

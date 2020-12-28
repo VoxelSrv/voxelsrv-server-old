@@ -1,38 +1,38 @@
-import * as console from './console';
 import { ChatComponent } from './chat';
-import { terminal as term } from 'terminal-kit';
 
-export function startCmd(commands) {
+import * as readline from 'readline';
+import type { Server } from '../server';
+
+export function startCmd(server: Server, commands) {
 	let running = true;
+
+	const rl = readline.createInterface({
+		input: process.stdin,
+		output: process.stdout,
+	});
 
 	const history = [];
 
-	const x = async () => {
-		let input;
-		while (running) {
-			input = await term.inputField({
-				history: history,
-				autoComplete: [],
-				autoCompleteMenu: false,
-			}).promise;
-			if (input != '') {
-				term('\n');
-				const arg = ('/' + input).split(' ');
-				const command = arg[0];
-				arg.shift();
-				console.event.emit('console-executecommand', console.executor, command, arg);
-				history.push(input);
+	rl.on('SIGINT', () => {
+		server.stopServer();
+	});
 
-				if (commands[command]) {
-					try {
-						commands[command].trigger(console.executor, arg);
-					} catch (e) {
-						console.log([new ChatComponent('An error occurred during the execution of this command!', 'red')]);
-					}
-				} else console.log([new ChatComponent("This command doesn't exist! Check /help for list of available commands.", 'red')]);
+	rl.on('line', (input) => {
+		if (server.status != 'active') return;
+
+		history.push(input);
+
+		const arg = ('/' + input).split(' ');
+		const command = arg[0];
+		arg.shift();
+
+		if (commands[command]) {
+			try {
+				commands[command].trigger(server.log.executor, arg);
+			} catch (e) {
+				server.log.error([new ChatComponent('An error occurred during the execution of this command!', 'red')]);
 			}
-		}
-	};
-
-	x();
+		} else server.log.normal([new ChatComponent("This command doesn't exist! Check /help for list of available commands.", 'red')]);
+		rl.prompt();
+	});
 }

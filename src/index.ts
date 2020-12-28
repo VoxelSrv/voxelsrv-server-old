@@ -7,7 +7,14 @@ export function startServer() {
 	let json = '{"port": 3000}';
 	if (fs.existsSync('./config/') && fs.existsSync('./config/config.json')) json = fs.readFileSync('./config/config.json').toString();
 
-	const cfg = JSON.parse(json.toString());
+	let cfg = { port: 3000 };
+
+	try {
+		cfg = JSON.parse(json.toString());
+	} catch (e) {
+		cfg = { port: 3000 };
+		fs.unlinkSync('./config/config.json');
+	}
 
 	const wss = new WebSocket.Server({ port: cfg.port });
 	const server = new Server();

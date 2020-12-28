@@ -7,6 +7,7 @@ import { PermissionManager } from './lib/permissions';
 import { PlayerManager } from './lib/player';
 import { IServerConfig } from './values';
 import { BaseSocket } from './socket';
+import { Logging } from './lib/console';
 export declare class Server extends EventEmitter {
     playerCount: number;
     registry: Registry;
@@ -16,6 +17,7 @@ export declare class Server extends EventEmitter {
     permissions: PermissionManager;
     config: IServerConfig;
     heartbeatID: number;
+    log: Logging;
     status: string;
     plugins: {
         [index: string]: IPlugin;
@@ -29,6 +31,8 @@ export declare class Server extends EventEmitter {
     loadPluginsList(list: string[]): void;
     loadPlugin(plugin: IPlugin): void;
     stopServer(): void;
+    loadConfig(namespace: string, config: string): any;
+    saveConfig(namespace: string, config: string, data: any): void;
 }
 export interface IPlugin {
     name: string;

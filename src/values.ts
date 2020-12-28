@@ -1,7 +1,7 @@
 import * as types from './types';
 
 export const serverVersion = '0.2.0-beta.14';
-export const serverProtocol = 2;
+export const serverProtocol = 3;
 
 export interface IServerConfig {
 	port: number;
@@ -22,7 +22,6 @@ export interface IServerConfig {
 	};
 	plugins: string[];
 	consoleInput: boolean;
-	//logs: boolean;
 	[index: string]: any;
 }
 
@@ -50,4 +49,4 @@ export const serverDefaultConfig: IServerConfig = {
 
 export const invalidNicknameRegex = new RegExp('[^a-zA-Z0-9_]');
 
-export const heartbeatServer = 'pb4.eu:9001';
+export const heartbeatServer = 'localhost:9001';

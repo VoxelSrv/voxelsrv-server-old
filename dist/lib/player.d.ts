@@ -68,6 +68,14 @@ export declare class Player {
         };
         result: any;
     };
+    cache: {
+        lastBlockCheck: {
+            x: number;
+            y: number;
+            z: number;
+            status: boolean;
+        };
+    };
     _chunksToSend: any[];
     _chunksInterval: any;
     _players: PlayerManager;
@@ -111,6 +119,9 @@ export declare class Player {
         cancel: boolean;
     }): void;
     action_invclick(data: pClient.IActionInventoryClick & {
+        cancel: boolean;
+    }): void;
+    action_blockpick(data: pClient.IActionInventoryPick & {
         cancel: boolean;
     }): void;
     action_chatmessage(data: pClient.IActionMessage & {

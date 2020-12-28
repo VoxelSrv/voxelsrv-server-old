@@ -26,11 +26,9 @@ exports.Server = void 0;
 const events_1 = require("events");
 const fs = __importStar(require("fs"));
 const registry_1 = require("./lib/registry");
-const console_1 = require("./lib/console");
 const worlds_1 = require("./lib/worlds");
 const entity_1 = require("./lib/entity");
 const permissions_1 = require("./lib/permissions");
-const configs = __importStar(require("./lib/configs"));
 const player_1 = require("./lib/player");
 const chat = __importStar(require("./lib/chat"));
 const semver = __importStar(require("semver"));
@@ -38,6 +36,7 @@ const node_fetch_1 = __importDefault(require("node-fetch"));
 const normal_1 = __importDefault(require("./default/worldgen/normal"));
 //import flatGenerator from './default/worldgen/flat';
 const values_1 = require("./values");
+const console_1 = require("./lib/console");
 class Server extends events_1.EventEmitter {
     constructor() {
         super();
@@ -45,6 +44,11 @@ class Server extends events_1.EventEmitter {
         this.status = 'none';
         this.plugins = {};
         this.setMaxListeners(200);
+        if (!fs.existsSync('./logs/'))
+            fs.mkdirSync('./logs/');
+        if (fs.existsSync('./logs/latest.log'))
+            fs.renameSync('./logs/latest.log', `./logs/${Date.now()}.log`);
+        this.log = new console_1.Logging(fs.createWriteStream('./logs/latest.log', { flags: 'w' }));
         this.status = 'starting';
         this.registry = new registry_1.Registry(this);
         this.worlds = new worlds_1.WorldManager(this);
@@ -67,26 +71,26 @@ class Server extends events_1.EventEmitter {
             this.worlds.load('default');
     }
     async startServer() {
-        console_1.log(`^yStarting VoxelSRV server version^: ${values_1.serverVersion} ^y[Protocol:^: ${values_1.serverProtocol}^y]`);
-        ['./plugins', './players', './worlds', './config'].forEach((element) => {
+        ['./logs', './plugins', './players', './worlds', './config'].forEach((element) => {
             if (!fs.existsSync(element)) {
                 try {
                     fs.mkdirSync(element);
-                    console_1.log(`^BCreated missing directory: ^w${element}`);
+                    this.log.normal([{ text: `Created missing directory: `, color: 'orange' }, { text: element, color: 'white' }]);
                 }
                 catch (e) {
-                    console_1.log(`^rCan't create directory: ^w${element}! Reason: ${e}`);
+                    this.log.normal([{ text: `Can't create directory: ${element}! Reason: ${e}`, color: 'red' }]);
                     process.exit();
                 }
             }
         });
-        this.config = { ...values_1.serverDefaultConfig, ...configs.load('', 'config') };
-        this.permissions.loadGroups(configs.load('', 'permissions'));
-        configs.save('', 'config', this.config);
+        this.log.normal([{ text: `Starting VoxelSRV server version: ${values_1.serverVersion} `, color: 'yellow' }, { text: `[Protocol: ${values_1.serverProtocol}]`, color: 'lightblue' }]);
+        this.config = { ...values_1.serverDefaultConfig, ...this.loadConfig('', 'config') };
+        this.permissions.loadGroups(this.loadConfig('', 'permissions'));
+        this.saveConfig('', 'config', this.config);
         this.emit('config-update', this.config);
         if (this.config.consoleInput) {
             Promise.resolve().then(() => __importStar(require('./lib/console-exec'))).then((x) => {
-                x.startCmd(this.registry.commands);
+                x.startCmd(this, this.registry.commands);
             });
         }
         if (this.config.plugins.length > 0)
@@ -99,13 +103,12 @@ class Server extends events_1.EventEmitter {
         if (this.config.public)
             this.heartbeatPing();
         this.status = 'active';
-        console_1.log('^yServer started on port: ^:' + this.config.port);
+        this.log.normal([{ text: 'Server started on port: ', color: 'yellow' }, { text: this.config.port.toString(), color: 'lightyellow' }]);
     }
     heartbeatPing() {
-        node_fetch_1.default(`http://${values_1.heartbeatServer}/addServer?ip=${this.config.address}:${this.config.port}`)
+        node_fetch_1.default(`http://${values_1.heartbeatServer}/api/addServer?ip=${this.config.address}:${this.config.port}`)
             .then((res) => res.json())
             .then((json) => {
-            this.heartbeatID = json.id;
         });
     }
     async connectPlayer(socket) {
@@ -115,8 +118,8 @@ class Server extends events_1.EventEmitter {
             name: this.config.name,
             motd: this.config.motd,
             protocol: values_1.serverProtocol,
-            maxplayers: this.config.maxplayers,
-            numberplayers: this.playerCount,
+            maxPlayers: this.config.maxplayers,
+            onlinePlayers: this.playerCount,
             software: `VoxelSrv-Server`,
         });
         let loginTimeout = true;
@@ -144,6 +147,7 @@ class Server extends events_1.EventEmitter {
             if (check != 0) {
                 socket.send('PlayerKick', { reason: check, time: Date.now() });
                 socket.close();
+                return;
             }
             if (this.players.get(id) != null) {
                 socket.send('PlayerKick', {
@@ -163,8 +167,6 @@ class Server extends events_1.EventEmitter {
                     blocksDef: JSON.stringify(this.registry._blockRegistryObject),
                     itemsDef: JSON.stringify(this.registry._itemRegistryObject),
                     armor: JSON.stringify(player.entity.data.armor.getObject()),
-                    allowCheats: false,
-                    allowCustomSkins: true,
                     movement: JSON.stringify(player.movement),
                 });
                 socket.send('PlayerHealth', {
@@ -178,13 +180,13 @@ class Server extends events_1.EventEmitter {
                     });
                 });
                 const joinMsg = [new chat.ChatComponent(`${player.displayName} joined the game!`, '#b5f598')];
-                chat.sendMlt([console_1.executorchat, ...Object.values(this.players.getAll())], joinMsg);
+                chat.sendMlt([this.log.executorchat, ...Object.values(this.players.getAll())], joinMsg);
                 chat.event.emit('system-message', joinMsg);
                 this.playerCount = this.playerCount + 1;
                 socket.on('close', () => {
                     this.emit('player-disconnect', id);
                     const leaveMsg = [new chat.ChatComponent(`${player.displayName} left the game!`, '#f59898')];
-                    chat.sendMlt([console_1.executorchat, ...Object.values(this.players.getAll())], leaveMsg);
+                    chat.sendMlt([this.log.executorchat, ...Object.values(this.players.getAll())], leaveMsg);
                     chat.event.emit('system-message', leaveMsg);
                     player.remove();
                     this.playerCount = this.playerCount - 1;
@@ -217,6 +219,9 @@ class Server extends events_1.EventEmitter {
                 socket.on('ActionClickEntity', async (data) => {
                     player.action_click(data);
                 });
+                socket.on('ActionInventoryPick', async (data) => {
+                    player.action_blockpick(data);
+                });
             }
         });
         setTimeout(() => {
@@ -239,14 +244,14 @@ class Server extends events_1.EventEmitter {
             }
             catch (e) {
                 this.emit('plugin-error', file);
-                console_1.error(`Can't load plugin ${file}!`);
+                this.log.error(`Can't load plugin ${file}!`);
                 console.error(e);
             }
         }
     }
     loadPlugin(plugin) {
         if (!semver.satisfies(values_1.serverVersion, plugin.supported)) {
-            console_1.warn([
+            this.log.warn([
                 new chat.ChatComponent('Plugin ', 'orange'),
                 new chat.ChatComponent(plugin.name, 'yellow'),
                 new chat.ChatComponent(' might not support this version of server!', 'orange'),
@@ -254,11 +259,11 @@ class Server extends events_1.EventEmitter {
             const min = semver.minVersion(plugin.supported);
             const max = semver.maxSatisfying(plugin.supported);
             if (!!min && !!max && (semver.gt(values_1.serverVersion, max) || semver.lt(values_1.serverVersion, min)))
-                console_1.warn(`It only support versions from ${min} to ${max}.`);
+                this.log.warn(`It only support versions from ${min} to ${max}.`);
             else if (!!min && !max && semver.lt(values_1.serverVersion, min))
-                console_1.warn(`It only support versions ${min} or newer.`);
+                this.log.warn(`It only support versions ${min} or newer.`);
             else if (!min && !!max && semver.gt(values_1.serverVersion, max))
-                console_1.warn(`It only support versions ${max} or older.`);
+                this.log.warn(`It only support versions ${max} or older.`);
         }
         this.emit('plugin-load', plugin);
         this.plugins[plugin.name] = plugin;
@@ -266,8 +271,8 @@ class Server extends events_1.EventEmitter {
     stopServer() {
         this.status = 'stopping';
         this.emit('server-stop', this);
-        console_1.log('^rStopping server...');
-        configs.save('', 'permissions', this.permissions.groups);
+        this.log.normal([{ text: 'Stopping server...', color: 'orange' }]);
+        this.saveConfig('', 'permissions', this.permissions.groups);
         Object.values(this.players.getAll()).forEach((player) => {
             player.kick('Server close');
         });
@@ -286,6 +291,28 @@ class Server extends events_1.EventEmitter {
                     this[x] = null;
             });
         }, 2000);
+    }
+    loadConfig(namespace, config) {
+        if (fs.existsSync(`./config/${namespace}/${config}.json`)) {
+            try {
+                const data = fs.readFileSync(`./config/${namespace}/${config}.json`);
+                return JSON.parse(data.toString());
+            }
+            catch (e) {
+                this.log.error(`Invalid config file (./config/${namespace}/${config}.json)!\n${e}`);
+                return {};
+            }
+        }
+        else
+            return {};
+    }
+    saveConfig(namespace, config, data) {
+        if (!fs.existsSync(`./config/${namespace}`))
+            fs.mkdirSync(`./config/${namespace}`, { recursive: true });
+        fs.writeFile(`./config/${namespace}/${config}.json`, JSON.stringify(data, null, 2), function (err) {
+            if (err)
+                this.log.error(`Cant save config ${namespace}/${config}! Reason: ${err}`);
+        });
     }
 }
 exports.Server = Server;

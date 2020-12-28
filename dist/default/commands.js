@@ -11,6 +11,26 @@ function setup(registry, server) {
         });
     }
     registry.addCommand(new registry_1.Command('/help', helpCommand, 'Displays list of all commands'));
+    function kickCommand(executor, arg) {
+        if (!executor.permissions.check('server.kick')) {
+            executor.send([new chat_1.ChatComponent(`You don't have required permission to use this command!`, 'red')]);
+            return;
+        }
+        const uuid = server.players.cache.uuid[arg[0]];
+        if (uuid == undefined) {
+            executor.send([new chat_1.ChatComponent(`This player doesn't exist!`, 'red')]);
+            return;
+        }
+        if (server.players.players[uuid]) {
+            executor.send([new chat_1.ChatComponent(`Player ${arg[0]} has been kicked!`, 'green')]);
+            arg.shift();
+            server.players.players[uuid].kick(arg.length != 0 ? arg.join(' ') : 'Unknown reason');
+        }
+        else {
+            executor.send([new chat_1.ChatComponent(`You can't kick offline players!`, 'red')]);
+        }
+    }
+    registry.addCommand(new registry_1.Command('/kick', kickCommand, 'Kicks players'));
     function banCommand(executor, arg) {
         if (!executor.permissions.check('server.ban')) {
             executor.send([new chat_1.ChatComponent(`You don't have required permission to use this command!`, 'red')]);

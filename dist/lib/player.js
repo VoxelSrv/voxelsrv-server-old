@@ -24,11 +24,11 @@ const vec = __importStar(require("gl-vec3"));
 const zlib = __importStar(require("zlib"));
 const worlds_1 = require("./worlds");
 const fs = __importStar(require("fs"));
-const console_1 = require("./console");
 const chat = __importStar(require("./chat"));
-const config = __importStar(require("./configs"));
 const inventory_1 = require("./inventory");
 const permissions_1 = require("./permissions");
+const pClient = __importStar(require("voxelsrv-protocol/js/client"));
+const pServer = __importStar(require("voxelsrv-protocol/js/server"));
 class PlayerManager {
     constructor(server) {
         this.players = {};
@@ -40,11 +40,11 @@ class PlayerManager {
         this._server = server;
         this._entities = server.entities;
         this._worlds = server.worlds;
-        const banlist = config.load('', 'banlist');
+        const banlist = this._server.loadConfig('', 'banlist');
         this.banlist = banlist.players != undefined ? banlist.players : {};
         this.ipbanlist = banlist.ips != undefined ? banlist.ips : {};
-        this.cache.uuid = config.load('', '.cacheuuid');
-        this.cache.ip = config.load('', '.cacheip');
+        this.cache.uuid = this._server.loadConfig('', '.cacheuuid');
+        this.cache.ip = this._server.loadConfig('', '.cacheip');
         server.on('entity-create', (data) => {
             this.sendPacketAll('EntityCreate', {
                 uuid: data.uuid,
@@ -78,7 +78,7 @@ class PlayerManager {
             return r;
         }
         catch (e) {
-            console_1.error('Tried to load data of player ' + id + ', but it failed! Error: ', e);
+            this._server.log.error('Tried to load data of player ' + id + ', but it failed! Error: ', e);
         }
     }
     exist(id) {
@@ -89,7 +89,7 @@ class PlayerManager {
     save(id, data) {
         fs.writeFile('./players/' + id + '.json', JSON.stringify(data), function (err) {
             if (err)
-                console_1.error('Cant save player ' + id + '! Reason: ' + err);
+                this._server.log.error('Cant save player ' + id + '! Reason: ' + err);
         });
     }
     get(id) {
@@ -135,11 +135,11 @@ class PlayerManager {
         this.saveBanlist();
     }
     saveBanlist() {
-        config.save('', 'banlist', { players: this.banlist, ips: this.ipbanlist });
+        this._server.saveConfig('', 'banlist', { players: this.banlist, ips: this.ipbanlist });
     }
     saveCache() {
-        config.save('', '.cacheuuid', this.cache.uuid);
-        config.save('', '.cacheip', this.cache.ip);
+        this._server.saveConfig('', '.cacheuuid', this.cache.uuid);
+        this._server.saveConfig('', '.cacheip', this.cache.ip);
     }
 }
 exports.PlayerManager = PlayerManager;
@@ -149,6 +149,14 @@ class Player {
         this.crafting = {
             items: { 0: null, 1: null, 2: null, 3: null },
             result: null,
+        };
+        this.cache = {
+            lastBlockCheck: {
+                x: 0,
+                y: 0,
+                z: 0,
+                status: false,
+            },
         };
         this._chunksToSend = [];
         this.id = id;
@@ -276,7 +284,7 @@ class Player {
                     x: id[0],
                     y: 0,
                     z: id[1],
-                    type: true,
+                    height: 8,
                     compressed: true,
                     data: zlib.deflateSync(Buffer.from(chunk.data.data.buffer, chunk.data.data.byteOffset)),
                 });
@@ -286,7 +294,7 @@ class Player {
                     x: id[0],
                     y: 0,
                     z: id[1],
-                    type: true,
+                    height: 8,
                     compressed: false,
                     data: Buffer.from(chunk.data.data.buffer, chunk.data.data.byteOffset),
                 });
@@ -320,7 +328,7 @@ class Player {
         this.sendPacket('PlayerApplyImpulse', { x, y, z });
     }
     setTab(msg) {
-        this.sendPacket('TabUpdate', { message: msg, time: Date.now() });
+        this.sendPacket('UpdateTextBoard', { type: pServer.UpdateTextBoard.Type.TAB, message: msg, time: Date.now() });
     }
     setFog(mode, density, color, start, stop) {
         if (color != undefined)
@@ -357,7 +365,7 @@ class Player {
                     x: parseInt(cid[0]),
                     y: 0,
                     z: parseInt(cid[1]),
-                    type: true,
+                    height: 8,
                 });
             }
         });
@@ -413,7 +421,7 @@ class Player {
     }
     action_invclick(data) {
         if (data.inventory == undefined)
-            data.inventory = 'main';
+            data.inventory = pClient.ActionInventoryClick.TypeInv.MAIN;
         data.cancel = false;
         for (let x = 0; x <= 5; x++) {
             this._server.emit(`player-invclick-${x}`, this, data);
@@ -423,19 +431,19 @@ class Player {
         let inventory;
         let type = 'main';
         switch (data.inventory) {
-            case 'main':
+            case pClient.ActionInventoryClick.TypeInv.MAIN:
                 inventory = this.inventory;
                 type = 'main';
                 break;
-            case 'hook':
+            case pClient.ActionInventoryClick.TypeInv.HOOK:
                 inventory = this.hookInventory != null ? this.hookInventory : this.inventory;
                 type = 'hook';
                 break;
-            case 'armor':
+            case pClient.ActionInventoryClick.TypeInv.ARMOR:
                 inventory = this.entity.data.armor;
                 type = 'armor';
                 break;
-            case 'crafting':
+            case pClient.ActionInventoryClick.TypeInv.CRAFTING:
                 inventory = this.crafting;
                 type = 'crafting';
                 break;
@@ -443,18 +451,25 @@ class Player {
                 this.kick('Invalid inventory');
                 return;
         }
-        if (-2 < data.slot && data.slot <= this.inventory.size && (type != 'crafting' || data.slot < 4)) {
-            if (data.type == 'left')
+        if (-2 < data.slot && data.slot <= this.inventory.size && (data.inventory != pClient.ActionInventoryClick.TypeInv.CRAFTING || data.slot < 4)) {
+            if (data.type == pClient.ActionInventoryClick.Type.LEFT)
                 this.inventory.action_left(inventory, data.slot, type);
-            else if (data.type == 'right')
+            else if (data.type == pClient.ActionInventoryClick.Type.RIGHT)
                 this.inventory.action_right(inventory, data.slot, type);
-            else if (data.type == 'switch')
-                this.inventory.action_switch(data.slot, data.slot2);
-            else if (-1 < data.slot && data.slot < 9 && data.type == 'select')
+            else if (data.type == pClient.ActionInventoryClick.Type.SELECT && -1 < data.slot && data.slot < 9)
                 this.inventory.select(data.slot);
         }
-        else if (type == 'crafting' && data.slot < 4) {
+        else if (data.inventory == pClient.ActionInventoryClick.TypeInv.CRAFTING && data.slot < 4) {
         }
+    }
+    action_blockpick(data) {
+        data.cancel = false;
+        for (let x = 0; x <= 5; x++) {
+            this._server.emit(`player-blockpick-${x}`, this, data);
+            if (data.cancel)
+                return;
+        }
+        this.inventory.action_switch(data.slot, data.slot2);
     }
     action_chatmessage(data) {
         data.cancel = false;
@@ -473,7 +488,7 @@ class Player {
                     this._players._server.registry.commands[command].trigger(this, arg);
                 }
                 catch (e) {
-                    console_1.error(`User ^R${this.nickname}^r tried to execute command ^R${command}^r and it failed! \n ^R`, e);
+                    this._server.log.error(`User ^R${this.nickname}^r tried to execute command ^R${command}^r and it failed! \n ^R`, e);
                     this.send([new chat.ChatComponent('An error occurred during the execution of this command!', 'red')]);
                 }
             }
@@ -487,16 +502,26 @@ class Player {
                 new chat.ChatComponent(data.message, 'white'),
             ];
             this._server.emit('chat-message', msg);
-            chat.sendMlt([console_1.executorchat, ...Object.values(this._players.getAll())], msg);
+            chat.sendMlt([this._server.log.executorchat, ...Object.values(this._players.getAll())], msg);
         }
     }
     async action_move(data) {
         if (data.x == undefined || data.y == undefined || data.z == undefined)
             return;
+        const blockPos = { x: Math.floor(data.x), y: Math.floor(data.y), z: Math.floor(data.z), status: false };
+        const pos = this.entity.data.position;
+        if (this.cache.lastBlockCheck.x == blockPos.x &&
+            this.cache.lastBlockCheck.y == blockPos.y &&
+            this.cache.lastBlockCheck.z == blockPos.z &&
+            this.cache.lastBlockCheck.status == true) {
+            this.sendPacket('PlayerTeleport', { x: pos[0], y: pos[1], z: pos[2] });
+            return;
+        }
         const local = worlds_1.globalToChunk([data.x, data.y, data.z]);
         data.cancel = false;
-        if (this.world.chunks[local.id.toString()] == undefined)
+        if (this.world.chunks[local.id.toString()] == undefined) {
             data.cancel = true;
+        }
         else {
             const blockID = this.world.chunks[local.id.toString()].data.get(Math.floor(local.pos[0]), Math.floor(local.pos[1]), Math.floor(local.pos[2]));
             const block = this._server.registry.blocks[this._server.registry.blockIDmap[blockID]];
@@ -505,12 +530,13 @@ class Player {
             else if (block.options.solid != false && block.options.fluid != true)
                 data.cancel = true;
         }
-        const pos = this.entity.data.position;
+        blockPos.status = data.cancel;
         const move = [data.x, data.y, data.z];
         for (let x = 0; x <= 5; x++) {
             this._server.emit(`player-move-${x}`, this, data);
             if (data.cancel) {
                 this.sendPacket('PlayerTeleport', { x: pos[0], y: pos[1], z: pos[2] });
+                this.cache.lastBlockCheck = blockPos;
                 return;
             }
         }
@@ -518,7 +544,8 @@ class Player {
             this.sendPacket('PlayerTeleport', { x: pos[0], y: pos[1], z: pos[2] });
             return;
         }
-        if (vec.dist(pos, move) < 20)
+        this.cache.lastBlockCheck = blockPos;
+        if (vec.dist(pos, move) < 22)
             this.move(move);
     }
     action_click(data) {
@@ -541,7 +568,7 @@ class Player {
 exports.Player = Player;
 exports.defaultPlayerMovement = {
     airJumps: 0,
-    airMoveMult: 0.5,
+    airMoveMult: 0.3,
     crouch: false,
     crouchMoveMult: 0.8,
     jumpForce: 6,
@@ -549,8 +576,8 @@ exports.defaultPlayerMovement = {
     jumpTime: 500,
     jumping: false,
     maxSpeed: 7.5,
-    moveForce: 30,
-    responsiveness: 15,
+    moveForce: 38,
+    responsiveness: 20,
     running: false,
     runningFriction: 0,
     sprint: false,
