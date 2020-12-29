@@ -30,6 +30,7 @@ const worlds_1 = require("./lib/worlds");
 const entity_1 = require("./lib/entity");
 const permissions_1 = require("./lib/permissions");
 const player_1 = require("./lib/player");
+const chat_1 = require("./lib/chat");
 const chat = __importStar(require("./lib/chat"));
 const semver = __importStar(require("semver"));
 const node_fetch_1 = __importDefault(require("node-fetch"));
@@ -37,6 +38,8 @@ const normal_1 = __importDefault(require("./default/worldgen/normal"));
 //import flatGenerator from './default/worldgen/flat';
 const values_1 = require("./values");
 const console_1 = require("./lib/console");
+const values_2 = require("voxelservercore/values");
+const messagebuilder_1 = require("voxelservercore/messagebuilder");
 class Server extends events_1.EventEmitter {
     constructor() {
         super();
@@ -44,12 +47,14 @@ class Server extends events_1.EventEmitter {
         this.status = 'none';
         this.plugins = {};
         this.setMaxListeners(200);
+        messagebuilder_1.server_setMessageBuilder(chat_1.MessageBuilder);
         if (!fs.existsSync('./logs/'))
             fs.mkdirSync('./logs/');
         if (fs.existsSync('./logs/latest.log'))
             fs.renameSync('./logs/latest.log', `./logs/${Date.now()}.log`);
         this.log = new console_1.Logging(fs.createWriteStream('./logs/latest.log', { flags: 'w' }));
         this.status = 'starting';
+        this.console = new Console(this);
         this.registry = new registry_1.Registry(this);
         this.worlds = new worlds_1.WorldManager(this);
         this.entities = new entity_1.EntityManager(this);
@@ -75,7 +80,10 @@ class Server extends events_1.EventEmitter {
             if (!fs.existsSync(element)) {
                 try {
                     fs.mkdirSync(element);
-                    this.log.normal([{ text: `Created missing directory: `, color: 'orange' }, { text: element, color: 'white' }]);
+                    this.log.normal([
+                        { text: `Created missing directory: `, color: 'orange' },
+                        { text: element, color: 'white' },
+                    ]);
                 }
                 catch (e) {
                     this.log.normal([{ text: `Can't create directory: ${element}! Reason: ${e}`, color: 'red' }]);
@@ -83,11 +91,14 @@ class Server extends events_1.EventEmitter {
                 }
             }
         });
-        this.log.normal([{ text: `Starting VoxelSRV server version: ${values_1.serverVersion} `, color: 'yellow' }, { text: `[Protocol: ${values_1.serverProtocol}]`, color: 'lightblue' }]);
+        this.log.normal([
+            { text: `Starting VoxelSRV server version: ${values_1.serverVersion} `, color: 'yellow' },
+            { text: `[Protocol: ${values_1.serverProtocol}]`, color: 'lightblue' },
+        ]);
         this.config = { ...values_1.serverDefaultConfig, ...this.loadConfig('', 'config') };
         this.permissions.loadGroups(this.loadConfig('', 'permissions'));
         this.saveConfig('', 'config', this.config);
-        this.emit('config-update', this.config);
+        this.emit('server-config-update', this.config);
         if (this.config.consoleInput) {
             Promise.resolve().then(() => __importStar(require('./lib/console-exec'))).then((x) => {
                 x.startCmd(this, this.registry.commands);
@@ -103,13 +114,16 @@ class Server extends events_1.EventEmitter {
         if (this.config.public)
             this.heartbeatPing();
         this.status = 'active';
-        this.log.normal([{ text: 'Server started on port: ', color: 'yellow' }, { text: this.config.port.toString(), color: 'lightyellow' }]);
+        this.log.normal([
+            { text: 'Server started on port: ', color: 'yellow' },
+            { text: this.config.port.toString(), color: 'lightyellow' },
+        ]);
+        this.emit('server-started', this);
     }
     heartbeatPing() {
         node_fetch_1.default(`http://${values_1.heartbeatServer}/api/addServer?ip=${this.config.address}:${this.config.port}`)
             .then((res) => res.json())
-            .then((json) => {
-        });
+            .then((json) => { });
     }
     async connectPlayer(socket) {
         if (this.status != 'active')
@@ -250,20 +264,42 @@ class Server extends events_1.EventEmitter {
         }
     }
     loadPlugin(plugin) {
-        if (!semver.satisfies(values_1.serverVersion, plugin.supported)) {
+        if (plugin.game == '*' && !semver.satisfies(values_2.version, plugin.supportedAPI)) {
+            this.log.warn([
+                new chat.ChatComponent('Plugin ', 'orange'),
+                new chat.ChatComponent(plugin.name, 'yellow'),
+                new chat.ChatComponent(` might not support this version of server (VoxelServerCore ${values_2.version})!`, 'orange'),
+            ]);
+            const min = semver.minVersion(plugin.supportedAPI);
+            const max = semver.maxSatisfying(plugin.supportedAPI);
+            if (!!min && !!max && (semver.gt(values_1.serverVersion, max) || semver.lt(values_1.serverVersion, min)))
+                this.log.warn(`It only support versions from ${min} to ${max}.`);
+            else if (!!min && !max && semver.lt(values_1.serverVersion, min))
+                this.log.warn(`It only support versions ${min} of VoxelServerCore or newer.`);
+            else if (!min && !!max && semver.gt(values_1.serverVersion, max))
+                this.log.warn(`It only support versions ${max} of VoxelServerCore or older.`);
+        }
+        else if (plugin.game == 'voxelsrv' && !semver.satisfies(values_1.serverVersion, plugin.supportedGameAPI)) {
+            this.log.warn([
+                new chat.ChatComponent('Plugin ', 'orange'),
+                new chat.ChatComponent(plugin.name, 'yellow'),
+                new chat.ChatComponent(` might not support this version of server (VoxelSrv Server ${values_1.serverVersion})!`, 'orange'),
+            ]);
+            const min = semver.minVersion(plugin.supportedGameAPI);
+            const max = semver.maxSatisfying(plugin.supportedGameAPI);
+            if (!!min && !!max && (semver.gt(values_1.serverVersion, max) || semver.lt(values_1.serverVersion, min)))
+                this.log.warn(`It only support versions from ${min} to ${max}.`);
+            else if (!!min && !max && semver.lt(values_1.serverVersion, min))
+                this.log.warn(`It only support versions ${min} of VoxelSrv Server or newer.`);
+            else if (!min && !!max && semver.gt(values_1.serverVersion, max))
+                this.log.warn(`It only support versions ${max} of VoxelSrv Server or older.`);
+        }
+        else if (plugin.game != 'voxelsrv' && plugin.game != '*') {
             this.log.warn([
                 new chat.ChatComponent('Plugin ', 'orange'),
                 new chat.ChatComponent(plugin.name, 'yellow'),
                 new chat.ChatComponent(' might not support this version of server!', 'orange'),
             ]);
-            const min = semver.minVersion(plugin.supported);
-            const max = semver.maxSatisfying(plugin.supported);
-            if (!!min && !!max && (semver.gt(values_1.serverVersion, max) || semver.lt(values_1.serverVersion, min)))
-                this.log.warn(`It only support versions from ${min} to ${max}.`);
-            else if (!!min && !max && semver.lt(values_1.serverVersion, min))
-                this.log.warn(`It only support versions ${min} or newer.`);
-            else if (!min && !!max && semver.gt(values_1.serverVersion, max))
-                this.log.warn(`It only support versions ${max} or older.`);
         }
         this.emit('plugin-load', plugin);
         this.plugins[plugin.name] = plugin;
@@ -324,5 +360,17 @@ function verifyLogin(data) {
     else if (data.protocol == undefined || data.protocol != values_1.serverProtocol)
         return 'Unsupported protocol';
     return 0;
+}
+class Console {
+    constructor(s) {
+        this.executor = {
+            name: '#console',
+            id: '#console',
+            send: (...args) => this.s.log.normal(...args),
+            permissions: new permissions_1.PermissionHolder({ '*': true }),
+        };
+        this.executorchat = { ...this.executor, send: (...args) => this.s.log.chat(...args) };
+        this.s = s;
+    }
 }
 //# sourceMappingURL=server.js.map

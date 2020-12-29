@@ -36,7 +36,7 @@ class Registry {
         this._server = null;
         this._server = server;
         this.blocks['air'] = new Block('air', -1, '', { solid: false }, 0, 0, 'any');
-        this.blocks['air'].rawid = 0;
+        this.blocks['air'].numId = 0;
         this.blockIDmap[0] = 'air';
         this.blockPalette['air'] = 0;
     }
@@ -133,6 +133,11 @@ class ItemStack {
     }
 }
 exports.ItemStack = ItemStack;
+/*
+ *
+ * Items
+ *
+ */
 class Item {
     constructor(id, name, texture, stack) {
         this.registry = null;
@@ -250,9 +255,14 @@ class ItemArmor extends Item {
     }
 }
 exports.ItemArmor = ItemArmor;
+/*
+ *
+ * Blocks
+ *
+ */
 class Block {
     constructor(id, type, texture, options, hardness, miningtime, tool) {
-        this.rawid = -1;
+        this.numId = -1;
         this.registry = null;
         this.id = id;
         this.texture = texture;
@@ -268,7 +278,8 @@ class Block {
     }
     getObject() {
         return {
-            rawid: this.rawid,
+            numId: this.numId,
+            rawid: this.numId,
             id: this.id,
             texture: this.texture,
             options: this.options,
@@ -279,24 +290,21 @@ class Block {
             unbreakable: this.unbreakable,
         };
     }
-    getRawID() {
-        return this.rawid;
-    }
     _finalize(registry) {
         if (!registry.finalized) {
             this.registry = registry;
             if (registry.blockPalette[this.id] != undefined)
-                this.rawid = registry.blockPalette[this.id];
+                this.numId = registry.blockPalette[this.id];
             else {
                 if (registry._freeIDs.length > 0) {
-                    this.rawid = registry._freeIDs[0];
+                    this.numId = registry._freeIDs[0];
                     registry._freeIDs.shift();
-                    registry.blockPalette[this.id] = this.rawid;
+                    registry.blockPalette[this.id] = this.numId;
                 }
                 else {
                     registry._lastID++;
-                    this.rawid = registry._lastID;
-                    registry.blockPalette[this.id] = this.rawid;
+                    this.numId = registry._lastID;
+                    registry.blockPalette[this.id] = this.numId;
                 }
             }
         }
@@ -306,7 +314,6 @@ exports.Block = Block;
 class Command {
     constructor(command, func, description = 'Custom command') {
         this.command = null;
-        this.trigger = () => { };
         (this.command = command), (this.description = description), (this.trigger = func);
     }
 }

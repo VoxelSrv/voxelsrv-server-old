@@ -7,7 +7,8 @@ import { PlayerInventory } from './inventory';
 import { PlayerPermissionHolder } from './permissions';
 import * as pClient from 'voxelsrv-protocol/js/client';
 import { BaseSocket } from '../socket';
-export declare class PlayerManager {
+import { ICorePlayerManager, ICorePlayer } from 'voxelservercore/interfaces/player';
+export declare class PlayerManager implements ICorePlayerManager {
     players: {
         [index: string]: Player;
     };
@@ -46,7 +47,7 @@ export declare class PlayerManager {
     saveBanlist(): void;
     saveCache(): void;
 }
-export declare class Player {
+export declare class Player implements ICorePlayer {
     readonly id: string;
     readonly nickname: string;
     readonly ipAddress: string;

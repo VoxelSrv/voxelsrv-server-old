@@ -1,4 +1,5 @@
-export declare type XYZ = [number, number, number];
+import { Position } from 'voxelservercore/interfaces/types';
+export declare type XYZ = Position;
 export declare type XZ = [number, number];
 export declare type anyobject = {
     [index: string]: any;

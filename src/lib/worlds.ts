@@ -8,19 +8,21 @@ import { Block } from './registry';
 import * as zlib from 'zlib';
 import { promisify } from 'util';
 
+import type { ICoreWorldManager, ICoreWorldGenerator, ICoreWorld } from 'voxelservercore/interfaces/world';
+
 const inflatePromise: (arg1: zlib.InputType) => Promise<Buffer> = promisify(zlib.inflate);
 const readFilePromise: (arg1: any) => Promise<Buffer> = promisify(fs.readFile);
 
 import ndarray = require('ndarray');
 
-export class WorldManager {
+export class WorldManager implements ICoreWorldManager {
 	readonly chunkWitdh = 32;
 	readonly chunkHeight = 256;
 
 	readonly lastChunk = 5000;
 
 	worlds: { [index: string]: World } = {};
-	worldgenerators = {};
+	worldGenerator: { [index: string]: IWorldGenerator } = {};
 
 	readonly _baseMetadata = { ver: 2, stage: 0 };
 
@@ -70,11 +72,11 @@ export class WorldManager {
 	}
 
 	addGenerator(name: string, gen: any) {
-		this.worldgenerators[name] = gen;
+		this.worldGenerator[name] = gen;
 	}
 }
 
-export class World {
+export class World implements ICoreWorld {
 	name: string;
 	seed: number;
 	generator: any;
@@ -95,7 +97,7 @@ export class World {
 		this._worldMen = server.worlds;
 		this.name = name;
 		this.seed = seed != 0 ? seed : getRandomSeed();
-		this.generator = new server.worlds.worldgenerators[generator](this.seed, server);
+		this.generator = new server.worlds.worldGenerator[generator](this.seed, server);
 		if (ver == null) this.version = 1;
 		else this.version = ver;
 		this.chunks = {};
@@ -255,7 +257,7 @@ export class World {
 		delete this.chunks[id.toString()];
 	}
 
-	getSettings(): object {
+	getSettings() {
 		return {
 			name: this.name,
 			seed: this.seed,
@@ -291,7 +293,7 @@ export class World {
 				id = block;
 				break;
 			case 'object':
-				id = block.rawid;
+				id = block.numId;
 				break;
 			case 'string':
 				id = this._server.registry.blockPalette[block];
@@ -382,4 +384,14 @@ export function validateID(id: number[]): boolean {
 	if (id == null || id == undefined) return false;
 	else if (id[0] == null || id[0] == undefined) return false;
 	else if (id[1] == null || id[1] == undefined) return false;
+}
+
+export interface IWorldGenerator extends ICoreWorldGenerator {
+	new (seed: number, server: Server): IWorldGenerator;
+
+	getBlock(x: number, y: number, z: number, biomes): number;
+	getBiome(x: number, z: number);
+	getBiomesAt(x: number, z: number): { main; possible: { [index: string]: number }; height: number; size: number };
+	generateBaseChunk(id: types.XZ, chunk: types.IView3duint16): Promise<types.IView3duint16>;
+	generateChunk(id: types.XZ, chunk: types.IView3duint16, world: World): Promise<void>;
 }

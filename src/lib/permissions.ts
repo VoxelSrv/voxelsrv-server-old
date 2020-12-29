@@ -3,7 +3,10 @@ import type { Server } from '../server';
 type PermissionList = { [index: string]: boolean | null };
 type Parents = { [index: string]: PermissionHolder };
 
-export class PermissionManager {
+import { IParentedPermissionHolder, ICorePermissionHolder, ICorePermissionManager } from 'voxelservercore/interfaces/permissions';
+
+
+export class PermissionManager implements ICorePermissionManager {
 	groups = {};
 	_server: Server;
 
@@ -34,7 +37,7 @@ export class PermissionManager {
 	}
 }
 
-export class PermissionHolder {
+export class PermissionHolder implements ICorePermissionHolder{
 	readonly permissions: PermissionList = {};
 
 	constructor(permissions: PermissionList = {}) {
@@ -76,7 +79,7 @@ export class PermissionHolder {
 	}
 }
 
-export class PlayerPermissionHolder extends PermissionHolder {
+export class PlayerPermissionHolder extends PermissionHolder implements IParentedPermissionHolder {
 	parents: Parents = {};
 
 	_pm: PermissionManager;

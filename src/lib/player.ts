@@ -16,8 +16,9 @@ import * as pClient from 'voxelsrv-protocol/js/client';
 import * as pServer from 'voxelsrv-protocol/js/server';
 
 import { BaseSocket } from '../socket';
+import { ICorePlayerManager, ICorePlayer } from 'voxelservercore/interfaces/player';
 
-export class PlayerManager {
+export class PlayerManager implements ICorePlayerManager {
 	players: { [index: string]: Player } = {};
 	banlist: { [index: string]: string } = {};
 	ipbanlist: { [index: string]: string } = {};
@@ -150,7 +151,7 @@ export class PlayerManager {
 	}
 }
 
-export class Player {
+export class Player implements ICorePlayer {
 	readonly id: string;
 	readonly nickname: string;
 	readonly ipAddress: string = '0.0.0.0';
@@ -472,7 +473,7 @@ export class Player {
 			if (itemstack != null && this._server.registry.items[itemstack.id].block != undefined) {
 				const item = this._server.registry.items[itemstack.id];
 				//player.inv.remove(id, item.id, 1, {})
-				this.world.setBlock([data.x, data.y, data.z], item.block.getRawID(), false);
+				this.world.setBlock([data.x, data.y, data.z], item.block.numId, false);
 				this._players.sendPacketAll('WorldBlockUpdate', {
 					id: this._players._server.registry.blockPalette[item.block.id],
 					x: data.x,
@@ -546,7 +547,7 @@ export class Player {
 			const arg = data.message.split(' ');
 			const command = arg[0];
 			arg.shift();
-			this._server.emit('player-executecommand', this, command, arg);
+			this._server.emit('player-command', this, command, arg);
 
 			if (this._players._server.registry.commands[command]) {
 				try {
@@ -563,7 +564,7 @@ export class Player {
 				new chat.ChatComponent(data.message, 'white'),
 			];
 
-			this._server.emit('chat-message', msg);
+			this._server.emit('chat-message', msg, this);
 
 			chat.sendMlt([this._server.log.executorchat, ...Object.values(this._players.getAll())], msg);
 		}

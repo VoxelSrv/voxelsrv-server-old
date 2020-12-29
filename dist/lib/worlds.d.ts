@@ -1,14 +1,17 @@
 import * as types from '../types';
 import type { Server } from '../server';
 import { Block } from './registry';
-export declare class WorldManager {
+import type { ICoreWorldManager, ICoreWorldGenerator, ICoreWorld } from 'voxelservercore/interfaces/world';
+export declare class WorldManager implements ICoreWorldManager {
     readonly chunkWitdh = 32;
     readonly chunkHeight = 256;
     readonly lastChunk = 5000;
     worlds: {
         [index: string]: World;
     };
-    worldgenerators: {};
+    worldGenerator: {
+        [index: string]: IWorldGenerator;
+    };
     readonly _baseMetadata: {
         ver: number;
         stage: number;
@@ -22,7 +25,7 @@ export declare class WorldManager {
     get(name: string): World | undefined;
     addGenerator(name: string, gen: any): void;
 }
-export declare class World {
+export declare class World implements ICoreWorld {
     name: string;
     seed: number;
     generator: any;
@@ -54,7 +57,12 @@ export declare class World {
         metadata: any;
     };
     unloadChunk(id: types.XZ): void;
-    getSettings(): object;
+    getSettings(): {
+        name: string;
+        seed: number;
+        generator: any;
+        version: number;
+    };
     getBlock(data: types.XYZ, allowgen: boolean): Block;
     setBlock(data: types.XYZ, block: string | number | Block, allowgen?: boolean): Promise<void>;
     setRawBlock(data: types.XYZ, block: number): Promise<void>;
@@ -79,4 +87,19 @@ export declare function chunkIDFromGlobal(pos: types.XYZ): types.XZ;
 export declare function globalToLocal(pos: types.XYZ): types.XYZ;
 export declare function getRandomSeed(): number;
 export declare function validateID(id: number[]): boolean;
+export interface IWorldGenerator extends ICoreWorldGenerator {
+    new (seed: number, server: Server): IWorldGenerator;
+    getBlock(x: number, y: number, z: number, biomes: any): number;
+    getBiome(x: number, z: number): any;
+    getBiomesAt(x: number, z: number): {
+        main: any;
+        possible: {
+            [index: string]: number;
+        };
+        height: number;
+        size: number;
+    };
+    generateBaseChunk(id: types.XZ, chunk: types.IView3duint16): Promise<types.IView3duint16>;
+    generateChunk(id: types.XZ, chunk: types.IView3duint16, world: World): Promise<void>;
+}
 //# sourceMappingURL=worlds.d.ts.map

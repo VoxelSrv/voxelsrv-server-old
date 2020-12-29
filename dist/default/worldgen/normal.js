@@ -56,7 +56,10 @@ class NormalGenerator {
         for (let y = 0; y < server.config.world.worldGenWorkers; y++) {
             const worker = new threads_1.Worker('./normalWorker');
             // @ts-ignore
-            worker.setMaxListeners(1000);
+            if (worker.setMaxListeners != undefined) {
+                // @ts-ignore
+                worker.setMaxListeners(1000);
+            }
             threads_1.spawn(worker).then((x) => {
                 this._worker.push(x);
                 x.setupGenerator(seed, server.registry.blockPalette);

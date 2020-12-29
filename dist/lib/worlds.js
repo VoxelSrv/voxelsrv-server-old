@@ -33,7 +33,7 @@ class WorldManager {
         this.chunkHeight = 256;
         this.lastChunk = 5000;
         this.worlds = {};
-        this.worldgenerators = {};
+        this.worldGenerator = {};
         this._baseMetadata = { ver: 2, stage: 0 };
         this.server = server;
     }
@@ -74,7 +74,7 @@ class WorldManager {
         return this.worlds[name];
     }
     addGenerator(name, gen) {
-        this.worldgenerators[name] = gen;
+        this.worldGenerator[name] = gen;
     }
 }
 exports.WorldManager = WorldManager;
@@ -85,7 +85,7 @@ class World {
         this._worldMen = server.worlds;
         this.name = name;
         this.seed = seed != 0 ? seed : getRandomSeed();
-        this.generator = new server.worlds.worldgenerators[generator](this.seed, server);
+        this.generator = new server.worlds.worldGenerator[generator](this.seed, server);
         if (ver == null)
             this.version = 1;
         else
@@ -260,7 +260,7 @@ class World {
                 id = block;
                 break;
             case 'object':
-                id = block.rawid;
+                id = block.numId;
                 break;
             case 'string':
                 id = this._server.registry.blockPalette[block];

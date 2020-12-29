@@ -50,9 +50,12 @@ export default class NormalGenerator {
 		this._server = server;
 		for (let y = 0; y < server.config.world.worldGenWorkers; y++) {
 			const worker = new Worker('./normalWorker');
-
+				
 			// @ts-ignore
-			worker.setMaxListeners(1000);
+			if (worker.setMaxListeners != undefined) {
+				// @ts-ignore
+				worker.setMaxListeners(1000);
+			}
 
 			spawn(worker).then((x) => {
 				this._worker.push(x);

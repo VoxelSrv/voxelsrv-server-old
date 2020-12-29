@@ -5,7 +5,8 @@ declare type PermissionList = {
 declare type Parents = {
     [index: string]: PermissionHolder;
 };
-export declare class PermissionManager {
+import { IParentedPermissionHolder, ICorePermissionHolder, ICorePermissionManager } from 'voxelservercore/interfaces/permissions';
+export declare class PermissionManager implements ICorePermissionManager {
     groups: {};
     _server: Server;
     constructor(server: any);
@@ -15,7 +16,7 @@ export declare class PermissionManager {
     getGroup(name: string): any;
     getAllGroups(): {};
 }
-export declare class PermissionHolder {
+export declare class PermissionHolder implements ICorePermissionHolder {
     readonly permissions: PermissionList;
     constructor(permissions?: PermissionList);
     check(perm: string | string[]): null | boolean;
@@ -23,7 +24,7 @@ export declare class PermissionHolder {
     add(perm: string, bool?: boolean): void;
     remove(perm: string): void;
 }
-export declare class PlayerPermissionHolder extends PermissionHolder {
+export declare class PlayerPermissionHolder extends PermissionHolder implements IParentedPermissionHolder {
     parents: Parents;
     _pm: PermissionManager;
     constructor(pm: PermissionManager, permissions?: PermissionList, parents?: Array<string>);

@@ -1,5 +1,6 @@
 import type { Server } from '../server';
-export declare class Registry {
+import type { ICoreRegistry, ICoreBasicBlock, ICoreBasicItem, ICoreCommand } from 'voxelservercore/interfaces/registry';
+export declare class Registry implements ICoreRegistry {
     items: {
         [index: string]: any;
     };
@@ -36,7 +37,7 @@ export interface IItemStack {
     id: string;
     count: number;
     stack: number;
-    item: IItem;
+    item: ICoreBasicItem;
     [propName: string]: any;
 }
 export declare class ItemStack {
@@ -46,15 +47,9 @@ export declare class ItemStack {
     constructor(id: string, count: number, data: object, registry: Registry);
     getObject(): object;
 }
-export interface IItem {
+export declare class Item implements ICoreBasicItem {
     id: string;
-    name: string;
-    texture: string | Array<string>;
-    stack: number;
-    [propName: string]: any;
-}
-export declare class Item {
-    id: string;
+    numId: number;
     name: string;
     texture: string | Array<string>;
     stack: number;
@@ -89,15 +84,10 @@ export declare class ItemArmor extends Item {
     getReducedDamage(x: number): number;
     getObject(): object;
 }
-export interface IBlock {
+export declare class Block implements ICoreBasicBlock {
+    numId: number;
     id: string;
     name: string;
-    texture: string | Array<string>;
-    [propName: string]: any;
-}
-export declare class Block {
-    rawid: number;
-    id: string;
     type: number;
     texture: string | Array<string>;
     options: object;
@@ -109,13 +99,12 @@ export declare class Block {
     constructor(id: string, type: number, texture: string | string[], options: object, hardness: number, miningtime: number, tool: string | string[]);
     getItemStack(count?: number): ItemStack;
     getObject(): object;
-    getRawID(): number;
     _finalize(registry: Registry): void;
 }
-export declare class Command {
+export declare class Command implements ICoreCommand {
     command: string;
     description: string;
-    trigger: Function;
+    trigger: any;
     constructor(command: string, func: Function, description?: string);
 }
 //# sourceMappingURL=registry.d.ts.map

@@ -409,7 +409,7 @@ class Player {
             if (itemstack != null && this._server.registry.items[itemstack.id].block != undefined) {
                 const item = this._server.registry.items[itemstack.id];
                 //player.inv.remove(id, item.id, 1, {})
-                this.world.setBlock([data.x, data.y, data.z], item.block.getRawID(), false);
+                this.world.setBlock([data.x, data.y, data.z], item.block.numId, false);
                 this._players.sendPacketAll('WorldBlockUpdate', {
                     id: this._players._server.registry.blockPalette[item.block.id],
                     x: data.x,
@@ -482,7 +482,7 @@ class Player {
             const arg = data.message.split(' ');
             const command = arg[0];
             arg.shift();
-            this._server.emit('player-executecommand', this, command, arg);
+            this._server.emit('player-command', this, command, arg);
             if (this._players._server.registry.commands[command]) {
                 try {
                     this._players._server.registry.commands[command].trigger(this, arg);
@@ -501,7 +501,7 @@ class Player {
                 new chat.ChatComponent(' » ', '#eeeeee'),
                 new chat.ChatComponent(data.message, 'white'),
             ];
-            this._server.emit('chat-message', msg);
+            this._server.emit('chat-message', msg, this);
             chat.sendMlt([this._server.log.executorchat, ...Object.values(this._players.getAll())], msg);
         }
     }

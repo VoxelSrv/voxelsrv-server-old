@@ -8,7 +8,9 @@ import { PlayerManager } from './lib/player';
 import { IServerConfig } from './values';
 import { BaseSocket } from './socket';
 import { Logging } from './lib/console';
-export declare class Server extends EventEmitter {
+import type { ICoreServer } from 'voxelservercore/interfaces/server';
+import type { ICorePlugin } from 'voxelservercore/interfaces/plugin';
+export declare class Server extends EventEmitter implements ICoreServer {
     playerCount: number;
     registry: Registry;
     worlds: WorldManager;
@@ -18,9 +20,10 @@ export declare class Server extends EventEmitter {
     config: IServerConfig;
     heartbeatID: number;
     log: Logging;
+    console: Console;
     status: string;
     plugins: {
-        [index: string]: IPlugin;
+        [index: string]: ICorePlugin;
     };
     constructor();
     private initDefaults;
@@ -29,15 +32,16 @@ export declare class Server extends EventEmitter {
     heartbeatPing(): void;
     connectPlayer(socket: BaseSocket): Promise<void>;
     loadPluginsList(list: string[]): void;
-    loadPlugin(plugin: IPlugin): void;
+    loadPlugin(plugin: ICorePlugin): void;
     stopServer(): void;
     loadConfig(namespace: string, config: string): any;
     saveConfig(namespace: string, config: string, data: any): void;
 }
-export interface IPlugin {
-    name: string;
-    version: string;
-    supported: string;
-    [index: string]: any;
+declare class Console {
+    s: Server;
+    constructor(s: Server);
+    executor: any;
+    executorchat: any;
 }
+export {};
 //# sourceMappingURL=server.d.ts.map

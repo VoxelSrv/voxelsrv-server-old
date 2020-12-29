@@ -1,7 +1,9 @@
 import * as fs from 'fs';
 import type { Server } from '../server';
+import type { ICoreRegistry, ICoreBasicBlock, ICoreBasicItem, ICoreCommand } from 'voxelservercore/interfaces/registry';
 
-export class Registry {
+
+export class Registry implements ICoreRegistry {
 	items: { [index: string]: any } = {};
 	blocks: { [index: string]: any } = {};
 	commands: { [index: string]: any } = {};
@@ -20,7 +22,7 @@ export class Registry {
 		this._server = server;
 
 		this.blocks['air'] = new Block('air', -1, '', { solid: false }, 0, 0, 'any');
-		this.blocks['air'].rawid = 0;
+		this.blocks['air'].numId = 0;
 		this.blockIDmap[0] = 'air';
 		this.blockPalette['air'] = 0;
 	}
@@ -119,7 +121,7 @@ export interface IItemStack {
 	id: string;
 	count: number;
 	stack: number;
-	item: IItem;
+	item: ICoreBasicItem;
 	[propName: string]: any;
 }
 
@@ -151,16 +153,10 @@ export class ItemStack {
  *
  */
 
-export interface IItem {
-	id: string;
-	name: string;
-	texture: string | Array<string>;
-	stack: number;
-	[propName: string]: any;
-}
 
-export class Item {
+export class Item implements ICoreBasicItem{
 	id: string;
+	numId: number;
 	name: string;
 	texture: string | Array<string>;
 	stack: number;
@@ -305,16 +301,10 @@ export class ItemArmor extends Item {
  *
  */
 
-export interface IBlock {
+export class Block implements ICoreBasicBlock {
+	numId: number = -1;
 	id: string;
 	name: string;
-	texture: string | Array<string>;
-	[propName: string]: any;
-}
-
-export class Block {
-	rawid: number = -1;
-	id: string;
 	type: number;
 	texture: string | Array<string>;
 	options: object;
@@ -341,7 +331,8 @@ export class Block {
 
 	getObject(): object {
 		return {
-			rawid: this.rawid,
+			numId: this.numId,
+			rawid: this.numId,
 			id: this.id,
 			texture: this.texture,
 			options: this.options,
@@ -353,33 +344,29 @@ export class Block {
 		};
 	}
 
-	getRawID(): number {
-		return this.rawid;
-	}
-
 	_finalize(registry: Registry) {
 		if (!registry.finalized) {
 			this.registry = registry;
-			if (registry.blockPalette[this.id] != undefined) this.rawid = registry.blockPalette[this.id];
+			if (registry.blockPalette[this.id] != undefined) this.numId = registry.blockPalette[this.id];
 			else {
 				if (registry._freeIDs.length > 0) {
-					this.rawid = registry._freeIDs[0];
+					this.numId = registry._freeIDs[0];
 					registry._freeIDs.shift();
-					registry.blockPalette[this.id] = this.rawid;
+					registry.blockPalette[this.id] = this.numId;
 				} else {
 					registry._lastID++;
-					this.rawid = registry._lastID;
-					registry.blockPalette[this.id] = this.rawid;
+					this.numId = registry._lastID;
+					registry.blockPalette[this.id] = this.numId;
 				}
 			}
 		}
 	}
 }
 
-export class Command {
+export class Command implements ICoreCommand {
 	command: string = null;
 	description: string;
-	trigger: Function = () => {};
+	trigger;
 	constructor(command: string, func: Function, description: string = 'Custom command') {
 		(this.command = command), (this.description = description), (this.trigger = func);
 	}
