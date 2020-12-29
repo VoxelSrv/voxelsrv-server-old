@@ -39,7 +39,7 @@ const normal_1 = __importDefault(require("./default/worldgen/normal"));
 const values_1 = require("./values");
 const console_1 = require("./lib/console");
 const values_2 = require("voxelservercore/values");
-const messagebuilder_1 = require("voxelservercore/messagebuilder");
+const api_1 = require("voxelservercore/api");
 class Server extends events_1.EventEmitter {
     constructor() {
         super();
@@ -47,7 +47,8 @@ class Server extends events_1.EventEmitter {
         this.status = 'none';
         this.plugins = {};
         this.setMaxListeners(200);
-        messagebuilder_1.server_setMessageBuilder(chat_1.MessageBuilder);
+        api_1.server_setMessageBuilder(chat_1.MessageBuilder);
+        api_1.server_setMessageStringify(chat.convertToPlain);
         if (!fs.existsSync('./logs/'))
             fs.mkdirSync('./logs/');
         if (fs.existsSync('./logs/latest.log'))

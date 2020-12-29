@@ -34,6 +34,7 @@ export declare class PlayerManager implements ICorePlayerManager {
     exist(id: string): boolean;
     save(id: string, data: Object): void;
     get(id: string): Player | null;
+    sendMessageToAll(msg: string | chat.ChatMessage): void;
     getAll(): {
         [index: string]: Player;
     };

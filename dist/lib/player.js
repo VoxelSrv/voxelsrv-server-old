@@ -98,6 +98,9 @@ class PlayerManager {
         else
             return null;
     }
+    sendMessageToAll(msg) {
+        Object.values(this.players).forEach((x) => x.send(msg));
+    }
     getAll() {
         return this.players;
     }

@@ -26,7 +26,7 @@ import type { ICoreServer } from 'voxelservercore/interfaces/server';
 import type { ICorePlugin } from 'voxelservercore/interfaces/plugin';
 
 import { version as coreVersion } from 'voxelservercore/values';
-import { server_setMessageBuilder } from 'voxelservercore/messagebuilder';
+import { server_setMessageBuilder, server_setMessageStringify } from 'voxelservercore/api';
 
 export class Server extends EventEmitter implements ICoreServer {
 	playerCount: number = 0;
@@ -48,6 +48,7 @@ export class Server extends EventEmitter implements ICoreServer {
 		super();
 		this.setMaxListeners(200);
 		server_setMessageBuilder(MessageBuilder);
+		server_setMessageStringify(chat.convertToPlain);
 
 		if (!fs.existsSync('./logs/')) fs.mkdirSync('./logs/');
 		if (fs.existsSync('./logs/latest.log')) fs.renameSync('./logs/latest.log', `./logs/${Date.now()}.log`);

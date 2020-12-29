@@ -99,6 +99,10 @@ export class PlayerManager implements ICorePlayerManager {
 		else return null;
 	}
 
+	sendMessageToAll(msg: string | chat.ChatMessage) {
+		Object.values(this.players).forEach((x) => x.send(msg));
+	}
+
 	getAll(): { [index: string]: Player } {
 		return this.players;
 	}
@@ -520,8 +524,7 @@ export class Player implements ICorePlayer {
 		if (-2 < data.slot && data.slot <= this.inventory.size && (data.inventory != pClient.ActionInventoryClick.TypeInv.CRAFTING || data.slot < 4)) {
 			if (data.type == pClient.ActionInventoryClick.Type.LEFT) this.inventory.action_left(inventory, data.slot, type);
 			else if (data.type == pClient.ActionInventoryClick.Type.RIGHT) this.inventory.action_right(inventory, data.slot, type);
-		else if (data.type == pClient.ActionInventoryClick.Type.SELECT && -1 < data.slot && data.slot < 9) this.inventory.select(data.slot);
-
+			else if (data.type == pClient.ActionInventoryClick.Type.SELECT && -1 < data.slot && data.slot < 9) this.inventory.select(data.slot);
 		} else if (data.inventory == pClient.ActionInventoryClick.TypeInv.CRAFTING && data.slot < 4) {
 		}
 	}
