@@ -278,6 +278,8 @@ class Player {
     send(msg) {
         if (typeof msg == 'string')
             msg = chat.convertFromPlain(msg);
+        else if (msg instanceof chat.MessageBuilder)
+            msg = msg.getGameOutput();
         this.sendPacket('ChatMessage', { message: msg, time: Date.now() });
     }
     sendChunk(id) {
@@ -492,20 +494,16 @@ class Player {
                 }
                 catch (e) {
                     this._server.log.error(`User ^R${this.nickname}^r tried to execute command ^R${command}^r and it failed! \n ^R`, e);
-                    this.send([new chat.ChatComponent('An error occurred during the execution of this command!', 'red')]);
+                    this.send(new chat.MessageBuilder().red('An error occurred during the execution of this command!'));
                 }
             }
             else
-                this.send([new chat.ChatComponent("This command doesn't exist! Check /help for list of available commands.", 'red')]);
+                this.send(new chat.MessageBuilder().red("This command doesn't exist! Check /help for list of available commands."));
         }
         else if (data.message != '') {
-            const msg = [
-                new chat.ChatComponent(this.displayName, 'white'),
-                new chat.ChatComponent(' » ', '#eeeeee'),
-                new chat.ChatComponent(data.message, 'white'),
-            ];
+            const msg = new chat.MessageBuilder().white(this.displayName).hex('#eeeeee').text(' » ').white(data.message);
             this._server.emit('chat-message', msg, this);
-            chat.sendMlt([this._server.log.executorchat, ...Object.values(this._players.getAll())], msg);
+            chat.sendMlt([this._server.console.executorchat, ...Object.values(this._players.getAll())], msg);
         }
     }
     async action_move(data) {

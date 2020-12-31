@@ -4,24 +4,19 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.Logging = void 0;
-const permissions_1 = require("./permissions");
 const chalk_1 = __importDefault(require("chalk"));
+const api_1 = require("voxelservercore/api");
 class Logging {
     constructor(out) {
-        this.executor = {
-            name: '#console',
-            id: '#console',
-            send: (...args) => this.normal(...args),
-            permissions: new permissions_1.PermissionHolder({ '*': true }),
-        };
-        this.executorchat = { ...this.executor, send: (...args) => this.chat(...args) };
         this.logFile = out;
     }
     normal(...args) {
         let out = '';
         let cleanOut = '';
         for (var i = 0; i < arguments.length; i++) {
-            const msg = arguments[i];
+            let msg = arguments[i];
+            if (msg instanceof api_1.MessageBuilder)
+                msg = msg.getOutput();
             out = out + '[' + hourNow() + '] ';
             cleanOut = out;
             if (Array.isArray(msg)) {
@@ -50,7 +45,9 @@ class Logging {
         for (var i = 0; i < arguments.length; i++) {
             out = out + '[' + hourNow() + ' - Chat] ';
             cleanOut = out;
-            const msg = arguments[i];
+            let msg = arguments[i];
+            if (msg instanceof api_1.MessageBuilder)
+                msg = msg.getOutput();
             if (Array.isArray(msg)) {
                 msg.forEach((el) => {
                     if (!!el.color && el.color.startsWith('#'))
@@ -77,7 +74,9 @@ class Logging {
         for (var i = 0; i < arguments.length; i++) {
             out = out + '[' + hourNow() + ' - Warn] ';
             cleanOut = out;
-            const msg = arguments[i];
+            let msg = arguments[i];
+            if (msg instanceof api_1.MessageBuilder)
+                msg = msg.getOutput();
             if (Array.isArray(msg)) {
                 msg.forEach((el) => {
                     if (!!el.color && el.color.startsWith('#'))
@@ -104,7 +103,9 @@ class Logging {
         for (var i = 0; i < arguments.length; i++) {
             out = out + '[' + hourNow() + ' - Error] ';
             cleanOut = out;
-            const msg = arguments[i];
+            let msg = arguments[i];
+            if (msg instanceof api_1.MessageBuilder)
+                msg = msg.getOutput();
             if (Array.isArray(msg)) {
                 msg.forEach((el) => {
                     if (!!el.color && el.color.startsWith('#'))

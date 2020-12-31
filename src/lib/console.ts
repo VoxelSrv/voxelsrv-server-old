@@ -2,6 +2,7 @@ import { PermissionHolder } from './permissions';
 import * as fs from 'fs';
 
 import chalk from 'chalk';
+import { MessageBuilder } from 'voxelservercore/api';
 
 export class Logging {
 	logFile: fs.WriteStream;
@@ -14,7 +15,9 @@ export class Logging {
 		let out = '';
 		let cleanOut = '';
 		for (var i = 0; i < arguments.length; i++) {
-			const msg = arguments[i];
+			let msg = arguments[i];
+			if (msg instanceof MessageBuilder) msg = msg.getOutput();
+
 			out = out + '[' + hourNow() + '] ';
 			cleanOut = out;
 
@@ -43,7 +46,9 @@ export class Logging {
 			out = out + '[' + hourNow() + ' - Chat] ';
 			cleanOut = out;
 
-			const msg = arguments[i];
+			let msg = arguments[i];
+			if (msg instanceof MessageBuilder) msg = msg.getOutput();
+
 			if (Array.isArray(msg)) {
 				msg.forEach((el) => {
 					if (!!el.color && el.color.startsWith('#')) out = out + chalk.hex(el.color).bold(el.text).toString();
@@ -70,7 +75,8 @@ export class Logging {
 			out = out + '[' + hourNow() + ' - Warn] ';
 			cleanOut = out;
 
-			const msg = arguments[i];
+			let msg = arguments[i];
+			if (msg instanceof MessageBuilder) msg = msg.getOutput();
 			if (Array.isArray(msg)) {
 				msg.forEach((el) => {
 					if (!!el.color && el.color.startsWith('#')) out = out + chalk.hex(el.color).bold(el.text).toString();
@@ -96,7 +102,10 @@ export class Logging {
 		for (var i = 0; i < arguments.length; i++) {
 			out = out + '[' + hourNow() + ' - Error] ';
 			cleanOut = out;
-			const msg = arguments[i];
+
+			let msg = arguments[i];
+			if (msg instanceof MessageBuilder) msg = msg.getOutput();
+
 			if (Array.isArray(msg)) {
 				msg.forEach((el) => {
 					if (!!el.color && el.color.startsWith('#')) out = out + chalk.hex(el.color).bold(el.text);
@@ -114,17 +123,7 @@ export class Logging {
 			if (this.logFile != undefined) this.logFile.write(cleanOut + '\n');
 		}
 	}
-
-	executor = {
-		name: '#console',
-		id: '#console',
-		send: (...args: any[]) => this.normal(...args),
-		permissions: new PermissionHolder({ '*': true }),
-	};
-
-	executorchat = { ...this.executor, send: (...args: any[]) => this.chat(...args)};
 }
-
 
 function hourNow(): string {
 	var date = new Date();

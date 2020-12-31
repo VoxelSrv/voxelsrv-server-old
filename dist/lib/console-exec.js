@@ -41,7 +41,7 @@ function startCmd(server, commands) {
         arg.shift();
         if (commands[command]) {
             try {
-                commands[command].trigger(server.log.executor, arg);
+                commands[command].trigger(server.console.executor, arg);
             }
             catch (e) {
                 server.log.error([new chat_1.ChatComponent('An error occurred during the execution of this command!', 'red')]);

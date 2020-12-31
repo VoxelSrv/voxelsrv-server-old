@@ -194,14 +194,14 @@ class Server extends events_1.EventEmitter {
                         data: JSON.stringify(data[1].getObject().data),
                     });
                 });
-                const joinMsg = [new chat.ChatComponent(`${player.displayName} joined the game!`, '#b5f598')];
-                chat.sendMlt([this.log.executorchat, ...Object.values(this.players.getAll())], joinMsg);
+                const joinMsg = new chat_1.MessageBuilder().hex('#b5f598').text(`${player.displayName} joined the game!`);
+                chat.sendMlt([this.console.executorchat, ...Object.values(this.players.getAll())], joinMsg);
                 chat.event.emit('system-message', joinMsg);
                 this.playerCount = this.playerCount + 1;
                 socket.on('close', () => {
                     this.emit('player-disconnect', id);
-                    const leaveMsg = [new chat.ChatComponent(`${player.displayName} left the game!`, '#f59898')];
-                    chat.sendMlt([this.log.executorchat, ...Object.values(this.players.getAll())], leaveMsg);
+                    const leaveMsg = new chat_1.MessageBuilder().hex('#f59898').text(`${player.displayName} left the game!`);
+                    chat.sendMlt([this.console.executorchat, ...Object.values(this.players.getAll())], leaveMsg);
                     chat.event.emit('system-message', leaveMsg);
                     player.remove();
                     this.playerCount = this.playerCount - 1;

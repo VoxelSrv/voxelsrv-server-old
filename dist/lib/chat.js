@@ -66,79 +66,79 @@ class MessageBuilder {
     constructor() {
         this.message = [];
     }
-    newLine() {
-        this.message.push({ text: '\n', color: 'white' });
+    newLine(text = '') {
+        this.message.push({ text: '\n' + text, color: 'white' });
         return this;
     }
-    black() {
-        this.message.push({ text: '', color: 'black' });
+    black(text = '') {
+        this.message.push({ text: text, color: 'black' });
         return this;
     }
-    blue() {
-        this.message.push({ text: '', color: 'blue' });
+    blue(text = '') {
+        this.message.push({ text: text, color: 'blue' });
         return this;
     }
-    green() {
-        this.message.push({ text: '', color: 'green' });
+    green(text = '') {
+        this.message.push({ text: text, color: 'green' });
         return this;
     }
-    cyan() {
-        this.message.push({ text: '', color: 'cyan' });
+    cyan(text = '') {
+        this.message.push({ text: text, color: 'cyan' });
         return this;
     }
-    red() {
-        this.message.push({ text: '', color: 'red' });
+    red(text = '') {
+        this.message.push({ text: text, color: 'red' });
         return this;
     }
-    purple() {
-        this.message.push({ text: '', color: 'purple' });
+    purple(text = '') {
+        this.message.push({ text: text, color: 'purple' });
         return this;
     }
-    orange() {
-        this.message.push({ text: '', color: 'orange' });
+    orange(text = '') {
+        this.message.push({ text: text, color: 'orange' });
         return this;
     }
-    grey() {
-        this.message.push({ text: '', color: 'grey' });
+    grey(text = '') {
+        this.message.push({ text: text, color: 'grey' });
         return this;
     }
-    lightGrey() {
-        this.message.push({ text: '', color: 'lightgray' });
+    lightGrey(text = '') {
+        this.message.push({ text: text, color: 'lightgray' });
         return this;
     }
-    lightBlue() {
-        this.message.push({ text: '', color: 'lightblue' });
+    lightBlue(text = '') {
+        this.message.push({ text: text, color: 'lightblue' });
         return this;
     }
-    lightGreen() {
-        this.message.push({ text: '', color: 'lightgreen' });
+    lightGreen(text = '') {
+        this.message.push({ text: text, color: 'lightgreen' });
         return this;
     }
-    lightCyan() {
-        this.message.push({ text: '', color: 'lightcyan' });
+    lightCyan(text = '') {
+        this.message.push({ text: text, color: 'lightcyan' });
         return this;
     }
-    pink() {
-        this.message.push({ text: '', color: 'pink' });
+    pink(text = '') {
+        this.message.push({ text: text, color: 'pink' });
         return this;
     }
-    magenta() {
-        this.message.push({ text: '', color: 'magenta' });
+    magenta(text = '') {
+        this.message.push({ text: text, color: 'magenta' });
         return this;
     }
-    yellow() {
-        this.message.push({ text: '', color: 'yellow' });
+    yellow(text = '') {
+        this.message.push({ text: text, color: 'yellow' });
         return this;
     }
-    white() {
-        this.message.push({ text: '', color: 'white' });
+    white(text = '') {
+        this.message.push({ text: text, color: 'white' });
         return this;
     }
-    linethrough() {
+    linethrough(text = '') {
         this.message[this.message.length - 1].linethrough = true;
         return this;
     }
-    underline() {
+    underline(text = '') {
         this.message[this.message.length - 1].underline = true;
         return this;
     }
@@ -146,8 +146,12 @@ class MessageBuilder {
         this.message.push({ text: '', color: hex });
         return this;
     }
+    font(font) {
+        this.message[this.message.length - 1].text = this.message[this.message.length - 1].font = font;
+        return this;
+    }
     clear() {
-        this.message.push({ text: '' });
+        this.message.push({ text: '', color: 'white' });
         return this;
     }
     text(text) {
@@ -155,6 +159,9 @@ class MessageBuilder {
         return this;
     }
     getOutput() {
+        return this.message;
+    }
+    getGameOutput() {
         return this.message;
     }
 }

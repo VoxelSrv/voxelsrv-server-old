@@ -8,6 +8,7 @@ import { PlayerPermissionHolder } from './permissions';
 import * as pClient from 'voxelsrv-protocol/js/client';
 import { BaseSocket } from '../socket';
 import { ICorePlayerManager, ICorePlayer } from 'voxelservercore/interfaces/player';
+import { CoreMessage } from 'voxelservercore/interfaces/message';
 export declare class PlayerManager implements ICorePlayerManager {
     players: {
         [index: string]: Player;
@@ -100,7 +101,7 @@ export declare class Player implements ICorePlayer {
     remove(): void;
     teleport(pos: types.XYZ, eworld: string | World): void;
     move(pos: types.XYZ): void;
-    send(msg: string | chat.ChatMessage): void;
+    send(msg: string | chat.ChatMessage | CoreMessage | chat.MessageBuilder): void;
     sendChunk(id: types.XZ): void;
     rotate(rot: number | null, pitch: number | null): void;
     kick(reason?: string): void;

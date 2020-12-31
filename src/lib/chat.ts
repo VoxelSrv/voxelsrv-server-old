@@ -1,7 +1,7 @@
 import { EventEmitter } from 'events';
 export const event = new EventEmitter();
 
-import { ICoreMessageBuilder } from 'voxelservercore/interfaces/message';
+import { CoreMessage, ICoreMessageBuilder } from 'voxelservercore/interfaces/message';
 
 export interface IChatComponent {
 	text: string;
@@ -11,7 +11,7 @@ export interface IChatComponent {
 	underline?: boolean;
 }
 
-export type ChatMessage = Array<IChatComponent>;
+export type ChatMessage = IChatComponent[];
 
 export class ChatComponent implements IChatComponent {
 	public text: string;
@@ -50,7 +50,7 @@ export function convertToPlain(msg: ChatMessage) {
 /*
  * Sends ChatMessage to multiple players (and console)
  */
-export async function sendMlt(readders: Array<{ send: Function }>, msg: ChatMessage) {
+export async function sendMlt(readders: Array<{ send: Function }>, msg: ChatMessage | MessageBuilder | CoreMessage) {
 	event.emit('send-message-mlt', readders, msg);
 	readders.forEach((x) => x.send(msg));
 }
@@ -75,93 +75,99 @@ export function validate(msg: ChatMessage): boolean {
  */
 
 export class MessageBuilder implements ICoreMessageBuilder {
-	message: ChatMessage = [];
+	private message: CoreMessage & ChatMessage = [];
 
 	constructor() {}
 
-	newLine(): this {
-		this.message.push({ text: '\n', color: 'white' });
+	newLine(text: string = ''): this {
+		this.message.push({ text: '\n' + text, color: 'white' });
 		return this;
 	}
-	black(): this {
-		this.message.push({ text: '', color: 'black' });
+	black(text: string = ''): this {
+		this.message.push({ text: text, color: 'black' });
 		return this;
 	}
-	blue(): this {
-		this.message.push({ text: '', color: 'blue' });
+	blue(text: string = ''): this {
+		this.message.push({ text: text, color: 'blue' });
 		return this;
 	}
-	green(): this {
-		this.message.push({ text: '', color: 'green' });
+	green(text: string = ''): this {
+		this.message.push({ text: text, color: 'green' });
 		return this;
 	}
-	cyan(): this {
-		this.message.push({ text: '', color: 'cyan' });
+	cyan(text: string = ''): this {
+		this.message.push({ text: text, color: 'cyan' });
 		return this;
 	}
-	red(): this {
-		this.message.push({ text: '', color: 'red' });
+	red(text: string = ''): this {
+		this.message.push({ text: text, color: 'red' });
 		return this;
 	}
-	purple(): this {
-		this.message.push({ text: '', color: 'purple' });
+	purple(text: string = ''): this {
+		this.message.push({ text: text, color: 'purple' });
 		return this;
 	}
-	orange(): this {
-		this.message.push({ text: '', color: 'orange' });
+	orange(text: string = ''): this {
+		this.message.push({ text: text, color: 'orange' });
 		return this;
 	}
-	grey(): this {
-		this.message.push({ text: '', color: 'grey' });
+	grey(text: string = ''): this {
+		this.message.push({ text: text, color: 'grey' });
 		return this;
 	}
-	lightGrey(): this {
-		this.message.push({ text: '', color: 'lightgray' });
+	lightGrey(text: string = ''): this {
+		this.message.push({ text: text, color: 'lightgray' });
 		return this;
 	}
-	lightBlue(): this {
-		this.message.push({ text: '', color: 'lightblue' });
+	lightBlue(text: string = ''): this {
+		this.message.push({ text: text, color: 'lightblue' });
 		return this;
 	}
-	lightGreen(): this {
-		this.message.push({ text: '', color: 'lightgreen' });
+	lightGreen(text: string = ''): this {
+		this.message.push({ text: text, color: 'lightgreen' });
 		return this;
 	}
-	lightCyan(): this {
-		this.message.push({ text: '', color: 'lightcyan' });
+	lightCyan(text: string = ''): this {
+		this.message.push({ text: text, color: 'lightcyan' });
 		return this;
 	}
-	pink(): this {
-		this.message.push({ text: '', color: 'pink' });
+	pink(text: string = ''): this {
+		this.message.push({ text: text, color: 'pink' });
 		return this;
 	}
-	magenta(): this {
-		this.message.push({ text: '', color: 'magenta' });
+	magenta(text: string = ''): this {
+		this.message.push({ text: text, color: 'magenta' });
 		return this;
 	}
-	yellow(): this {
-		this.message.push({ text: '', color: 'yellow' });
+	yellow(text: string = ''): this {
+		this.message.push({ text: text, color: 'yellow' });
 		return this;
 	}
-	white(): this {
-		this.message.push({ text: '', color: 'white' });
+	white(text: string = ''): this {
+		this.message.push({ text: text, color: 'white' });
 		return this;
 	}
-	linethrough(): this {
+	linethrough(text: string = ''): this {
 		this.message[this.message.length - 1].linethrough = true;
 		return this;
 	}
-	underline(): this {
+	underline(text: string = ''): this {
 		this.message[this.message.length - 1].underline = true;
 		return this;
 	}
+
 	hex(hex: string): this {
 		this.message.push({ text: '', color: hex });
 		return this;
 	}
 
+	font(font: string): this {
+		this.message[this.message.length - 1].text = this.message[this.message.length - 1].font = font;
+		return this;
+	}
+
 	clear(): this {
-		this.message.push({ text: '' });
+		this.message.push({ text: '', color: 'white' });
 		return this;
 	}
 
@@ -170,7 +176,11 @@ export class MessageBuilder implements ICoreMessageBuilder {
 		return this;
 	}
 
-	getOutput() {
+	getOutput(): CoreMessage {
+		return this.message;
+	}
+
+	getGameOutput(): ChatMessage {
 		return this.message;
 	}
 }
