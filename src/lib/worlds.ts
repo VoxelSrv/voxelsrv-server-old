@@ -26,15 +26,15 @@ export class WorldManager implements ICoreWorldManager {
 
 	readonly _baseMetadata = { ver: 2, stage: 0 };
 
-	server: Server;
+	_server: Server;
 
 	constructor(server) {
-		this.server = server;
+		this._server = server;
 	}
 
 	create(name: string, seed: number, generator: string): World | null {
 		if (this.exist(name) == false && this.worlds[name] == undefined) {
-			this.worlds[name] = new World(name, seed, generator, null, this.server);
+			this.worlds[name] = new World(name, seed, generator, null, this._server);
 			return this.worlds[name];
 		} else {
 			return null;
@@ -46,21 +46,21 @@ export class WorldManager implements ICoreWorldManager {
 			if (this.exist(name) == true && this.worlds[name] == undefined) {
 				const readed = fs.readFileSync('./worlds/' + name + '/world.json');
 				const data = JSON.parse(readed.toString());
-				this.worlds[name] = new World(name, data.seed, data.generator, data.version, this.server);
+				this.worlds[name] = new World(name, data.seed, data.generator, data.version, this._server);
 
 				return this.worlds[name];
 			} else {
 				return null;
 			}
 		} catch (e) {
-			this.server.log.error(`Can't load world ${name}! Trying to recreate it...`);
+			this._server.log.error(`Can't load world ${name}! Trying to recreate it...`);
 			this.create(name, 0, 'normal');
 		}
 	}
 
 	unload(name: string): void {
 		this.worlds[name].unload();
-		this.server.log.normal('Unloaded world ' + name);
+		this._server.log.normal('Unloaded world ' + name);
 	}
 
 	exist(name: string): boolean {
@@ -110,7 +110,7 @@ export class World implements ICoreWorld {
 			if (!fs.existsSync(this.chunkFolder)) fs.mkdirSync(this.chunkFolder);
 
 			fs.writeFile(this.folder + '/world.json', JSON.stringify(this.getSettings()), function (err) {
-				if (err) this.server.log.error('Cant save world ' + this.name + '! Reason: ' + err);
+				if (err) this._server.log.error('Cant save world ' + this.name + '! Reason: ' + err);
 			});
 
 			this.autoSaveInterval = setInterval(async () => {
@@ -182,7 +182,7 @@ export class World implements ICoreWorld {
 		const chunklist = Object.keys(this.chunks);
 
 		fs.writeFile(this.folder + '/world.json', JSON.stringify(this.getSettings()), function (err) {
-			if (err) this.server.log.error('Cant save world ' + this.name + '! Reason: ' + err);
+			if (err) this._server.log.error('Cant save world ' + this.name + '! Reason: ' + err);
 		});
 
 		chunklist.forEach((id) => {
@@ -206,7 +206,7 @@ export class World implements ICoreWorld {
 		const data = zlib.deflateSync(buffer);
 
 		fs.writeFile(this.chunkFolder + '/' + idS + '.chk', data, function (err) {
-			if (err) this.server.log.console.error('Cant save chunk ' + id + '! Reason: ' + err);
+			if (err) this._server.log.console.error('Cant save chunk ' + id + '! Reason: ' + err);
 		});
 	}
 

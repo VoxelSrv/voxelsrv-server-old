@@ -35,11 +35,11 @@ class WorldManager {
         this.worlds = {};
         this.worldGenerator = {};
         this._baseMetadata = { ver: 2, stage: 0 };
-        this.server = server;
+        this._server = server;
     }
     create(name, seed, generator) {
         if (this.exist(name) == false && this.worlds[name] == undefined) {
-            this.worlds[name] = new World(name, seed, generator, null, this.server);
+            this.worlds[name] = new World(name, seed, generator, null, this._server);
             return this.worlds[name];
         }
         else {
@@ -51,7 +51,7 @@ class WorldManager {
             if (this.exist(name) == true && this.worlds[name] == undefined) {
                 const readed = fs.readFileSync('./worlds/' + name + '/world.json');
                 const data = JSON.parse(readed.toString());
-                this.worlds[name] = new World(name, data.seed, data.generator, data.version, this.server);
+                this.worlds[name] = new World(name, data.seed, data.generator, data.version, this._server);
                 return this.worlds[name];
             }
             else {
@@ -59,13 +59,13 @@ class WorldManager {
             }
         }
         catch (e) {
-            this.server.log.error(`Can't load world ${name}! Trying to recreate it...`);
+            this._server.log.error(`Can't load world ${name}! Trying to recreate it...`);
             this.create(name, 0, 'normal');
         }
     }
     unload(name) {
         this.worlds[name].unload();
-        this.server.log.normal('Unloaded world ' + name);
+        this._server.log.normal('Unloaded world ' + name);
     }
     exist(name) {
         return fs.existsSync('./worlds/' + name);
@@ -101,7 +101,7 @@ class World {
                 fs.mkdirSync(this.chunkFolder);
             fs.writeFile(this.folder + '/world.json', JSON.stringify(this.getSettings()), function (err) {
                 if (err)
-                    this.server.log.error('Cant save world ' + this.name + '! Reason: ' + err);
+                    this._server.log.error('Cant save world ' + this.name + '! Reason: ' + err);
             });
             this.autoSaveInterval = setInterval(async () => {
                 this.saveAll();
@@ -161,7 +161,7 @@ class World {
         const chunklist = Object.keys(this.chunks);
         fs.writeFile(this.folder + '/world.json', JSON.stringify(this.getSettings()), function (err) {
             if (err)
-                this.server.log.error('Cant save world ' + this.name + '! Reason: ' + err);
+                this._server.log.error('Cant save world ' + this.name + '! Reason: ' + err);
         });
         chunklist.forEach((id) => {
             this.saveChunk(this.stringToID(id));
@@ -181,7 +181,7 @@ class World {
         const data = zlib.deflateSync(buffer);
         fs.writeFile(this.chunkFolder + '/' + idS + '.chk', data, function (err) {
             if (err)
-                this.server.log.console.error('Cant save chunk ' + id + '! Reason: ' + err);
+                this._server.log.console.error('Cant save chunk ' + id + '! Reason: ' + err);
         });
     }
     async readChunk(id) {

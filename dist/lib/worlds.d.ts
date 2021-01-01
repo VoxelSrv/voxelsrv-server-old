@@ -16,7 +16,7 @@ export declare class WorldManager implements ICoreWorldManager {
         ver: number;
         stage: number;
     };
-    server: Server;
+    _server: Server;
     constructor(server: any);
     create(name: string, seed: number, generator: string): World | null;
     load(name: string): World | null;

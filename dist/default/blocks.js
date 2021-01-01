@@ -23,7 +23,7 @@ function setup(registry) {
     registry.addBlock(new registry_1.Block('snow', 0, ['block/snow'], {}, 0, 0, 'any'));
     registry.addBlock(new registry_1.Block('coal_ore', 0, ['block/coal_ore'], {}, 0, 0, 'any'));
     registry.addBlock(new registry_1.Block('iron_ore', 0, ['block/iron_ore'], {}, 0, 0, 'any'));
-    registry.addBlock(new registry_1.Block('cactus', 2, ['block/cactus_top', 'block/cactus_side'], { opaque: false }, 0, 0, 'any'));
+    registry.addBlock(new registry_1.Block('cactus', 2, ['block/cactus_top', 'block/cactus_side', 'block/cactus_bottom'], { opaque: false }, 0, 0, 'any'));
     registry.addBlock(new registry_1.Block('deadbush', 1, ['block/dead_bush'], { solid: false, opaque: false }, 0, 0, 'any'));
     registry.addBlock(new registry_1.Block('gravel', 0, ['block/gravel'], {}, 0, 0, 'any'));
     registry.addBlock(new registry_1.Block('crafting', 0, ['block/crafting_table_top', 'block/oak_planks', 'block/crafting_table_side'], {}, 0, 0, 'any'));

@@ -26,7 +26,7 @@ export function setup (registry: Registry) {
 	registry.addBlock(new Block('snow', 0, ['block/snow'], {}, 0, 0, 'any'));
 	registry.addBlock(new Block('coal_ore', 0, ['block/coal_ore'], {}, 0, 0, 'any'));
 	registry.addBlock(new Block('iron_ore', 0, ['block/iron_ore'], {}, 0, 0, 'any'));
-	registry.addBlock(new Block('cactus', 2, ['block/cactus_top', 'block/cactus_side'], { opaque: false }, 0, 0, 'any'));
+	registry.addBlock(new Block('cactus', 2, ['block/cactus_top', 'block/cactus_side', 'block/cactus_bottom'], { opaque: false }, 0, 0, 'any'));
 	registry.addBlock(new Block('deadbush', 1, ['block/dead_bush'], { solid: false, opaque: false }, 0, 0, 'any'));
 	registry.addBlock(new Block('gravel', 0, ['block/gravel'], {}, 0, 0, 'any'));
 
