@@ -319,12 +319,13 @@ class Console {
 class PluginManager {
     constructor(server) {
         this._server = server;
+        this._plugins = {};
     }
     get(name) {
-        return this.plugins[name];
+        return this._plugins[name];
     }
     getAll() {
-        return this.plugins;
+        return this._plugins;
     }
     load(path) {
         try {
@@ -367,7 +368,7 @@ class PluginManager {
                 ]);
             }
             this._server.emit('plugin-load', plugin);
-            this.plugins[plugin.name] = plugin;
+            this._plugins[plugin.name] = plugin;
         }
         catch (e) {
             this._server.emit('plugin-error', path);

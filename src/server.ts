@@ -362,19 +362,20 @@ class Console {
 }
 
 class PluginManager implements ICorePluginManager {
-	plugins: { [i: string]: ICorePlugin };
+	_plugins: { [i: string]: ICorePlugin };
 	_server: Server;
 
 
 	constructor(server: Server) {
 		this._server = server;
+		this._plugins = {};
 	}
 
 	get(name: string): ICorePlugin {
-		return this.plugins[name];
+		return this._plugins[name];
 	}
 	getAll(): { [i: string]: ICorePlugin } {
-		return this.plugins;
+		return this._plugins;
 	}
 	load(path: string): boolean {
 		try {
@@ -417,7 +418,7 @@ class PluginManager implements ICorePluginManager {
 			}
 
 			this._server.emit('plugin-load', plugin);
-			this.plugins[plugin.name] = plugin;
+			this._plugins[plugin.name] = plugin;
 		} catch (e) {
 			this._server.emit('plugin-error', path);
 			this._server.log.error(`Can't load plugin ${path}!`);

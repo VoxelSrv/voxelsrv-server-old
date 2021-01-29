@@ -41,7 +41,7 @@ declare class Console {
     executorchat: any;
 }
 declare class PluginManager implements ICorePluginManager {
-    plugins: {
+    _plugins: {
         [i: string]: ICorePlugin;
     };
     _server: Server;
