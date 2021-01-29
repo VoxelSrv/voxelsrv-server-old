@@ -217,7 +217,7 @@ export class World implements ICoreWorld {
 		return this._server.registry.blocks['air'];
 	}
 
-	getBlockSync(data: types.XYZ, allowgen: boolean = false) {
+	getBlockSync(data: types.XYZ, allowgen: boolean = false): Block {
 		const local = globalToChunk(data);
 		const cid: string = local.id.toString();
 

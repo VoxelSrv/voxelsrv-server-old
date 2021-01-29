@@ -42,7 +42,7 @@ export declare class World implements ICoreWorld {
         version: number;
     };
     getBlock(data: types.XYZ, allowgen: boolean): Promise<Block>;
-    getBlockSync(data: types.XYZ, allowgen?: boolean): any;
+    getBlockSync(data: types.XYZ, allowgen?: boolean): Block;
     setBlock(data: types.XYZ, block: string | number | Block, allowgen?: boolean): Promise<void>;
     setRawBlock(data: types.XYZ, block: number): Promise<void>;
     unload(): void;
