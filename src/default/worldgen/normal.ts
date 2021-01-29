@@ -1,23 +1,16 @@
 import { makeNoise2D, makeNoise3D, Noise2D, Noise3D } from 'open-simplex-noise';
-import { spawn, Thread, Worker } from 'threads';
+import { spawn, Worker } from 'threads';
 
 import * as tree from './parts/tree';
 import hash from 'murmur-numbers';
 import * as types from '../../types';
 import * as biome from './parts/biomes';
 import ndarray = require('ndarray');
-import type { Chunk, World } from '../../lib/worlds';
+import type { World, IWorldGenerator } from '../../lib/world/world';
 import type { Server } from '../../server';
 
-function getHighestBlock(chunk: types.IView3duint16, x: number, z: number) {
-	for (let y = 256 - 1; y >= 0; y = y - 1) {
-		const val = chunk.get(x, y, z);
-		if (val != 0) return { level: y, block: val };
-	}
-	return null;
-}
 
-export default class NormalGenerator {
+export default class NormalGenerator implements IWorldGenerator {
 	name: string = 'normal';
 	chunkWitdh: number = 32;
 	chunkHeight: number = 256;
@@ -48,20 +41,8 @@ export default class NormalGenerator {
 
 	constructor(seed: number, server: Server) {
 		this._server = server;
-		for (let y = 0; y < server.config.world.worldGenWorkers; y++) {
-			const worker = new Worker('./normalWorker');
-				
-			// @ts-ignore
-			if (worker.setMaxListeners != undefined) {
-				// @ts-ignore
-				worker.setMaxListeners(1000);
-			}
-
-			spawn(worker).then((x) => {
-				this._worker.push(x);
-				x.setupGenerator(seed, server.registry.blockPalette);
-			});
-		}
+		
+		this._setupWorkers(server, seed);
 
 		this.seed = seed;
 		this.biomeNoise1 = makeNoise2D(Math.round(seed * Math.sin(seed ^ 3) * 10000));
@@ -84,6 +65,24 @@ export default class NormalGenerator {
 			beach: new biome.BeachBiome(this.blocks, this.features, seed),
 			savanna: new biome.SavannaBiome(this.blocks, this.features, seed),
 		};
+	}
+
+	_setupWorkers(server: Server, seed: number) {
+
+		for (let y = 0; y < server.config.world.worldGenWorkers; y++) {
+			const worker = new Worker('./normalWorker');
+				
+			// @ts-ignore
+			if (worker.setMaxListeners != undefined) {
+				// @ts-ignore
+				worker.setMaxListeners(1000);
+			}
+
+			spawn(worker).then((x) => {
+				this._worker.push(x);
+				x.setupGenerator(seed, server.registry.blockPalette);
+			});
+		}
 	}
 
 	getBlock(x: number, y: number, z: number, biomes): number {

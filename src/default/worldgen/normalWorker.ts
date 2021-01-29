@@ -1,5 +1,4 @@
 import { makeNoise2D, makeNoise3D, Noise2D, Noise3D } from 'open-simplex-noise';
-import * as tree from './parts/tree';
 import hash from 'murmur-numbers';
 import * as types from '../../types';
 import * as biome from './parts/biomes';

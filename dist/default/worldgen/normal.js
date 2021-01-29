@@ -28,14 +28,6 @@ const tree = __importStar(require("./parts/tree"));
 const murmur_numbers_1 = __importDefault(require("murmur-numbers"));
 const biome = __importStar(require("./parts/biomes"));
 const ndarray = require("ndarray");
-function getHighestBlock(chunk, x, z) {
-    for (let y = 256 - 1; y >= 0; y = y - 1) {
-        const val = chunk.get(x, y, z);
-        if (val != 0)
-            return { level: y, block: val };
-    }
-    return null;
-}
 class NormalGenerator {
     constructor(seed, server) {
         this.name = 'normal';
@@ -53,18 +45,7 @@ class NormalGenerator {
         this._worker = [];
         this._lastWorkerUsed = 0;
         this._server = server;
-        for (let y = 0; y < server.config.world.worldGenWorkers; y++) {
-            const worker = new threads_1.Worker('./normalWorker');
-            // @ts-ignore
-            if (worker.setMaxListeners != undefined) {
-                // @ts-ignore
-                worker.setMaxListeners(1000);
-            }
-            threads_1.spawn(worker).then((x) => {
-                this._worker.push(x);
-                x.setupGenerator(seed, server.registry.blockPalette);
-            });
-        }
+        this._setupWorkers(server, seed);
         this.seed = seed;
         this.biomeNoise1 = open_simplex_noise_1.makeNoise2D(Math.round(seed * Math.sin(seed ^ 3) * 10000));
         this.biomeNoise2 = open_simplex_noise_1.makeNoise2D(Math.round(seed * Math.sin(seed ^ 4) * 10000));
@@ -85,6 +66,20 @@ class NormalGenerator {
             beach: new biome.BeachBiome(this.blocks, this.features, seed),
             savanna: new biome.SavannaBiome(this.blocks, this.features, seed),
         };
+    }
+    _setupWorkers(server, seed) {
+        for (let y = 0; y < server.config.world.worldGenWorkers; y++) {
+            const worker = new threads_1.Worker('./normalWorker');
+            // @ts-ignore
+            if (worker.setMaxListeners != undefined) {
+                // @ts-ignore
+                worker.setMaxListeners(1000);
+            }
+            threads_1.spawn(worker).then((x) => {
+                this._worker.push(x);
+                x.setupGenerator(seed, server.registry.blockPalette);
+            });
+        }
     }
     getBlock(x, y, z, biomes) {
         let value = 0;

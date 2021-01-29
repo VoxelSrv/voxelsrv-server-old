@@ -1,55 +1,10 @@
-import * as vec from 'gl-vec3';
+import type { World, Chunk } from './world';
+import type { EntityManager } from './manager'
 
-import type { WorldManager, World, Chunk } from './worlds';
-import type { Server } from '../server';
-import * as types from '../types';
-import { ArmorInventory } from './inventory';
-import { globalToChunk } from './worlds';
+import * as types from '../../types';
+import { ArmorInventory } from '../inventory/armorInventory';
+import { globalToChunk } from './helper';
 
-import { v4 as uuid } from 'uuid';
-
-export class EntityManager {
-	_worlds: WorldManager;
-	_server: Server;
-
-	constructor(server: Server) {
-		this._server = server;
-		this._worlds = server.worlds;
-	}
-
-	create(type: string, data: EntityData, worldName: string, tick: Function | null): Entity {
-		let id = uuid();
-
-		this._worlds.get(worldName).entities[id] = new Entity(id, type, data, this._worlds.get(worldName), tick, this);
-
-		this._server.emit('entity-create', {
-			uuid: id,
-			entity: this._worlds.get(worldName).entities[id],
-		});
-
-		return this._worlds.get(worldName).entities[id];
-	}
-
-	recreate(id: string, type: string, data: EntityData, worldName: string, tick: Function | null): Entity {
-		this._worlds.get(worldName).entities[id] = new Entity(id, type, data, this._worlds.get(worldName), tick, this);
-
-		this._server.emit('entity-create', {
-			uuid: id,
-			entity: this._worlds.get(worldName).entities[id],
-		});
-
-		return this._worlds.get(worldName).entities[id];
-	}
-
-	get(world, id) {
-		if (!this._worlds.get(world)) return null;
-		return this._worlds.get(world).entities[id];
-	}
-	getAll(world) {
-		if (!this._worlds.get(world)) return null;
-		return this._worlds.get(world).entities;
-	}
-}
 
 export interface EntityData {
 	position: types.XYZ;

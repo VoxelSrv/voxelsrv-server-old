@@ -1,42 +1,7 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.Entity = exports.EntityManager = void 0;
-const worlds_1 = require("./worlds");
-const uuid_1 = require("uuid");
-class EntityManager {
-    constructor(server) {
-        this._server = server;
-        this._worlds = server.worlds;
-    }
-    create(type, data, worldName, tick) {
-        let id = uuid_1.v4();
-        this._worlds.get(worldName).entities[id] = new Entity(id, type, data, this._worlds.get(worldName), tick, this);
-        this._server.emit('entity-create', {
-            uuid: id,
-            entity: this._worlds.get(worldName).entities[id],
-        });
-        return this._worlds.get(worldName).entities[id];
-    }
-    recreate(id, type, data, worldName, tick) {
-        this._worlds.get(worldName).entities[id] = new Entity(id, type, data, this._worlds.get(worldName), tick, this);
-        this._server.emit('entity-create', {
-            uuid: id,
-            entity: this._worlds.get(worldName).entities[id],
-        });
-        return this._worlds.get(worldName).entities[id];
-    }
-    get(world, id) {
-        if (!this._worlds.get(world))
-            return null;
-        return this._worlds.get(world).entities[id];
-    }
-    getAll(world) {
-        if (!this._worlds.get(world))
-            return null;
-        return this._worlds.get(world).entities;
-    }
-}
-exports.EntityManager = EntityManager;
+exports.Entity = void 0;
+const helper_1 = require("./helper");
 class Entity {
     constructor(id, type, data, world, tick, entitymanager) {
         this.data = data;
@@ -53,7 +18,7 @@ class Entity {
         this.type = type;
         this.id = id;
         this.world = world;
-        this.chunkID = worlds_1.globalToChunk(this.data.position).id;
+        this.chunkID = helper_1.globalToChunk(this.data.position).id;
         this.chunk = this.world.chunks[this.chunkID.toString()];
         if (tick != null)
             this.tick = tick;
@@ -84,7 +49,7 @@ class Entity {
     teleport(pos, eworld) {
         this.world = typeof eworld == 'string' ? this._entities._worlds.get(eworld) : eworld;
         this.data.position = pos;
-        this.chunkID = worlds_1.globalToChunk(pos).id;
+        this.chunkID = helper_1.globalToChunk(pos).id;
         this.chunk = this.world.chunks[this.chunkID.toString()];
         this.world._server.emit('entity-move', {
             uuid: this.id,
@@ -97,7 +62,7 @@ class Entity {
     }
     move(pos) {
         this.data.position = pos;
-        this.chunkID = worlds_1.globalToChunk(pos).id;
+        this.chunkID = helper_1.globalToChunk(pos).id;
         this.chunk = this.world.chunks[this.chunkID.toString()];
         this.world._server.emit('entity-move', {
             uuid: this.id,

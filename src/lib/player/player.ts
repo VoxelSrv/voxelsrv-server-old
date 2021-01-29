@@ -1,21 +1,24 @@
 import * as vec from 'gl-vec3';
 import * as zlib from 'zlib';
 
-import type { EntityManager, Entity } from './entity';
-import { WorldManager, World, globalToChunk } from './worlds';
-import type { ItemStack, Registry } from './registry';
-import type { Server } from '../server';
+import type { Entity } from '../world/entity';
+import type { WorldManager, EntityManager } from '../world/manager'
+import type { ItemStack } from '../registry';
+import type { Server } from '../../server';
 import * as fs from 'fs';
-import * as types from '../types';
-import * as chat from './chat';
+import * as types from '../../types';
+import * as chat from '../chat';
 
-import { PlayerInventory, ArmorInventory } from './inventory';
-import { PlayerPermissionHolder } from './permissions';
+import { ArmorInventory } from '../inventory/armorInventory';
+import { PlayerInventory } from '../inventory/playerInventory'
+import { PlayerPermissionHolder } from '../permissions';
+import { World } from '../world/world';
+import { globalToChunk } from '../world/helper';
 
 import * as pClient from 'voxelsrv-protocol/js/client';
 import * as pServer from 'voxelsrv-protocol/js/server';
 
-import { BaseSocket } from '../socket';
+import { BaseSocket } from '../../socket';
 import { ICorePlayerManager, ICorePlayer } from 'voxelservercore/interfaces/player';
 import { CoreMessage } from 'voxelservercore/interfaces/message';
 
@@ -451,7 +454,7 @@ export class Player implements ICorePlayer {
 		}
 
 		const blockpos: types.XYZ = [data.x, data.y, data.z];
-		const block = this.world.getBlock(blockpos, false);
+		const block = this.world.getBlockSync(blockpos, false);
 		const pos = this.entity.data.position;
 
 		if (vec.dist(pos, [data.x, data.y, data.z]) < 14 && block != undefined && block.unbreakable != true) {

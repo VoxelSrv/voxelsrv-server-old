@@ -1,16 +1,7 @@
-import type { WorldManager, World, Chunk } from './worlds';
-import type { Server } from '../server';
-import * as types from '../types';
-import { ArmorInventory } from './inventory';
-export declare class EntityManager {
-    _worlds: WorldManager;
-    _server: Server;
-    constructor(server: Server);
-    create(type: string, data: EntityData, worldName: string, tick: Function | null): Entity;
-    recreate(id: string, type: string, data: EntityData, worldName: string, tick: Function | null): Entity;
-    get(world: any, id: any): any;
-    getAll(world: any): object;
-}
+import type { World, Chunk } from './world';
+import type { EntityManager } from './manager';
+import * as types from '../../types';
+import { ArmorInventory } from '../inventory/armorInventory';
 export interface EntityData {
     position: types.XYZ;
     rotation: number;

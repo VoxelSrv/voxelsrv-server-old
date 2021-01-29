@@ -1,80 +1,21 @@
 import * as fs from 'fs';
 
-import * as types from '../types';
-import type { Server } from '../server';
-import * as format from '../formats/world';
-import { Block } from './registry';
+import * as types from '../../types';
+import type { Server } from '../../server';
+import * as format from '../../formats/world';
+import { Block } from '../registry';
 
 import * as zlib from 'zlib';
 import { promisify } from 'util';
 
-import type { ICoreWorldManager, ICoreWorldGenerator, ICoreWorld } from 'voxelservercore/interfaces/world';
+import type { ICoreWorldGenerator, ICoreWorld } from 'voxelservercore/interfaces/world';
 
 const inflatePromise: (arg1: zlib.InputType) => Promise<Buffer> = promisify(zlib.inflate);
 const readFilePromise: (arg1: any) => Promise<Buffer> = promisify(fs.readFile);
 
 import ndarray = require('ndarray');
-
-export class WorldManager implements ICoreWorldManager {
-	readonly chunkWitdh = 32;
-	readonly chunkHeight = 256;
-
-	readonly lastChunk = 5000;
-
-	worlds: { [index: string]: World } = {};
-	worldGenerator: { [index: string]: IWorldGenerator } = {};
-
-	readonly _baseMetadata = { ver: 2, stage: 0 };
-
-	_server: Server;
-
-	constructor(server) {
-		this._server = server;
-	}
-
-	create(name: string, seed: number, generator: string): World | null {
-		if (this.exist(name) == false && this.worlds[name] == undefined) {
-			this.worlds[name] = new World(name, seed, generator, null, this._server);
-			return this.worlds[name];
-		} else {
-			return null;
-		}
-	}
-
-	load(name: string): World | null {
-		try {
-			if (this.exist(name) == true && this.worlds[name] == undefined) {
-				const readed = fs.readFileSync('./worlds/' + name + '/world.json');
-				const data = JSON.parse(readed.toString());
-				this.worlds[name] = new World(name, data.seed, data.generator, data.version, this._server);
-
-				return this.worlds[name];
-			} else {
-				return null;
-			}
-		} catch (e) {
-			this._server.log.error(`Can't load world ${name}! Trying to recreate it...`);
-			this.create(name, 0, 'normal');
-		}
-	}
-
-	unload(name: string): void {
-		this.worlds[name].unload();
-		this._server.log.normal('Unloaded world ' + name);
-	}
-
-	exist(name: string): boolean {
-		return fs.existsSync('./worlds/' + name);
-	}
-
-	get(name: string): World | undefined {
-		return this.worlds[name];
-	}
-
-	addGenerator(name: string, gen: any) {
-		this.worldGenerator[name] = gen;
-	}
-}
+import { WorldManager } from './manager';
+import { getRandomSeed, globalToChunk } from './helper';
 
 export class World implements ICoreWorld {
 	name: string;
@@ -174,7 +115,7 @@ export class World implements ICoreWorld {
 		const idS = id.toString();
 
 		const chk = fs.existsSync(this.chunkFolder + '/' + idS + '.chk');
-		return chk;
+		return chk || this.chunks[id.toString()] != undefined;
 	}
 
 	saveAll(): void {
@@ -266,7 +207,17 @@ export class World implements ICoreWorld {
 		};
 	}
 
-	getBlock(data: types.XYZ, allowgen: boolean): Block {
+	async getBlock(data: types.XYZ, allowgen: boolean): Promise<Block> {
+		const local = globalToChunk(data);
+
+		if (this.existChunk(local.id) || allowgen) {
+			return this._server.registry.blocks[this._server.registry.blockIDmap[(await this.getChunk(local.id)).data.get(local.pos[0], local.pos[1], local.pos[2])]]
+		}
+		
+		return this._server.registry.blocks['air'];
+	}
+
+	getBlockSync(data: types.XYZ, allowgen: boolean = false) {
 		const local = globalToChunk(data);
 		const cid: string = local.id.toString();
 
@@ -346,52 +297,15 @@ export class Chunk {
 	}
 }
 
-export function globalToChunk(pos: types.XYZ): { id: types.XZ; pos: types.XYZ } {
-	const xc = Math.floor(pos[0] / 32);
-	const zc = Math.floor(pos[2] / 32);
-
-	let xl = pos[0] % 32;
-	let yl = pos[1];
-	let zl = pos[2] % 32;
-
-	if (xl < 0) xl = xl + 32;
-	if (zl < 0) zl = zl + 32;
-
-	return {
-		id: [xc, zc],
-		pos: [xl, yl, zl],
-	};
-}
-
-export function chunkIDFromGlobal(pos: types.XYZ): types.XZ {
-	let xz: types.XZ = [Math.floor(pos[0] / 32), Math.floor(pos[2] / 32)];
-
-	if (xz[0] < 0) xz[0] = xz[0] + 32;
-	if (xz[1] < 0) xz[1] = xz[1] + 32;
-
-	return xz;
-}
-
-export function globalToLocal(pos: types.XYZ): types.XYZ {
-	return [pos[0] % 32, pos[1], pos[2] % 32];
-}
-
-export function getRandomSeed(): number {
-	return Math.random() * (9007199254740990 + 9007199254740990) - 9007199254740991;
-}
-
-export function validateID(id: number[]): boolean {
-	if (id == null || id == undefined) return false;
-	else if (id[0] == null || id[0] == undefined) return false;
-	else if (id[1] == null || id[1] == undefined) return false;
-}
-
 export interface IWorldGenerator extends ICoreWorldGenerator {
-	new (seed: number, server: Server): IWorldGenerator;
-
 	getBlock(x: number, y: number, z: number, biomes): number;
 	getBiome(x: number, z: number);
 	getBiomesAt(x: number, z: number): { main; possible: { [index: string]: number }; height: number; size: number };
 	generateBaseChunk(id: types.XZ, chunk: types.IView3duint16): Promise<types.IView3duint16>;
 	generateChunk(id: types.XZ, chunk: types.IView3duint16, world: World): Promise<void>;
+}
+
+
+interface IWorldGeneratorConstructor {
+	new (seed: number, server: Server): IWorldGenerator;
 }

@@ -19,72 +19,22 @@ var __importStar = (this && this.__importStar) || function (mod) {
     return result;
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.validateID = exports.getRandomSeed = exports.globalToLocal = exports.chunkIDFromGlobal = exports.globalToChunk = exports.Chunk = exports.World = exports.WorldManager = void 0;
+exports.Chunk = exports.World = void 0;
 const fs = __importStar(require("fs"));
-const format = __importStar(require("../formats/world"));
+const format = __importStar(require("../../formats/world"));
 const zlib = __importStar(require("zlib"));
 const util_1 = require("util");
 const inflatePromise = util_1.promisify(zlib.inflate);
 const readFilePromise = util_1.promisify(fs.readFile);
 const ndarray = require("ndarray");
-class WorldManager {
-    constructor(server) {
-        this.chunkWitdh = 32;
-        this.chunkHeight = 256;
-        this.lastChunk = 5000;
-        this.worlds = {};
-        this.worldGenerator = {};
-        this._baseMetadata = { ver: 2, stage: 0 };
-        this._server = server;
-    }
-    create(name, seed, generator) {
-        if (this.exist(name) == false && this.worlds[name] == undefined) {
-            this.worlds[name] = new World(name, seed, generator, null, this._server);
-            return this.worlds[name];
-        }
-        else {
-            return null;
-        }
-    }
-    load(name) {
-        try {
-            if (this.exist(name) == true && this.worlds[name] == undefined) {
-                const readed = fs.readFileSync('./worlds/' + name + '/world.json');
-                const data = JSON.parse(readed.toString());
-                this.worlds[name] = new World(name, data.seed, data.generator, data.version, this._server);
-                return this.worlds[name];
-            }
-            else {
-                return null;
-            }
-        }
-        catch (e) {
-            this._server.log.error(`Can't load world ${name}! Trying to recreate it...`);
-            this.create(name, 0, 'normal');
-        }
-    }
-    unload(name) {
-        this.worlds[name].unload();
-        this._server.log.normal('Unloaded world ' + name);
-    }
-    exist(name) {
-        return fs.existsSync('./worlds/' + name);
-    }
-    get(name) {
-        return this.worlds[name];
-    }
-    addGenerator(name, gen) {
-        this.worldGenerator[name] = gen;
-    }
-}
-exports.WorldManager = WorldManager;
+const helper_1 = require("./helper");
 class World {
     constructor(name, seed, generator, ver, server) {
         this.active = false;
         this._server = server;
         this._worldMen = server.worlds;
         this.name = name;
-        this.seed = seed != 0 ? seed : getRandomSeed();
+        this.seed = seed != 0 ? seed : helper_1.getRandomSeed();
         this.generator = new server.worlds.worldGenerator[generator](this.seed, server);
         if (ver == null)
             this.version = 1;
@@ -153,7 +103,7 @@ class World {
     existChunk(id) {
         const idS = id.toString();
         const chk = fs.existsSync(this.chunkFolder + '/' + idS + '.chk');
-        return chk;
+        return chk || this.chunks[id.toString()] != undefined;
     }
     saveAll() {
         if (!this._server.config.world.save)
@@ -233,8 +183,15 @@ class World {
             version: this.version,
         };
     }
-    getBlock(data, allowgen) {
-        const local = globalToChunk(data);
+    async getBlock(data, allowgen) {
+        const local = helper_1.globalToChunk(data);
+        if (this.existChunk(local.id) || allowgen) {
+            return this._server.registry.blocks[this._server.registry.blockIDmap[(await this.getChunk(local.id)).data.get(local.pos[0], local.pos[1], local.pos[2])]];
+        }
+        return this._server.registry.blocks['air'];
+    }
+    getBlockSync(data, allowgen = false) {
+        const local = helper_1.globalToChunk(data);
         const cid = local.id.toString();
         if (this.chunks[cid] != undefined) {
             const id = this.chunks[cid].data.get(local.pos[0], local.pos[1], local.pos[2]);
@@ -253,7 +210,7 @@ class World {
         return this._server.registry.blocks['air'];
     }
     async setBlock(data, block, allowgen = false) {
-        const local = globalToChunk(data);
+        const local = helper_1.globalToChunk(data);
         let id = 0;
         switch (typeof block) {
             case 'number':
@@ -300,46 +257,4 @@ class Chunk {
     }
 }
 exports.Chunk = Chunk;
-function globalToChunk(pos) {
-    const xc = Math.floor(pos[0] / 32);
-    const zc = Math.floor(pos[2] / 32);
-    let xl = pos[0] % 32;
-    let yl = pos[1];
-    let zl = pos[2] % 32;
-    if (xl < 0)
-        xl = xl + 32;
-    if (zl < 0)
-        zl = zl + 32;
-    return {
-        id: [xc, zc],
-        pos: [xl, yl, zl],
-    };
-}
-exports.globalToChunk = globalToChunk;
-function chunkIDFromGlobal(pos) {
-    let xz = [Math.floor(pos[0] / 32), Math.floor(pos[2] / 32)];
-    if (xz[0] < 0)
-        xz[0] = xz[0] + 32;
-    if (xz[1] < 0)
-        xz[1] = xz[1] + 32;
-    return xz;
-}
-exports.chunkIDFromGlobal = chunkIDFromGlobal;
-function globalToLocal(pos) {
-    return [pos[0] % 32, pos[1], pos[2] % 32];
-}
-exports.globalToLocal = globalToLocal;
-function getRandomSeed() {
-    return Math.random() * (9007199254740990 + 9007199254740990) - 9007199254740991;
-}
-exports.getRandomSeed = getRandomSeed;
-function validateID(id) {
-    if (id == null || id == undefined)
-        return false;
-    else if (id[0] == null || id[0] == undefined)
-        return false;
-    else if (id[1] == null || id[1] == undefined)
-        return false;
-}
-exports.validateID = validateID;
-//# sourceMappingURL=worlds.js.map
+//# sourceMappingURL=world.js.map

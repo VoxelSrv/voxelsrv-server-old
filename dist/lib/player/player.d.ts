@@ -1,12 +1,13 @@
-import type { EntityManager, Entity } from './entity';
-import { WorldManager, World } from './worlds';
-import type { Server } from '../server';
-import * as types from '../types';
-import * as chat from './chat';
-import { PlayerInventory } from './inventory';
-import { PlayerPermissionHolder } from './permissions';
+import type { Entity } from '../world/entity';
+import type { WorldManager, EntityManager } from '../world/manager';
+import type { Server } from '../../server';
+import * as types from '../../types';
+import * as chat from '../chat';
+import { PlayerInventory } from '../inventory/playerInventory';
+import { PlayerPermissionHolder } from '../permissions';
+import { World } from '../world/world';
 import * as pClient from 'voxelsrv-protocol/js/client';
-import { BaseSocket } from '../socket';
+import { BaseSocket } from '../../socket';
 import { ICorePlayerManager, ICorePlayer } from 'voxelservercore/interfaces/player';
 import { CoreMessage } from 'voxelservercore/interfaces/message';
 export declare class PlayerManager implements ICorePlayerManager {
@@ -88,8 +89,8 @@ export declare class Player implements ICorePlayer {
         id: string;
         ipAddress: string;
         nickname: string;
-        entity: import("./entity").IEntityObject;
-        inventory: import("./inventory").InventoryObject;
+        entity: import("../world/entity").IEntityObject;
+        inventory: import("../inventory/generalInventory").InventoryObject;
         world: string;
         permissions: {
             [index: string]: boolean;

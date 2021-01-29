@@ -2,9 +2,9 @@ import { Noise2D, Noise3D } from 'open-simplex-noise';
 import hash from 'murmur-numbers';
 import * as types from '../../types';
 import * as biome from './parts/biomes';
-import type { World } from '../../lib/worlds';
+import type { World, IWorldGenerator } from '../../lib/world/world';
 import type { Server } from '../../server';
-export default class NormalGenerator {
+export default class NormalGenerator implements IWorldGenerator {
     name: string;
     chunkWitdh: number;
     chunkHeight: number;
@@ -31,6 +31,7 @@ export default class NormalGenerator {
     _worker: any[];
     _lastWorkerUsed: number;
     constructor(seed: number, server: Server);
+    _setupWorkers(server: Server, seed: number): void;
     getBlock(x: number, y: number, z: number, biomes: any): number;
     getBiome(x: number, z: number): biome.BaseBiome;
     getBiomesAt(x: number, z: number): {

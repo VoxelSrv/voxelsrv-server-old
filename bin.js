@@ -1,3 +1,3 @@
 #!/usr/bin/env node
 
-require('../voxelsrv-server').startServer()
+require('../voxelsrv-server/dist/index.js').startServer()

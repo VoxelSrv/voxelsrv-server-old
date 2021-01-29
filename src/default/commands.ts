@@ -1,4 +1,5 @@
 import { ChatComponent, ChatMessage } from '../lib/chat';
+import { Player } from '../lib/player/player';
 import { Registry, Command } from '../lib/registry';
 import type { Server } from '../server';
 
@@ -12,7 +13,7 @@ export function setup(registry: Registry, server: Server) {
 
 	registry.addCommand(new Command('/help', helpCommand, 'Displays list of all commands'));
 
-	function kickCommand(executor, arg: Array<string>) {
+	function kickCommand(executor: Player, arg: Array<string>) {
 		if (!executor.permissions.check('server.kick')) {
 			executor.send([new ChatComponent(`You don't have required permission to use this command!`, 'red')]);
 			return;
@@ -35,7 +36,7 @@ export function setup(registry: Registry, server: Server) {
 
 	registry.addCommand(new Command('/kick', kickCommand, 'Kicks players'));
 
-	function banCommand(executor, arg: Array<string>) {
+	function banCommand(executor: Player, arg: Array<string>) {
 		if (!executor.permissions.check('server.ban')) {
 			executor.send([new ChatComponent(`You don't have required permission to use this command!`, 'red')]);
 			return;
@@ -54,7 +55,7 @@ export function setup(registry: Registry, server: Server) {
 
 	registry.addCommand(new Command('/ban', banCommand, 'Bans players'));
 
-	function ipBanCommand(executor, arg: Array<string>) {
+	function ipBanCommand(executor: Player, arg: Array<string>) {
 		if (!executor.permissions.check('server.ban')) {
 			executor.send([new ChatComponent(`You don't have required permission to use this command!`, 'red')]);
 			return;
@@ -71,7 +72,7 @@ export function setup(registry: Registry, server: Server) {
 
 	registry.addCommand(new Command('/banip', ipBanCommand, 'Bans players'));
 
-	function teleport(executor, arg) {
+	function teleport(executor: Player, arg) {
 		if (executor.id == '#console') return;
 		if (!executor.permissions.check('server.teleport')) {
 			executor.send([new ChatComponent(`You don't have required permission to use this command!`, 'red')]);
@@ -113,7 +114,7 @@ export function setup(registry: Registry, server: Server) {
 
 	registry.addCommand(new Command('/stop', stopCommand, 'Stops the server (console only)'));
 
-	function give(executor, arg) {
+	function give(executor: Player, arg) {
 		if (executor.id == '#console') return;
 		if (!executor.permissions.check('server.give')) {
 			executor.send([new ChatComponent(`You don't have required permission to use this command!`, 'red')]);
@@ -135,7 +136,7 @@ export function setup(registry: Registry, server: Server) {
 		} else executor.send([new ChatComponent(arg[0] + " isn't defined item on this server!", 'red')]);
 	}
 
-	function giveAll(executor, arg) {
+	function giveAll(executor: Player, arg) {
 		if (executor.id == '#console') return;
 		if (!executor.permissions.check('server.giveall')) {
 			executor.send([new ChatComponent(`You don't have required permission to use this command!`, 'red')]);
@@ -147,7 +148,7 @@ export function setup(registry: Registry, server: Server) {
 		executor.send([new ChatComponent('Given all items', 'green')]);
 	}
 
-	function clear(executor, arg) {
+	function clear(executor: Player, arg) {
 		if (executor.id == '#console') return;
 		if (!executor.permissions.check('server.clear')) {
 			executor.send([new ChatComponent(`You don't have required permission to use this command!`, 'red')]);

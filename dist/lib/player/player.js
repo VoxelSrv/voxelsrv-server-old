@@ -22,11 +22,12 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.defaultPlayerMovement = exports.Player = exports.PlayerManager = void 0;
 const vec = __importStar(require("gl-vec3"));
 const zlib = __importStar(require("zlib"));
-const worlds_1 = require("./worlds");
 const fs = __importStar(require("fs"));
-const chat = __importStar(require("./chat"));
-const inventory_1 = require("./inventory");
-const permissions_1 = require("./permissions");
+const chat = __importStar(require("../chat"));
+const armorInventory_1 = require("../inventory/armorInventory");
+const playerInventory_1 = require("../inventory/playerInventory");
+const permissions_1 = require("../permissions");
+const helper_1 = require("../world/helper");
 const pClient = __importStar(require("voxelsrv-protocol/js/client"));
 const pServer = __importStar(require("voxelsrv-protocol/js/server"));
 class PlayerManager {
@@ -183,10 +184,10 @@ class Player {
                 rotation: 0,
                 pitch: 0,
                 hitbox: [0.55, 1.9, 0.55],
-                armor: new inventory_1.ArmorInventory(null, this._server),
+                armor: new armorInventory_1.ArmorInventory(null, this._server),
             }, 'default', null);
             this.world = this._players._worlds.get('default');
-            this.inventory = new inventory_1.PlayerInventory(13, null, this._server);
+            this.inventory = new playerInventory_1.PlayerInventory(13, null, this._server);
             this.hookInventory = null;
             this.permissions = new permissions_1.PlayerPermissionHolder(this._server.permissions, {}, ['default']);
             this.movement = { ...exports.defaultPlayerMovement };
@@ -205,10 +206,10 @@ class Player {
                 rotation: data.entity.data.rotation,
                 pitch: data.entity.data.pitch,
                 hitbox: [0.55, 1.9, 0.55],
-                armor: new inventory_1.ArmorInventory(data.entity.data.armor, this._server),
+                armor: new armorInventory_1.ArmorInventory(data.entity.data.armor, this._server),
             }, data.world, null);
             this.world = this._players._worlds.get(data.world);
-            this.inventory = new inventory_1.PlayerInventory(13, data.inventory, this._server);
+            this.inventory = new playerInventory_1.PlayerInventory(13, data.inventory, this._server);
             if (!!data.permissions)
                 this.permissions = new permissions_1.PlayerPermissionHolder(this._server.permissions, data.permissions, [...data.permissionparents, 'default']);
             else
@@ -388,7 +389,7 @@ class Player {
                 return;
         }
         const blockpos = [data.x, data.y, data.z];
-        const block = this.world.getBlock(blockpos, false);
+        const block = this.world.getBlockSync(blockpos, false);
         const pos = this.entity.data.position;
         if (vec.dist(pos, [data.x, data.y, data.z]) < 14 && block != undefined && block.unbreakable != true) {
             this.world.setBlock(blockpos, 0, false);
@@ -518,7 +519,7 @@ class Player {
             this.sendPacket('PlayerTeleport', { x: pos[0], y: pos[1], z: pos[2] });
             return;
         }
-        const local = worlds_1.globalToChunk([data.x, data.y, data.z]);
+        const local = helper_1.globalToChunk([data.x, data.y, data.z]);
         data.cancel = false;
         if (this.world.chunks[local.id.toString()] == undefined) {
             data.cancel = true;

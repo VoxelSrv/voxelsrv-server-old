@@ -2,10 +2,9 @@ import { EventEmitter } from 'events';
 import * as fs from 'fs';
 
 import { Registry } from './lib/registry';
-import { WorldManager } from './lib/worlds';
-import { Entity, EntityManager } from './lib/entity';
+import { WorldManager, EntityManager } from './lib/world/manager';
 import { PermissionHolder, PermissionManager } from './lib/permissions';
-import { Player, PlayerManager } from './lib/player';
+import { PlayerManager } from './lib/player/player';
 
 import { MessageBuilder } from './lib/chat';
 
@@ -18,32 +17,34 @@ import normalGenerator from './default/worldgen/normal';
 
 import { serverVersion, serverProtocol, invalidNicknameRegex, IServerConfig, heartbeatServer, serverDefaultConfig } from './values';
 import { BaseSocket } from './socket';
-import { ILoginRequest } from 'voxelsrv-protocol/js/server';
 import { ILoginResponse } from 'voxelsrv-protocol/js/client';
 import { Logging } from './lib/console';
 
 import type { ICoreServer } from 'voxelservercore/interfaces/server';
-import type { ICorePlugin } from 'voxelservercore/interfaces/plugin';
+import type { ICorePlugin, ICorePluginManager } from 'voxelservercore/interfaces/plugin';
 
 import { version as coreVersion } from 'voxelservercore/values';
 import { server_setMessageBuilder, server_setMessageStringify } from 'voxelservercore/api';
 
 export class Server extends EventEmitter implements ICoreServer {
+	name = 'VoxelSrv Server';
+	version = serverVersion;
+
 	playerCount: number = 0;
 	registry: Registry;
 	worlds: WorldManager;
 	players: PlayerManager;
 	entities: EntityManager;
 	permissions: PermissionManager;
+	log: Logging;
+	plugins: PluginManager;
+	console: Console;
+
 	config: IServerConfig;
 	heartbeatID: number;
-	log: Logging;
-
-	console: Console;
 
 	status: string = 'none';
 
-	plugins: { [index: string]: ICorePlugin } = {};
 	constructor() {
 		super();
 		this.setMaxListeners(200);
@@ -63,6 +64,7 @@ export class Server extends EventEmitter implements ICoreServer {
 		this.entities = new EntityManager(this);
 		this.permissions = new PermissionManager(this);
 		this.players = new PlayerManager(this);
+		this.plugins = new PluginManager(this);
 
 		this.startServer();
 	}
@@ -285,59 +287,9 @@ export class Server extends EventEmitter implements ICoreServer {
 		}, 10000);
 	}
 
-	loadPluginsList(list: string[]) {
-		this.emit('plugin-load-list', list);
-		for (const file of list) {
-			try {
-				let plugin: ICorePlugin;
-				if (file.startsWith('local:')) plugin = require(`${process.cwd()}/plugins/${file.slice(6)}`)(this);
-				else plugin = require(file)(this);
+	loadPluginsList(list: string[]) {}
 
-				this.loadPlugin(plugin);
-			} catch (e) {
-				this.emit('plugin-error', file);
-				this.log.error(`Can't load plugin ${file}!`);
-				console.error(e);
-			}
-		}
-	}
-
-	loadPlugin(plugin: ICorePlugin) {
-		if (plugin.game == '*' && !semver.satisfies(coreVersion, plugin.supportedAPI)) {
-			this.log.warn([
-				new chat.ChatComponent('Plugin ', 'orange'),
-				new chat.ChatComponent(plugin.name, 'yellow'),
-				new chat.ChatComponent(` might not support this version of server (VoxelServerCore ${coreVersion})!`, 'orange'),
-			]);
-			const min = semver.minVersion(plugin.supportedAPI);
-			const max = semver.maxSatisfying(plugin.supportedAPI);
-			if (!!min && !!max && (semver.gt(serverVersion, max) || semver.lt(serverVersion, min)))
-				this.log.warn(`It only support versions from ${min} to ${max}.`);
-			else if (!!min && !max && semver.lt(serverVersion, min)) this.log.warn(`It only support versions ${min} of VoxelServerCore or newer.`);
-			else if (!min && !!max && semver.gt(serverVersion, max)) this.log.warn(`It only support versions ${max} of VoxelServerCore or older.`);
-		} else if (plugin.game == 'voxelsrv' && !semver.satisfies(serverVersion, plugin.supportedGameAPI)) {
-			this.log.warn([
-				new chat.ChatComponent('Plugin ', 'orange'),
-				new chat.ChatComponent(plugin.name, 'yellow'),
-				new chat.ChatComponent(` might not support this version of server (VoxelSrv Server ${serverVersion})!`, 'orange'),
-			]);
-			const min = semver.minVersion(plugin.supportedGameAPI);
-			const max = semver.maxSatisfying(plugin.supportedGameAPI);
-			if (!!min && !!max && (semver.gt(serverVersion, max) || semver.lt(serverVersion, min)))
-				this.log.warn(`It only support versions from ${min} to ${max}.`);
-			else if (!!min && !max && semver.lt(serverVersion, min)) this.log.warn(`It only support versions ${min} of VoxelSrv Server or newer.`);
-			else if (!min && !!max && semver.gt(serverVersion, max)) this.log.warn(`It only support versions ${max} of VoxelSrv Server or older.`);
-		} else if (plugin.game != 'voxelsrv' && plugin.game != '*') {
-			this.log.warn([
-				new chat.ChatComponent('Plugin ', 'orange'),
-				new chat.ChatComponent(plugin.name, 'yellow'),
-				new chat.ChatComponent(' might not support this version of server!', 'orange'),
-			]);
-		}
-
-		this.emit('plugin-load', plugin);
-		this.plugins[plugin.name] = plugin;
-	}
+	loadPlugin(plugin: ICorePlugin) {}
 
 	stopServer() {
 		this.status = 'stopping';
@@ -411,4 +363,82 @@ class Console {
 	};
 
 	executorchat: any = { ...this.executor, send: (...args: any[]) => this.s.log.chat(...args) };
+}
+
+class PluginManager implements ICorePluginManager {
+	plugins: { [i: string]: ICorePlugin };
+	_server: Server;
+
+
+	constructor(server: Server) {
+		this._server = server;
+	}
+
+	get(name: string): ICorePlugin {
+		return this.plugins[name];
+	}
+	getAll(): { [i: string]: ICorePlugin } {
+		return this.plugins;
+	}
+	load(path: string): boolean {
+		try {
+			const plugin = path.startsWith('local:') ? require(`${process.cwd()}/plugins/${path.slice(6)}`)(this._server) : require(path)(this._server);
+
+			if (plugin.game == '*' && !semver.satisfies(coreVersion, plugin.supportedAPI)) {
+				this._server.log.warn([
+					new chat.ChatComponent('Plugin ', 'orange'),
+					new chat.ChatComponent(plugin.name, 'yellow'),
+					new chat.ChatComponent(` might not support this version of server (VoxelServerCore ${coreVersion})!`, 'orange'),
+				]);
+				const min = semver.minVersion(plugin.supportedAPI);
+				const max = semver.maxSatisfying(plugin.supportedAPI);
+				if (!!min && !!max && (semver.gt(serverVersion, max) || semver.lt(serverVersion, min)))
+					this._server.log.warn(`It only support versions from ${min} to ${max}.`);
+				else if (!!min && !max && semver.lt(serverVersion, min))
+					this._server.log.warn(`It only support versions ${min} of VoxelServerCore or newer.`);
+				else if (!min && !!max && semver.gt(serverVersion, max))
+					this._server.log.warn(`It only support versions ${max} of VoxelServerCore or older.`);
+			} else if (plugin.game == 'voxelsrv' && !semver.satisfies(serverVersion, plugin.supportedGameAPI)) {
+				this._server.log.warn([
+					new chat.ChatComponent('Plugin ', 'orange'),
+					new chat.ChatComponent(plugin.name, 'yellow'),
+					new chat.ChatComponent(` might not support this version of server (VoxelSrv Server ${serverVersion})!`, 'orange'),
+				]);
+				const min = semver.minVersion(plugin.supportedGameAPI);
+				const max = semver.maxSatisfying(plugin.supportedGameAPI);
+				if (!!min && !!max && (semver.gt(serverVersion, max) || semver.lt(serverVersion, min)))
+					this._server.log.warn(`It only support versions from ${min} to ${max}.`);
+				else if (!!min && !max && semver.lt(serverVersion, min))
+					this._server.log.warn(`It only support versions ${min} of VoxelSrv Server or newer.`);
+				else if (!min && !!max && semver.gt(serverVersion, max))
+					this._server.log.warn(`It only support versions ${max} of VoxelSrv Server or older.`);
+			} else if (plugin.game != 'voxelsrv' && plugin.game != '*') {
+				this._server.log.warn([
+					new chat.ChatComponent('Plugin ', 'orange'),
+					new chat.ChatComponent(plugin.name, 'yellow'),
+					new chat.ChatComponent(' might not support this version of server!', 'orange'),
+				]);
+			}
+
+			this._server.emit('plugin-load', plugin);
+			this.plugins[plugin.name] = plugin;
+		} catch (e) {
+			this._server.emit('plugin-error', path);
+			this._server.log.error(`Can't load plugin ${path}!`);
+			console.error(e);
+
+			return e;
+		}
+	}
+
+	loadAllNotLoaded(): boolean {
+		return false;
+	}
+
+	_loadPlugins(list: string[]) {
+		this._server.emit('plugin-load-list', list);
+		for (const file of list) {
+			this.load(file);
+		}
+	}
 }
