@@ -30,8 +30,6 @@ export declare class Server extends EventEmitter implements ICoreServer {
     private startServer;
     heartbeatPing(): void;
     connectPlayer(socket: BaseSocket): Promise<void>;
-    loadPluginsList(list: string[]): void;
-    loadPlugin(plugin: ICorePlugin): void;
     stopServer(): void;
     loadConfig(namespace: string, config: string): any;
     saveConfig(namespace: string, config: string, data: any): void;

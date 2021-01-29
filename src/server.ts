@@ -116,7 +116,7 @@ export class Server extends EventEmitter implements ICoreServer {
 			});
 		}
 
-		if (this.config.plugins.length > 0) this.loadPluginsList(this.config.plugins);
+		if (this.config.plugins.length > 0) this.plugins._loadPlugins(this.config.plugins);
 
 		this.registry._loadPalette();
 
@@ -286,10 +286,6 @@ export class Server extends EventEmitter implements ICoreServer {
 			}
 		}, 10000);
 	}
-
-	loadPluginsList(list: string[]) {}
-
-	loadPlugin(plugin: ICorePlugin) {}
 
 	stopServer() {
 		this.status = 'stopping';

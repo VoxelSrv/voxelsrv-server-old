@@ -107,7 +107,7 @@ class Server extends events_1.EventEmitter {
             });
         }
         if (this.config.plugins.length > 0)
-            this.loadPluginsList(this.config.plugins);
+            this.plugins._loadPlugins(this.config.plugins);
         this.registry._loadPalette();
         await this.initDefaults();
         this.emit('registry-define');
@@ -247,8 +247,6 @@ class Server extends events_1.EventEmitter {
             }
         }, 10000);
     }
-    loadPluginsList(list) { }
-    loadPlugin(plugin) { }
     stopServer() {
         this.status = 'stopping';
         this.emit('server-stop', this);
