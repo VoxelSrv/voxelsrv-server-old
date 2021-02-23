@@ -23,11 +23,14 @@ export declare class Server extends EventEmitter implements ICoreServer {
     console: Console;
     config: IServerConfig;
     heartbeatID: number;
+    overrides: {
+        [i: string]: [string, string];
+    };
     status: string;
-    constructor();
+    constructor(startServer?: boolean);
     private initDefaults;
     private initDefWorld;
-    private startServer;
+    startServer(): Promise<void>;
     heartbeatPing(): void;
     connectPlayer(socket: BaseSocket): Promise<void>;
     stopServer(): void;

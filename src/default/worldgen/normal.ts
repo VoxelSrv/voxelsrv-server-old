@@ -68,9 +68,9 @@ export default class NormalGenerator implements IWorldGenerator {
 	}
 
 	_setupWorkers(server: Server, seed: number) {
-
+		const overrides = server.overrides['worldGenWorkers'];
 		for (let y = 0; y < server.config.world.worldGenWorkers; y++) {
-			const worker = new Worker('./normalWorker');
+			const worker = new Worker(overrides[0] + 'normalWorker' + overrides[1]);
 				
 			// @ts-ignore
 			if (worker.setMaxListeners != undefined) {

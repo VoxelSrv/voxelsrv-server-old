@@ -40,7 +40,7 @@ const console_1 = require("./lib/console");
 const values_2 = require("voxelservercore/values");
 const api_1 = require("voxelservercore/api");
 class Server extends events_1.EventEmitter {
-    constructor() {
+    constructor(startServer = true) {
         super();
         this.name = 'VoxelSrv Server';
         this.version = values_1.serverVersion;
@@ -54,7 +54,8 @@ class Server extends events_1.EventEmitter {
         if (fs.existsSync('./logs/latest.log'))
             fs.renameSync('./logs/latest.log', `./logs/${Date.now()}.log`);
         this.log = new console_1.Logging(fs.createWriteStream('./logs/latest.log', { flags: 'w' }));
-        this.status = 'starting';
+        this.overrides = { worldGenWorkers: ['./', ''] };
+        this.status = 'initiating';
         this.console = new Console(this);
         this.registry = new registry_1.Registry(this);
         this.worlds = new manager_1.WorldManager(this);
@@ -62,7 +63,9 @@ class Server extends events_1.EventEmitter {
         this.permissions = new permissions_1.PermissionManager(this);
         this.players = new player_1.PlayerManager(this);
         this.plugins = new PluginManager(this);
-        this.startServer();
+        if (startServer) {
+            this.startServer();
+        }
     }
     async initDefaults() {
         (await Promise.resolve().then(() => __importStar(require('./default/blocks')))).setup(this.registry);
@@ -78,6 +81,9 @@ class Server extends events_1.EventEmitter {
             this.worlds.load('default');
     }
     async startServer() {
+        if (this.status != 'initiating')
+            return;
+        this.status = 'starting';
         ['./logs', './plugins', './players', './worlds', './config'].forEach((element) => {
             if (!fs.existsSync(element)) {
                 try {

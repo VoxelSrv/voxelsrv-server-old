@@ -68,8 +68,9 @@ class NormalGenerator {
         };
     }
     _setupWorkers(server, seed) {
+        const overrides = server.overrides['worldGenWorkers'];
         for (let y = 0; y < server.config.world.worldGenWorkers; y++) {
-            const worker = new threads_1.Worker('./normalWorker');
+            const worker = new threads_1.Worker(overrides[0] + 'normalWorker' + overrides[1]);
             // @ts-ignore
             if (worker.setMaxListeners != undefined) {
                 // @ts-ignore

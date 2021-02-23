@@ -43,9 +43,11 @@ export class Server extends EventEmitter implements ICoreServer {
 	config: IServerConfig;
 	heartbeatID: number;
 
+	overrides: {[i: string]: [string, string]};
+
 	status: string = 'none';
 
-	constructor() {
+	constructor(startServer: boolean = true) {
 		super();
 		this.setMaxListeners(200);
 		server_setMessageBuilder(MessageBuilder);
@@ -56,7 +58,9 @@ export class Server extends EventEmitter implements ICoreServer {
 
 		this.log = new Logging(fs.createWriteStream('./logs/latest.log', { flags: 'w' }));
 
-		this.status = 'starting';
+		this.overrides = { worldGenWorkers: ['./', ''] }
+
+		this.status = 'initiating';
 		this.console = new Console(this);
 
 		this.registry = new Registry(this);
@@ -66,7 +70,10 @@ export class Server extends EventEmitter implements ICoreServer {
 		this.players = new PlayerManager(this);
 		this.plugins = new PluginManager(this);
 
-		this.startServer();
+
+		if (startServer) {
+			this.startServer();
+		}
 	}
 
 	private async initDefaults() {
@@ -82,7 +89,10 @@ export class Server extends EventEmitter implements ICoreServer {
 		else this.worlds.load('default');
 	}
 
-	private async startServer() {
+	public async startServer() {
+		if (this.status != 'initiating') return;
+
+		this.status = 'starting';
 		['./logs', './plugins', './players', './worlds', './config'].forEach((element) => {
 			if (!fs.existsSync(element)) {
 				try {
