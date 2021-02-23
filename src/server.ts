@@ -158,6 +158,13 @@ export class Server extends EventEmitter implements ICoreServer {
 
 	async connectPlayer(socket: BaseSocket) {
 		if (this.status != 'active') return;
+
+		if (this.config.debugProtocol) {
+			socket.debugListener = (sender, type, data) => {
+				console.log(sender, type, data)
+			}
+		}
+
 		socket.send('LoginRequest', {
 			name: this.config.name,
 			motd: this.config.motd,

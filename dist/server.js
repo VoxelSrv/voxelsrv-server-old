@@ -136,6 +136,11 @@ class Server extends events_1.EventEmitter {
     async connectPlayer(socket) {
         if (this.status != 'active')
             return;
+        if (this.config.debugProtocol) {
+            socket.debugListener = (sender, type, data) => {
+                console.log(sender, type, data);
+            };
+        }
         socket.send('LoginRequest', {
             name: this.config.name,
             motd: this.config.motd,

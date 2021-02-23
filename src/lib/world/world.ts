@@ -76,6 +76,11 @@ export class World implements ICoreWorld {
 	async getChunk(id: types.XZ): Promise<Chunk> {
 		const idS = id.toString();
 
+		if (!this.isChunkInBounds(id)) {
+			const chunk = new Chunk(id, new ndarray(new Uint16Array(32 * 256 * 32), [32, 256, 32]), {}, false);
+			return chunk;
+		}
+
 		if (this.chunks[idS] != undefined && this.chunks[idS].metadata.stage > 0) {
 			this.chunks[idS].keepAlive();
 			return this.chunks[idS];
@@ -104,7 +109,8 @@ export class World implements ICoreWorld {
 
 		for (x = id[0] - 1; x != id[0] + 2; x++) {
 			for (z = id[1] - 1; z != id[1] + 2; z++) {
-				obj.push([x, z]);
+				const id: types.XZ = [x, z];
+				if (this.isChunkInBounds(id)) obj.push([x, z]);
 			}
 		}
 
@@ -132,23 +138,25 @@ export class World implements ICoreWorld {
 	}
 
 	async saveChunk(id: types.XZ) {
-		const idS = id.toString();
+		if (this.isChunkInBounds(id)) {
+			const idS = id.toString();
 
-		const chunk = this.chunks[idS];
+			const chunk = this.chunks[idS];
 
-		if (chunk == undefined || chunk.metadata == undefined || chunk.data == undefined) return;
-		const message = format.chunk.create({
-			blocks: Buffer.from(chunk.data.data.buffer, chunk.data.data.byteOffset),
-			version: chunk.metadata.ver,
-			stage: chunk.metadata.stage,
-		});
+			if (chunk == undefined || chunk.metadata == undefined || chunk.data == undefined) return;
+			const message = format.chunk.create({
+				blocks: Buffer.from(chunk.data.data.buffer, chunk.data.data.byteOffset),
+				version: chunk.metadata.ver,
+				stage: chunk.metadata.stage,
+			});
 
-		const buffer = format.chunk.encode(message).finish();
-		const data = zlib.deflateSync(buffer);
+			const buffer = format.chunk.encode(message).finish();
+			const data = zlib.deflateSync(buffer);
 
-		fs.writeFile(this.chunkFolder + '/' + idS + '.chk', data, function (err) {
-			if (err) this._server.log.console.error('Cant save chunk ' + id + '! Reason: ' + err);
-		});
+			fs.writeFile(this.chunkFolder + '/' + idS + '.chk', data, function (err) {
+				if (err) this._server.log.console.error('Cant save chunk ' + id + '! Reason: ' + err);
+			});
+		}
 	}
 
 	async readChunk(id: types.XZ): Promise<{ chunk: types.IView3duint16; metadata: any }> {
@@ -198,6 +206,16 @@ export class World implements ICoreWorld {
 		delete this.chunks[id.toString()];
 	}
 
+	isChunkInBounds(id: types.XZ) {
+		const border = this._server.config.world.border;
+		return Math.abs(id[0]) <= border && Math.abs(id[1]) <= border;
+	}
+
+	isBlockInBounds(pos: types.XYZ) {
+		const border = this._server.config.world.border;
+		return Math.abs(Math.floor(pos[0] / 32)) <= border && Math.abs(Math.floor(pos[2] / 32)) <= border;
+	}
+
 	getSettings() {
 		return {
 			name: this.name,
@@ -210,10 +228,12 @@ export class World implements ICoreWorld {
 	async getBlock(data: types.XYZ, allowgen: boolean): Promise<Block> {
 		const local = globalToChunk(data);
 
-		if (this.existChunk(local.id) || allowgen) {
-			return this._server.registry.blocks[this._server.registry.blockIDmap[(await this.getChunk(local.id)).data.get(local.pos[0], local.pos[1], local.pos[2])]]
+		if ((this.isChunkInBounds(local.id) && this.existChunk(local.id)) || allowgen) {
+			return this._server.registry.blocks[
+				this._server.registry.blockIDmap[(await this.getChunk(local.id)).data.get(local.pos[0], local.pos[1], local.pos[2])]
+			];
 		}
-		
+
 		return this._server.registry.blocks['air'];
 	}
 
@@ -221,39 +241,43 @@ export class World implements ICoreWorld {
 		const local = globalToChunk(data);
 		const cid: string = local.id.toString();
 
-		if (this.chunks[cid] != undefined) {
-			const id = this.chunks[cid].data.get(local.pos[0], local.pos[1], local.pos[2]);
-			this.chunks[cid].keepAlive();
-			return this._server.registry.blocks[this._server.registry.blockIDmap[id]];
-		} else if (this.existChunk(local.id)) {
-			const data = this.readChunkSync(local.id);
-			this.chunks[cid] = new Chunk(local.id, data.chunk, data.metadata, false);
-			this.chunks[cid].keepAlive();
-			return this._server.registry.blocks[this._server.registry.blockIDmap[this.chunks[cid].data.get(local.pos[0], local.pos[1], local.pos[2])]];
-		} else if (allowgen) {
-			return this._server.registry.blocks[this._server.registry.blockIDmap[this.generator.getBlock(data[0], data[1], data[2])]];
+		if (this.isChunkInBounds(local.id)) {
+			if (this.chunks[cid] != undefined) {
+				const id = this.chunks[cid].data.get(local.pos[0], local.pos[1], local.pos[2]);
+				this.chunks[cid].keepAlive();
+				return this._server.registry.blocks[this._server.registry.blockIDmap[id]];
+			} else if (this.existChunk(local.id)) {
+				const data = this.readChunkSync(local.id);
+				this.chunks[cid] = new Chunk(local.id, data.chunk, data.metadata, false);
+				this.chunks[cid].keepAlive();
+				return this._server.registry.blocks[this._server.registry.blockIDmap[this.chunks[cid].data.get(local.pos[0], local.pos[1], local.pos[2])]];
+			} else if (allowgen) {
+				return this._server.registry.blocks[this._server.registry.blockIDmap[this.generator.getBlock(data[0], data[1], data[2])]];
+			}
 		}
 		return this._server.registry.blocks['air'];
 	}
 
 	async setBlock(data: types.XYZ, block: string | number | Block, allowgen: boolean = false) {
 		const local = globalToChunk(data);
-		let id = 0;
-		switch (typeof block) {
-			case 'number':
-				id = block;
-				break;
-			case 'object':
-				id = block.numId;
-				break;
-			case 'string':
-				id = this._server.registry.blockPalette[block];
-			default:
-				return;
-		}
+		if (this.isChunkInBounds(local.id)) {
+			let id = 0;
+			switch (typeof block) {
+				case 'number':
+					id = block;
+					break;
+				case 'object':
+					id = block.numId;
+					break;
+				case 'string':
+					id = this._server.registry.blockPalette[block];
+				default:
+					return;
+			}
 
-		const chunk = await this.getChunk(local.id);
-		chunk.data.set(local.pos[0], local.pos[1], local.pos[2], id);
+			const chunk = await this.getChunk(local.id);
+			chunk.data.set(local.pos[0], local.pos[1], local.pos[2], id);
+		}
 	}
 
 	async setRawBlock(data: types.XYZ, block: number) {}
@@ -304,7 +328,6 @@ export interface IWorldGenerator extends ICoreWorldGenerator {
 	generateBaseChunk(id: types.XZ, chunk: types.IView3duint16): Promise<types.IView3duint16>;
 	generateChunk(id: types.XZ, chunk: types.IView3duint16, world: World): Promise<void>;
 }
-
 
 interface IWorldGeneratorConstructor {
 	new (seed: number, server: Server): IWorldGenerator;

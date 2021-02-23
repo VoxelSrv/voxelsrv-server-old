@@ -1,6 +1,6 @@
 {
 	"name": "voxelsrv-server",
-	"version": "0.2.0-beta.19",
+	"version": "0.2.0-beta.19.1",
 	"description": "Server for VoxelSrv game",
 	"main": "dist/index.js",
 	"bin": {
@@ -38,7 +38,7 @@
 		"uuid": "^8.3.2",
 		"voxelservercore": "0.2.1",
 		"voxelsrv-protocol": "0.3.*",
-		"ws": "^7.4.2"
+		"ws": "^7.4.3"
 	},
 	"devDependencies": {
 		"@types/gl-vec3": "^1.1.0",
@@ -46,6 +46,6 @@
 		"@types/ws": "^7.4.0",
 		"ts-node": "^9.1.1",
 		"typedoc": "^0.17.8",
-		"typescript": "^4.1.3"
+		"typescript": "^4.1.5"
 	}
 }

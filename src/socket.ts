@@ -4,7 +4,7 @@ import type WebSocket from 'ws';
 export class BaseSocket {
 	socket: any;
 	listeners: Object = {};
-	server: string;
+	debugListener: (sender: string, type: string, data: object) => void = (sender, type, data) => {};
 	ip: string = '0.0.0.0';
 
 	constructor(ip: string) {
@@ -15,6 +15,7 @@ export class BaseSocket {
 		const packet = protocol.parseToMessage('server', type, data);
 		if (packet != null) {
 			this.socket.send(packet);
+			this.debugListener('server', type, data);
 		}
 	}
 
@@ -24,6 +25,7 @@ export class BaseSocket {
 	}
 
 	protected emit(type, data) {
+		this.debugListener('client', type, data);
 		if (this.listeners[type] != undefined) {
 			this.listeners[type].forEach((func) => {
 				func(data);

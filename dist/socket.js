@@ -24,6 +24,7 @@ const protocol = __importStar(require("voxelsrv-protocol"));
 class BaseSocket {
     constructor(ip) {
         this.listeners = {};
+        this.debugListener = (sender, type, data) => { };
         this.ip = '0.0.0.0';
         this.ip = ip;
     }
@@ -31,6 +32,7 @@ class BaseSocket {
         const packet = protocol.parseToMessage('server', type, data);
         if (packet != null) {
             this.socket.send(packet);
+            this.debugListener('server', type, data);
         }
     }
     close() {
@@ -38,6 +40,7 @@ class BaseSocket {
         this.listeners = {};
     }
     emit(type, data) {
+        this.debugListener('client', type, data);
         if (this.listeners[type] != undefined) {
             this.listeners[type].forEach((func) => {
                 func(data);

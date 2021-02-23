@@ -35,6 +35,8 @@ export declare class World implements ICoreWorld {
         metadata: any;
     };
     unloadChunk(id: types.XZ): void;
+    isChunkInBounds(id: types.XZ): boolean;
+    isBlockInBounds(pos: types.XYZ): boolean;
     getSettings(): {
         name: string;
         seed: number;

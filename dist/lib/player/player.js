@@ -351,14 +351,16 @@ class Player {
             for (let x = 0 - w; x <= 0 + w; x++) {
                 for (let z = 0 - w; z <= 0 + w; z++) {
                     const cid = [chunk[0] + x, chunk[1] + z];
-                    const id = cid.toString();
-                    if (loadedchunks[id] == undefined) {
-                        this.chunks[id] = true;
-                        this._chunksToSend.push(cid);
+                    if (this.world.isChunkInBounds(cid)) {
+                        const id = cid.toString();
+                        if (loadedchunks[id] == undefined) {
+                            this.chunks[id] = true;
+                            this._chunksToSend.push(cid);
+                        }
+                        if (this.world.chunks[cid.toString()] != undefined)
+                            this.world.chunks[cid.toString()].keepAlive();
+                        loadedchunks[cid.toString()] = false;
                     }
-                    if (this.world.chunks[cid.toString()] != undefined)
-                        this.world.chunks[cid.toString()].keepAlive();
-                    loadedchunks[cid.toString()] = false;
                 }
             }
         }
@@ -391,7 +393,7 @@ class Player {
         const blockpos = [data.x, data.y, data.z];
         const block = this.world.getBlockSync(blockpos, false);
         const pos = this.entity.data.position;
-        if (vec.dist(pos, [data.x, data.y, data.z]) < 14 && block != undefined && block.unbreakable != true) {
+        if (this.world.isBlockInBounds(blockpos) && vec.dist(pos, blockpos) < 14 && block != undefined && block.unbreakable != true) {
             this.world.setBlock(blockpos, 0, false);
             this._players.sendPacketAll('WorldBlockUpdate', {
                 id: 0,
@@ -411,11 +413,12 @@ class Player {
         const inv = this.inventory;
         const itemstack = inv.items[inv.selected];
         const pos = this.entity.data.position;
-        if (vec.dist(pos, [data.x, data.y, data.z]) < 14 && itemstack != undefined && itemstack.id != undefined) {
+        const blockpos = [data.x, data.y, data.z];
+        if (this.world.isBlockInBounds(blockpos) && vec.dist(pos, blockpos) < 14 && itemstack != undefined && itemstack.id != undefined) {
             if (itemstack != null && this._server.registry.items[itemstack.id].block != undefined) {
                 const item = this._server.registry.items[itemstack.id];
                 //player.inv.remove(id, item.id, 1, {})
-                this.world.setBlock([data.x, data.y, data.z], item.block.numId, false);
+                this.world.setBlock(blockpos, item.block.numId, false);
                 this._players.sendPacketAll('WorldBlockUpdate', {
                     id: this._players._server.registry.blockPalette[item.block.id],
                     x: data.x,

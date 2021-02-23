@@ -2,7 +2,7 @@ import type WebSocket from 'ws';
 export declare class BaseSocket {
     socket: any;
     listeners: Object;
-    server: string;
+    debugListener: (sender: string, type: string, data: object) => void;
     ip: string;
     constructor(ip: string);
     send(type: string, data: Object): void;

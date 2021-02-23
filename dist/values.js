@@ -14,7 +14,7 @@ exports.serverDefaultConfig = {
     chunkTransportCompression: true,
     world: {
         seed: 0,
-        border: 24,
+        border: 256,
         spawn: [0, 100, 0],
         generator: 'normal',
         save: true,
