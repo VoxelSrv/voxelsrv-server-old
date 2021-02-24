@@ -28,7 +28,14 @@ exports.convertFromPlain = convertFromPlain;
  */
 function convertToPlain(msg) {
     let plain = '';
-    msg.forEach((x) => {
+    let gameMsg;
+    if (msg instanceof MessageBuilder) {
+        gameMsg = msg.getGameOutput();
+    }
+    else {
+        gameMsg = msg;
+    }
+    gameMsg.forEach((x) => {
         plain = plain + x.text;
     });
     return plain;

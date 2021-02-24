@@ -39,9 +39,17 @@ export function convertFromPlain(text: string) {
 /*
  * Convers ChatMessage to string
  */
-export function convertToPlain(msg: ChatMessage) {
+export function convertToPlain(msg: ChatMessage | MessageBuilder) {
 	let plain = '';
-	msg.forEach((x) => {
+	let gameMsg: ChatMessage;
+
+	if (msg instanceof MessageBuilder) {
+		gameMsg = msg.getGameOutput();
+	} else {
+		gameMsg = msg;
+	}
+
+	gameMsg.forEach((x) => {
 		plain = plain + x.text;
 	});
 	return plain;

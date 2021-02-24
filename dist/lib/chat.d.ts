@@ -19,7 +19,7 @@ export declare class ChatComponent implements IChatComponent {
     constructor(text: string, color?: string, font?: string, linethrough?: boolean, underline?: boolean);
 }
 export declare function convertFromPlain(text: string): ChatComponent[];
-export declare function convertToPlain(msg: ChatMessage): string;
+export declare function convertToPlain(msg: ChatMessage | MessageBuilder): string;
 export declare function sendMlt(readders: Array<{
     send: Function;
 }>, msg: ChatMessage | MessageBuilder | CoreMessage): Promise<void>;

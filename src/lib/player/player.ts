@@ -606,54 +606,56 @@ export class Player implements ICorePlayer {
 	}
 
 	action_chatmessage(data: pClient.IActionMessage & { cancel: boolean }) {
-		data.cancel = false;
+		if (data.message != '') {
+			data.cancel = false;
 
-		if (this._server.config.rateLimitChatMessages) {
-			this.rateLimitChatMessageCounter = this.rateLimitChatMessageCounter + 1;
-			this.rateLimitChatMessageTime = Date.now();
-			this.rateLimitChatMessageLastClear = this.rateLimitChatMessageLastClear + 100;
+			if (this._server.config.rateLimitChatMessages) {
+				this.rateLimitChatMessageCounter = this.rateLimitChatMessageCounter + 1;
+				this.rateLimitChatMessageTime = Date.now();
+				this.rateLimitChatMessageLastClear = this.rateLimitChatMessageLastClear + 100;
 
-			if (this.rateLimitChatMessageLastClear + 2000 < this.rateLimitChatMessageTime) {
-				this.rateLimitChatMessageLastClear = Date.now();
-				this.rateLimitChatMessageCounter = this.rateLimitChatMessageCounter - 1;
-			}
-
-			if (this.rateLimitChatMessageCounter > 10) {
-				this.kick('Spamming in chat');
-				return;
-			}
-		}
-
-		for (let x = 0; x <= 5; x++) {
-			this._server.emit(`player-message-${x}`, this, data);
-			if (data.cancel) return;
-		}
-
-		if (data.message.charAt(0) == '/') {
-			const arg = data.message.split(' ');
-			const command = arg[0];
-			arg.shift();
-			this._server.emit('player-command', this, command, arg);
-
-			if (this._players._server.registry.commands[command]) {
-				try {
-					this._players._server.registry.commands[command].trigger(this, arg);
-				} catch (e) {
-					this._server.log.error(`User ^R${this.nickname}^r tried to execute command ^R${command}^r and it failed! \n ^R`, e);
-					this.send(new chat.MessageBuilder().red('An error occurred during the execution of this command!'));
+				if (this.rateLimitChatMessageLastClear + 2000 < this.rateLimitChatMessageTime) {
+					this.rateLimitChatMessageLastClear = Date.now();
+					this.rateLimitChatMessageCounter = this.rateLimitChatMessageCounter - 1;
 				}
-			} else this.send(new chat.MessageBuilder().red("This command doesn't exist! Check /help for list of available commands."));
-		} else if (data.message != '') {
-			let shortMessage: string = data.message;
-			if (data.message.length > 256) {
-				shortMessage = data.message.slice(0, 256);
+
+				if (this.rateLimitChatMessageCounter > 10) {
+					this.kick('Spamming in chat');
+					return;
+				}
 			}
 
-			const msg = new chat.MessageBuilder().white(this.displayName).hex('#eeeeee').text(' » ').white(shortMessage);
+			for (let x = 0; x <= 5; x++) {
+				this._server.emit(`player-message-${x}`, this, data);
+				if (data.cancel) return;
+			}
 
-			this._server.emit('chat-message', msg, this);
+			if (data.message.charAt(0) == '/') {
+				const arg = data.message.split(' ');
+				const command = arg[0];
+				arg.shift();
+				this._server.emit('player-command', this, command, arg);
 
-			chat.sendMlt([this._server.console.executorchat, ...Object.values(this._players.getAll())], msg);
+				if (this._players._server.registry.commands[command]) {
+					try {
+						this._players._server.registry.commands[command].trigger(this, arg);
+					} catch (e) {
+						this._server.log.error(`User ^R${this.nickname}^r tried to execute command ^R${command}^r and it failed! \n ^R`, e);
+						this.send(new chat.MessageBuilder().red('An error occurred during the execution of this command!'));
+					}
+				} else this.send(new chat.MessageBuilder().red("This command doesn't exist! Check /help for list of available commands."));
+			} else {
+				let shortMessage: string = data.message;
+				if (data.message.length > 512) {
+					shortMessage = data.message.slice(0, 512);
+				}
+
+				const msg = new chat.MessageBuilder().white(this.displayName).hex('#eeeeee').text(' » ').white(shortMessage);
+
+				this._server.emit('chat-message', msg, this);
+
+				chat.sendMlt([this._server.console.executorchat, ...Object.values(this._players.getAll())], msg);
+			}
 		}
 	}
 
