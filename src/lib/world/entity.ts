@@ -4,6 +4,7 @@ import type { EntityManager } from './manager'
 import * as types from '../../types';
 import { ArmorInventory } from '../inventory/armorInventory';
 import { globalToChunk } from './helper';
+import { Item } from '../registry';
 
 
 export interface EntityData {
@@ -18,6 +19,7 @@ export interface EntityData {
 	nametag: boolean;
 	hitbox: types.XYZ;
 	armor?: ArmorInventory | any;
+	helditem?: Item;
 	[index: string]: any;
 }
 

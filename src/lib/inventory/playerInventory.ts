@@ -47,7 +47,7 @@ export class PlayerInventory extends Inventory {
 		});
 	}
 
-	action_left(inv: Inventory, x: number, type: string): void {
+	action_left(inv: InventoryObject, x: number, type: string): void {
 		this.lastUpdate = Date.now();
 		this.updated = false;
 		if (x >= 0) {
@@ -101,7 +101,7 @@ export class PlayerInventory extends Inventory {
 		}
 	}
 
-	action_right(inv: Inventory, x: number, type: string): void {
+	action_right(inv: InventoryObject, x: number, type: string): void {
 		this.lastUpdate = Date.now();
 		this.updated = false;
 		// Normal slots

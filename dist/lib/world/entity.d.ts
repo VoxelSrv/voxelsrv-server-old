@@ -2,6 +2,7 @@ import type { World, Chunk } from './world';
 import type { EntityManager } from './manager';
 import * as types from '../../types';
 import { ArmorInventory } from '../inventory/armorInventory';
+import { Item } from '../registry';
 export interface EntityData {
     position: types.XYZ;
     rotation: number;
@@ -14,6 +15,7 @@ export interface EntityData {
     nametag: boolean;
     hitbox: types.XYZ;
     armor?: ArmorInventory | any;
+    helditem?: Item;
     [index: string]: any;
 }
 export interface IEntity {

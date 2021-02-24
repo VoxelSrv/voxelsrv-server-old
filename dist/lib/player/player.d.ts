@@ -10,6 +10,7 @@ import * as pClient from 'voxelsrv-protocol/js/client';
 import { BaseSocket } from '../../socket';
 import { ICorePlayerManager, ICorePlayer } from 'voxelservercore/interfaces/player';
 import { CoreMessage } from 'voxelservercore/interfaces/message';
+import { InventoryObject } from '../inventory/generalInventory';
 export declare class PlayerManager implements ICorePlayerManager {
     players: {
         [index: string]: Player;
@@ -63,15 +64,7 @@ export declare class Player implements ICorePlayer {
     permissions: PlayerPermissionHolder;
     chunks: types.anyobject;
     movement: PlayerMovement;
-    crafting: {
-        items: {
-            0: any;
-            1: any;
-            2: any;
-            3: any;
-        };
-        result: any;
-    };
+    crafting: InventoryObject;
     cache: {
         lastBlockCheck: {
             x: number;
@@ -90,7 +83,7 @@ export declare class Player implements ICorePlayer {
         ipAddress: string;
         nickname: string;
         entity: import("../world/entity").IEntityObject;
-        inventory: import("../inventory/generalInventory").InventoryObject;
+        inventory: InventoryObject;
         world: string;
         permissions: {
             [index: string]: boolean;
@@ -113,7 +106,7 @@ export declare class Player implements ICorePlayer {
     applyForce(x: number, y: number, z: number): void;
     setTab(msg: chat.ChatMessage): void;
     setFog(mode: number, density?: number, color?: [number, number, number], start?: number, stop?: number): void;
-    setSky(color: [number, number, number], clouds?: boolean): void;
+    setSky(color: [number, number, number], colorTop: [number, number, number], clouds?: boolean): void;
     updateChunks(): Promise<void>;
     get getID(): string;
     action_blockbreak(data: pClient.IActionBlockBreak & {

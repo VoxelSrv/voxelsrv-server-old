@@ -34,7 +34,7 @@ const chat = __importStar(require("./lib/chat"));
 const semver = __importStar(require("semver"));
 const node_fetch_1 = __importDefault(require("node-fetch"));
 const normal_1 = __importDefault(require("./default/worldgen/normal"));
-//import flatGenerator from './default/worldgen/flat';
+const flat_1 = __importDefault(require("./default/worldgen/flat"));
 const values_1 = require("./values");
 const console_1 = require("./lib/console");
 const values_2 = require("voxelservercore/values");
@@ -72,7 +72,7 @@ class Server extends events_1.EventEmitter {
         (await Promise.resolve().then(() => __importStar(require('./default/items')))).setup(this.registry);
         (await Promise.resolve().then(() => __importStar(require('./default/commands')))).setup(this.registry, this);
         this.worlds.addGenerator('normal', normal_1.default);
-        //this.worlds.addGenerator('flat', flatGenerator);
+        this.worlds.addGenerator('flat', flat_1.default);
     }
     async initDefWorld() {
         if (this.worlds.exist('default') == false)
@@ -262,7 +262,7 @@ class Server extends events_1.EventEmitter {
         this.status = 'stopping';
         this.emit('server-stop', this);
         this.log.normal([{ text: 'Stopping server...', color: 'orange' }]);
-        this.saveConfig('', 'permissions', this.permissions.groups);
+        this.saveConfig('', 'permissions', this.permissions.toObject());
         Object.values(this.players.getAll()).forEach((player) => {
             player.kick('Server close');
         });

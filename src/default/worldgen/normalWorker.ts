@@ -174,3 +174,11 @@ class NormalGenerator {
 function dist2(x: number, z: number): number {
 	return Math.sqrt(x * x + z * z);
 }
+
+function delay(t) {
+	return new Promise((resolve, reject) => {
+		setTimeout(() => {
+			resolve('');
+		}, t);
+	});
+}

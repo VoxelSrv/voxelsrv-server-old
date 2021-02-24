@@ -21,6 +21,7 @@ import * as pServer from 'voxelsrv-protocol/js/server';
 import { BaseSocket } from '../../socket';
 import { ICorePlayerManager, ICorePlayer } from 'voxelservercore/interfaces/player';
 import { CoreMessage } from 'voxelservercore/interfaces/message';
+import { Inventory, InventoryObject } from '../inventory/generalInventory';
 
 export class PlayerManager implements ICorePlayerManager {
 	players: { [index: string]: Player } = {};
@@ -93,9 +94,13 @@ export class PlayerManager implements ICorePlayerManager {
 	}
 
 	save(id: string, data: Object) {
-		fs.writeFile('./players/' + id + '.json', JSON.stringify(data), function (err) {
-			if (err) this._server.log.error('Cant save player ' + id + '! Reason: ' + err);
-		});
+		try {
+			fs.writeFile('./players/' + id + '.json', JSON.stringify(data), (err) => {
+				if (err) this._server.log.error('Cant save player ' + id + '! Reason: ' + err);
+			});
+		} catch (e) {
+			console.error(e);
+		}
 	}
 
 	get(id: string): Player | null {
@@ -172,8 +177,9 @@ export class Player implements ICorePlayer {
 	permissions: PlayerPermissionHolder;
 	chunks: types.anyobject;
 	movement: PlayerMovement;
-	crafting = {
+	crafting: InventoryObject = {
 		items: { 0: null, 1: null, 2: null, 3: null },
+		size: 5,
 		result: null,
 	};
 	cache = {
@@ -403,8 +409,16 @@ export class Player implements ICorePlayer {
 		this.sendPacket('EnvironmentFogUpdate', { mode, density });
 	}
 
-	setSky(color: [number, number, number], clouds?: boolean) {
-		this.sendPacket('EnvironmentSkyUpdate', { colorRed: color[0], colorGreen: color[1], colorBlue: color[2], clouds });
+	setSky(color: [number, number, number], colorTop: [number, number, number], clouds?: boolean) {
+		this.sendPacket('EnvironmentSkyUpdate', {
+			colorRed: color[0],
+			colorGreen: color[1],
+			colorBlue: color[2],
+			colorRedTop: colorTop[0],
+			colorGreenTop: colorTop[1],
+			colorBlueTop: colorTop[2],
+			clouds,
+		});
 	}
 
 	async updateChunks() {
@@ -508,7 +522,7 @@ export class Player implements ICorePlayer {
 			if (data.cancel) return;
 		}
 
-		let inventory;
+		let inventory: InventoryObject;
 		let type = 'main';
 		switch (data.inventory) {
 			case pClient.ActionInventoryClick.TypeInv.MAIN:
@@ -535,8 +549,29 @@ export class Player implements ICorePlayer {
 		if (-2 < data.slot && data.slot <= this.inventory.size && (data.inventory != pClient.ActionInventoryClick.TypeInv.CRAFTING || data.slot < 4)) {
 			if (data.type == pClient.ActionInventoryClick.Type.LEFT) this.inventory.action_left(inventory, data.slot, type);
 			else if (data.type == pClient.ActionInventoryClick.Type.RIGHT) this.inventory.action_right(inventory, data.slot, type);
-			else if (data.type == pClient.ActionInventoryClick.Type.SELECT && -1 < data.slot && data.slot < 9) this.inventory.select(data.slot);
+			else if (data.type == pClient.ActionInventoryClick.Type.SELECT && -1 < data.slot && data.slot < 9) {
+				this.inventory.select(data.slot);
+			}
 		} else if (data.inventory == pClient.ActionInventoryClick.TypeInv.CRAFTING && data.slot < 4) {
+		}
+
+		if (type == 'armor') {
+			const item = inventory.items[data.slot]?.id;
+
+			this._players.sendPacketAll('EntityArmor', {
+				uuid: this.entity.id,
+				type: data.slot,
+				id: item,
+			});
+		} else if (type == 'main' && data.slot == inventory.selected) {
+			const item = inventory.items[data.slot]?.id;
+
+			this._players.sendPacketAll('EntityHeldItem', {
+				uuid: this.entity.id,
+				id: item,
+			});
+
+			this.entity.data.helditem = item;
 		}
 	}
 
@@ -601,7 +636,7 @@ export class Player implements ICorePlayer {
 
 		if (this.world.chunks[local.id.toString()] == undefined) {
 			data.cancel = true;
-		} else {
+		} else if (data.y < 256) {
 			const blockID = this.world.chunks[local.id.toString()].data.get(Math.floor(local.pos[0]), Math.floor(local.pos[1]), Math.floor(local.pos[2]));
 			const block = this._server.registry.blocks[this._server.registry.blockIDmap[blockID]];
 			if (block == undefined || block.options == undefined) data.cancel = true;

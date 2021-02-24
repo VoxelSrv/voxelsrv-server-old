@@ -15,6 +15,7 @@ export declare class PermissionManager implements ICorePermissionManager {
     removeGroup(name: string): void;
     getGroup(name: string): any;
     getAllGroups(): {};
+    toObject(): {};
 }
 export declare class PermissionHolder implements ICorePermissionHolder {
     readonly permissions: PermissionList;

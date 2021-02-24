@@ -1,4 +1,4 @@
-import { ChatComponent, ChatMessage } from '../lib/chat';
+import { ChatComponent, ChatMessage, MessageBuilder } from '../lib/chat';
 import { Player } from '../lib/player/player';
 import { Registry, Command } from '../lib/registry';
 import type { Server } from '../server';

@@ -88,10 +88,15 @@ class PlayerManager {
         return r;
     }
     save(id, data) {
-        fs.writeFile('./players/' + id + '.json', JSON.stringify(data), function (err) {
-            if (err)
-                this._server.log.error('Cant save player ' + id + '! Reason: ' + err);
-        });
+        try {
+            fs.writeFile('./players/' + id + '.json', JSON.stringify(data), (err) => {
+                if (err)
+                    this._server.log.error('Cant save player ' + id + '! Reason: ' + err);
+            });
+        }
+        catch (e) {
+            console.error(e);
+        }
     }
     get(id) {
         if (this.players[id] != undefined)
@@ -152,6 +157,7 @@ class Player {
         this.ipAddress = '0.0.0.0';
         this.crafting = {
             items: { 0: null, 1: null, 2: null, 3: null },
+            size: 5,
             result: null,
         };
         this.cache = {
@@ -341,8 +347,16 @@ class Player {
             this.sendPacket('EnvironmentFogUpdate', { mode, density, colorRed: color[0], colorGreen: color[1], colorBlue: color[2], start, stop });
         this.sendPacket('EnvironmentFogUpdate', { mode, density });
     }
-    setSky(color, clouds) {
-        this.sendPacket('EnvironmentSkyUpdate', { colorRed: color[0], colorGreen: color[1], colorBlue: color[2], clouds });
+    setSky(color, colorTop, clouds) {
+        this.sendPacket('EnvironmentSkyUpdate', {
+            colorRed: color[0],
+            colorGreen: color[1],
+            colorBlue: color[2],
+            colorRedTop: colorTop[0],
+            colorGreenTop: colorTop[1],
+            colorBlueTop: colorTop[2],
+            clouds,
+        });
     }
     async updateChunks() {
         const chunk = this.entity.chunkID;
@@ -429,6 +443,7 @@ class Player {
         }
     }
     action_invclick(data) {
+        var _a, _b;
         if (data.inventory == undefined)
             data.inventory = pClient.ActionInventoryClick.TypeInv.MAIN;
         data.cancel = false;
@@ -465,10 +480,27 @@ class Player {
                 this.inventory.action_left(inventory, data.slot, type);
             else if (data.type == pClient.ActionInventoryClick.Type.RIGHT)
                 this.inventory.action_right(inventory, data.slot, type);
-            else if (data.type == pClient.ActionInventoryClick.Type.SELECT && -1 < data.slot && data.slot < 9)
+            else if (data.type == pClient.ActionInventoryClick.Type.SELECT && -1 < data.slot && data.slot < 9) {
                 this.inventory.select(data.slot);
+            }
         }
         else if (data.inventory == pClient.ActionInventoryClick.TypeInv.CRAFTING && data.slot < 4) {
+        }
+        if (type == 'armor') {
+            const item = (_a = inventory.items[data.slot]) === null || _a === void 0 ? void 0 : _a.id;
+            this._players.sendPacketAll('EntityArmor', {
+                uuid: this.entity.id,
+                type: data.slot,
+                id: item,
+            });
+        }
+        else if (type == 'main' && data.slot == inventory.selected) {
+            const item = (_b = inventory.items[data.slot]) === null || _b === void 0 ? void 0 : _b.id;
+            this._players.sendPacketAll('EntityHeldItem', {
+                uuid: this.entity.id,
+                id: item,
+            });
+            this.entity.data.helditem = item;
         }
     }
     action_blockpick(data) {
@@ -527,7 +559,7 @@ class Player {
         if (this.world.chunks[local.id.toString()] == undefined) {
             data.cancel = true;
         }
-        else {
+        else if (data.y < 256) {
             const blockID = this.world.chunks[local.id.toString()].data.get(Math.floor(local.pos[0]), Math.floor(local.pos[1]), Math.floor(local.pos[2]));
             const block = this._server.registry.blocks[this._server.registry.blockIDmap[blockID]];
             if (block == undefined || block.options == undefined)

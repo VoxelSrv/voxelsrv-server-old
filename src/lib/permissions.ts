@@ -15,9 +15,9 @@ export class PermissionManager implements ICorePermissionManager {
 	}
 
 	loadGroups(groups2) {
-		Object.entries(groups2).forEach((group: [string, any]) => {
-			this.groups[group[0]] = new PermissionHolder(group[1].permissions);
-		});
+		for (const x in this.groups) {
+			this.groups[x] = new PermissionHolder(groups2[x].permissions);
+		};
 	}
 
 	createGroup(name: string, group: PermissionHolder) {
@@ -34,6 +34,16 @@ export class PermissionManager implements ICorePermissionManager {
 
 	getAllGroups() {
 		return this.groups;
+	}
+
+	toObject() {
+		const obj = {};
+
+		for (const x in this.groups) {
+			obj[x] = {permissions: this.groups[x].permissions}
+		}
+
+		return obj;
 	}
 }
 

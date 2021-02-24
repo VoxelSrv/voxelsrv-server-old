@@ -13,7 +13,7 @@ import * as semver from 'semver';
 import fetch from 'node-fetch';
 
 import normalGenerator from './default/worldgen/normal';
-//import flatGenerator from './default/worldgen/flat';
+import flatGenerator from './default/worldgen/flat';
 
 import { serverVersion, serverProtocol, invalidNicknameRegex, IServerConfig, heartbeatServer, serverDefaultConfig } from './values';
 import { BaseSocket } from './socket';
@@ -81,7 +81,7 @@ export class Server extends EventEmitter implements ICoreServer {
 		(await import('./default/items')).setup(this.registry);
 		(await import('./default/commands')).setup(this.registry, this);
 		this.worlds.addGenerator('normal', normalGenerator);
-		//this.worlds.addGenerator('flat', flatGenerator);
+		this.worlds.addGenerator('flat', flatGenerator);
 	}
 
 	private async initDefWorld() {
@@ -310,7 +310,7 @@ export class Server extends EventEmitter implements ICoreServer {
 		this.emit('server-stop', this);
 
 		this.log.normal([{ text: 'Stopping server...', color: 'orange' }]);
-		this.saveConfig('', 'permissions', this.permissions.groups);
+		this.saveConfig('', 'permissions', this.permissions.toObject());
 
 		Object.values(this.players.getAll()).forEach((player) => {
 			player.kick('Server close');

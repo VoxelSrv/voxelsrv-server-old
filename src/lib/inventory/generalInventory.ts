@@ -131,4 +131,5 @@ export interface InventoryObject {
 	size: number;
 	tempslot?: IItemStack;
 	selected?: number;
+	[i: string]: any
 }

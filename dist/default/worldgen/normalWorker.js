@@ -172,4 +172,11 @@ class NormalGenerator {
 function dist2(x, z) {
     return Math.sqrt(x * x + z * z);
 }
+function delay(t) {
+    return new Promise((resolve, reject) => {
+        setTimeout(() => {
+            resolve('');
+        }, t);
+    });
+}
 //# sourceMappingURL=normalWorker.js.map
