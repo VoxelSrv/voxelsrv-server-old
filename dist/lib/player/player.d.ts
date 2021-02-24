@@ -42,6 +42,7 @@ export declare class PlayerManager implements ICorePlayerManager {
         [index: string]: Player;
     };
     sendPacketAll(type: string, data: any): void;
+    sendPacketAllExcept(type: string, data: any, player: Player): void;
     isBanned(id: string): boolean;
     isIPBanned(ip: string): boolean;
     getBanReason(id: string): string;
@@ -73,6 +74,9 @@ export declare class Player implements ICorePlayer {
             status: boolean;
         };
     };
+    rateLimitChatMessageCounter: number;
+    rateLimitChatMessageTime: number;
+    rateLimitChatMessageLastClear: number;
     _chunksToSend: any[];
     _chunksInterval: any;
     _players: PlayerManager;

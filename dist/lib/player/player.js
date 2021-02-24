@@ -47,16 +47,16 @@ class PlayerManager {
         this.cache.uuid = this._server.loadConfig('', '.cacheuuid');
         this.cache.ip = this._server.loadConfig('', '.cacheip');
         server.on('entity-create', (data) => {
-            this.sendPacketAll('EntityCreate', {
+            this.sendPacketAllExcept('EntityCreate', {
                 uuid: data.uuid,
                 data: JSON.stringify(data.entity.getObject().data),
-            });
+            }, this.players[data.uuid]);
         });
         server.on('entity-move', (data) => {
-            this.sendPacketAll('EntityMove', data);
+            this.sendPacketAllExcept('EntityMove', data, this.players[data.uuid]);
         });
         server.on('entity-remove', (data) => {
-            this.sendPacketAll('EntityRemove', data);
+            this.sendPacketAllExcept('EntityRemove', data, this.players[data.uuid]);
         });
         server.on('server-stop', () => {
             this.saveCache();
@@ -115,6 +115,12 @@ class PlayerManager {
             p.sendPacket(type, data);
         });
     }
+    sendPacketAllExcept(type, data, player) {
+        Object.values(this.players).forEach((p) => {
+            if (p != player)
+                p.sendPacket(type, data);
+        });
+    }
     isBanned(id) {
         return this.banlist[id] != undefined;
     }
@@ -168,6 +174,9 @@ class Player {
                 status: false,
             },
         };
+        this.rateLimitChatMessageCounter = 0;
+        this.rateLimitChatMessageTime = Date.now();
+        this.rateLimitChatMessageLastClear = Date.now();
         this._chunksToSend = [];
         this.id = id;
         this.nickname = name;
@@ -321,7 +330,7 @@ class Player {
         this.sendPacket('PlayerKick', { reason: reason, date: Date.now() });
         setTimeout(() => {
             this.socket.close();
-        }, 50);
+        }, 20);
     }
     ban(reason = 'Unknown reason') {
         this._players.banPlayer(this.id, reason);
@@ -496,10 +505,10 @@ class Player {
         }
         else if (type == 'main' && data.slot == inventory.selected) {
             const item = (_b = inventory.items[data.slot]) === null || _b === void 0 ? void 0 : _b.id;
-            this._players.sendPacketAll('EntityHeldItem', {
+            this._players.sendPacketAllExcept('EntityHeldItem', {
                 uuid: this.entity.id,
                 id: item,
-            });
+            }, this);
             this.entity.data.helditem = item;
         }
     }
@@ -514,6 +523,19 @@ class Player {
     }
     action_chatmessage(data) {
         data.cancel = false;
+        if (this._server.config.rateLimitChatMessages) {
+            this.rateLimitChatMessageCounter = this.rateLimitChatMessageCounter + 1;
+            this.rateLimitChatMessageTime = Date.now();
+            this.rateLimitChatMessageLastClear = this.rateLimitChatMessageLastClear + 100;
+            if (this.rateLimitChatMessageLastClear + 2000 < this.rateLimitChatMessageTime) {
+                this.rateLimitChatMessageLastClear = Date.now();
+                this.rateLimitChatMessageCounter = this.rateLimitChatMessageCounter - 1;
+            }
+            if (this.rateLimitChatMessageCounter > 10) {
+                this.kick('Spamming in chat');
+                return;
+            }
+        }
         for (let x = 0; x <= 5; x++) {
             this._server.emit(`player-message-${x}`, this, data);
             if (data.cancel)
@@ -537,7 +559,11 @@ class Player {
                 this.send(new chat.MessageBuilder().red("This command doesn't exist! Check /help for list of available commands."));
         }
         else if (data.message != '') {
-            const msg = new chat.MessageBuilder().white(this.displayName).hex('#eeeeee').text(' » ').white(data.message);
+            let shortMessage = data.message;
+            if (data.message.length > 256) {
+                shortMessage = data.message.slice(0, 256);
+            }
+            const msg = new chat.MessageBuilder().white(this.displayName).hex('#eeeeee').text(' » ').white(shortMessage);
             this._server.emit('chat-message', msg, this);
             chat.sendMlt([this._server.console.executorchat, ...Object.values(this._players.getAll())], msg);
         }

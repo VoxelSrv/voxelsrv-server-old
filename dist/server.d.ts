@@ -6,6 +6,7 @@ import { PermissionManager } from './lib/permissions';
 import { PlayerManager } from './lib/player/player';
 import { IServerConfig } from './values';
 import { BaseSocket } from './socket';
+import { ILoginResponse } from 'voxelsrv-protocol/js/client';
 import { Logging } from './lib/console';
 import type { ICoreServer } from 'voxelservercore/interfaces/server';
 import type { ICorePlugin, ICorePluginManager } from 'voxelservercore/interfaces/plugin';
@@ -22,7 +23,7 @@ export declare class Server extends EventEmitter implements ICoreServer {
     plugins: PluginManager;
     console: Console;
     config: IServerConfig;
-    heartbeatID: number;
+    heartbeatUpdater: any;
     overrides: {
         [i: string]: [string, string];
     };
@@ -33,6 +34,7 @@ export declare class Server extends EventEmitter implements ICoreServer {
     startServer(): Promise<void>;
     heartbeatPing(): void;
     connectPlayer(socket: BaseSocket): Promise<void>;
+    authenticatePlayer(data: ILoginResponse): Promise<string>;
     stopServer(): void;
     loadConfig(namespace: string, config: string): any;
     saveConfig(namespace: string, config: string, data: any): void;

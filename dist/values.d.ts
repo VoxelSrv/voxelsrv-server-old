@@ -1,5 +1,5 @@
 import * as types from './types';
-export declare const serverVersion = "0.2.0-beta.19.2";
+export declare const serverVersion = "0.2.0-beta.19.3";
 export declare const serverProtocol = 3;
 export interface IServerConfig {
     port: number;
@@ -20,9 +20,10 @@ export interface IServerConfig {
     };
     plugins: string[];
     consoleInput: boolean;
+    rateLimitChatMessages: boolean;
     [index: string]: any;
 }
 export declare const serverDefaultConfig: IServerConfig;
 export declare const invalidNicknameRegex: RegExp;
-export declare const heartbeatServer = "pb4.eu:9001";
+export declare const heartbeatServer = "https://voxelsrv.pb4.eu";
 //# sourceMappingURL=values.d.ts.map

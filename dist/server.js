@@ -119,8 +119,18 @@ class Server extends events_1.EventEmitter {
         this.emit('registry-define');
         this.registry._finalize();
         await this.initDefWorld();
-        if (this.config.public)
+        if (this.config.public) {
             this.heartbeatPing();
+            this.heartbeatUpdater = setInterval(() => {
+                node_fetch_1.default(`${values_1.heartbeatServer}/api/servers`)
+                    .then((res) => res.json())
+                    .then((json) => {
+                    if (json[`${this.config.address}:${this.config.port}`] == undefined) {
+                        this.heartbeatPing();
+                    }
+                });
+            }, 50000);
+        }
         this.status = 'active';
         this.log.normal([
             { text: 'Server started on port: ', color: 'yellow' },
@@ -129,7 +139,7 @@ class Server extends events_1.EventEmitter {
         this.emit('server-started', this);
     }
     heartbeatPing() {
-        node_fetch_1.default(`http://${values_1.heartbeatServer}/api/addServer?ip=${this.config.address}:${this.config.port}`)
+        node_fetch_1.default(`${values_1.heartbeatServer}/api/addServer?ip=${this.config.address}:${this.config.port}&type=0`)
             .then((res) => res.json())
             .then((json) => { });
     }
@@ -150,7 +160,7 @@ class Server extends events_1.EventEmitter {
             software: `VoxelSrv-Server`,
         });
         let loginTimeout = true;
-        socket.on('LoginResponse', (data) => {
+        socket.on('LoginResponse', async (data) => {
             loginTimeout = false;
             if (this.players.isBanned(data.uuid)) {
                 socket.send('PlayerKick', { reason: 'You are banned!\nReason: ' + this.players.getBanReason(data.uuid), time: Date.now() });
@@ -167,11 +177,9 @@ class Server extends events_1.EventEmitter {
                 socket.close();
                 return;
             }
-            const check = verifyLogin(data);
-            if (data.username == '' || data.username == null || data.username == undefined)
-                data.username = 'Player' + Math.round(Math.random() * 100000);
+            const check = await this.authenticatePlayer(data);
             const id = data.username.toLowerCase();
-            if (check != 0) {
+            if (check != null) {
                 socket.send('PlayerKick', { reason: check, time: Date.now() });
                 socket.close();
                 return;
@@ -258,13 +266,26 @@ class Server extends events_1.EventEmitter {
             }
         }, 10000);
     }
+    async authenticatePlayer(data) {
+        if (data == undefined)
+            return 'No data!';
+        else if (data.username == undefined || values_1.invalidNicknameRegex.test(data.username))
+            return 'Illegal username - ' + data.username;
+        else if (data.protocol == undefined || data.protocol != values_1.serverProtocol)
+            return 'Unsupported protocol';
+        return null;
+    }
     stopServer() {
+        if (this.heartbeatUpdater != undefined) {
+            clearInterval(this.heartbeatUpdater);
+        }
         this.status = 'stopping';
         this.emit('server-stop', this);
         this.log.normal([{ text: 'Stopping server...', color: 'orange' }]);
         this.saveConfig('', 'permissions', this.permissions.toObject());
         Object.values(this.players.getAll()).forEach((player) => {
             player.kick('Server close');
+            player.socket.close();
         });
         Object.values(this.worlds.worlds).forEach((world) => {
             world.unload();
@@ -306,15 +327,6 @@ class Server extends events_1.EventEmitter {
     }
 }
 exports.Server = Server;
-function verifyLogin(data) {
-    if (data == undefined)
-        return 'No data!';
-    else if (data.username == undefined || values_1.invalidNicknameRegex.test(data.username))
-        return 'Illegal username - ' + data.username;
-    else if (data.protocol == undefined || data.protocol != values_1.serverProtocol)
-        return 'Unsupported protocol';
-    return 0;
-}
 class Console {
     constructor(s) {
         this.executor = {
