@@ -3,8 +3,8 @@
 <head>
 	<meta charset="utf-8">
 	<meta http-equiv="X-UA-Compatible" content="IE=edge">
-	<title>&quot;src/values&quot; | voxelsrv-server</title>
-	<meta name="description" content="Documentation for voxelsrv-server">
+	<title>&quot;src/values&quot; | voxelservercore</title>
+	<meta name="description" content="Documentation for voxelservercore">
 	<meta name="viewport" content="width=device-width, initial-scale=1">
 	<link rel="stylesheet" href="../assets/css/main.css">
 </head>
@@ -22,7 +22,7 @@
 						<li class="state loading">Preparing search index...</li>
 						<li class="state failure">The search index is not available</li>
 					</ul>
-					<a href="../index.html" class="title">voxelsrv-server</a>
+					<a href="../index.html" class="title">voxelservercore</a>
 				</div>
 				<div class="table-cell" id="tsd-widgets">
 					<div id="tsd-filter">
@@ -79,16 +79,10 @@
 						<section class="tsd-index-section ">
 							<h3>Variables</h3>
 							<ul class="tsd-index-list">
+								<li class="tsd-kind-variable tsd-parent-kind-module"><a href="_src_values_.html#heartbeatserver" class="tsd-kind-icon">heartbeat<wbr>Server</a></li>
 								<li class="tsd-kind-variable tsd-parent-kind-module"><a href="_src_values_.html#invalidnicknameregex" class="tsd-kind-icon">invalid<wbr>Nickname<wbr>Regex</a></li>
-								<li class="tsd-kind-variable tsd-parent-kind-module"><a href="_src_values_.html#serverconfig" class="tsd-kind-icon">server<wbr>Config</a></li>
 								<li class="tsd-kind-variable tsd-parent-kind-module"><a href="_src_values_.html#serverprotocol" class="tsd-kind-icon">server<wbr>Protocol</a></li>
 								<li class="tsd-kind-variable tsd-parent-kind-module"><a href="_src_values_.html#serverversion" class="tsd-kind-icon">server<wbr>Version</a></li>
-							</ul>
-						</section>
-						<section class="tsd-index-section ">
-							<h3>Functions</h3>
-							<ul class="tsd-index-list">
-								<li class="tsd-kind-function tsd-parent-kind-module"><a href="_src_values_.html#setconfig" class="tsd-kind-icon">set<wbr>Config</a></li>
 							</ul>
 						</section>
 						<section class="tsd-index-section ">
@@ -103,70 +97,44 @@
 			<section class="tsd-panel-group tsd-member-group ">
 				<h2>Variables</h2>
 				<section class="tsd-panel tsd-member tsd-kind-variable tsd-parent-kind-module">
+					<a name="heartbeatserver" class="tsd-anchor"></a>
+					<h3><span class="tsd-flag ts-flagConst">Const</span> heartbeat<wbr>Server</h3>
+					<div class="tsd-signature tsd-kind-icon">heartbeat<wbr>Server<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">"pb4.eu:9001"</span><span class="tsd-signature-symbol"> = &quot;pb4.eu:9001&quot;</span></div>
+					<aside class="tsd-sources">
+						<ul>
+							<li>Defined in <a href="https://github.com/Patbox/voxelsrv-server/blob/ac4a012/src/values.ts#L52">src/values.ts:52</a></li>
+						</ul>
+					</aside>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-variable tsd-parent-kind-module">
 					<a name="invalidnicknameregex" class="tsd-anchor"></a>
 					<h3><span class="tsd-flag ts-flagConst">Const</span> invalid<wbr>Nickname<wbr>Regex</h3>
 					<div class="tsd-signature tsd-kind-icon">invalid<wbr>Nickname<wbr>Regex<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">RegExp</span><span class="tsd-signature-symbol"> = new RegExp(&#x27;[^a-zA-Z0-9_]&#x27;)</span></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in <a href="https://github.com/Patbox/voxelsrv-server/blob/5ae8e49/src/values.ts#L51">src/values.ts:51</a></li>
-						</ul>
-					</aside>
-				</section>
-				<section class="tsd-panel tsd-member tsd-kind-variable tsd-parent-kind-module">
-					<a name="serverconfig" class="tsd-anchor"></a>
-					<h3><span class="tsd-flag ts-flagLet">Let</span> server<wbr>Config</h3>
-					<div class="tsd-signature tsd-kind-icon">server<wbr>Config<span class="tsd-signature-symbol">:</span> <a href="../interfaces/_src_values_.iserverconfig.html" class="tsd-signature-type">IServerConfig</a><span class="tsd-signature-symbol"> = serverDefaultConfig</span></div>
-					<aside class="tsd-sources">
-						<ul>
-							<li>Defined in <a href="https://github.com/Patbox/voxelsrv-server/blob/5ae8e49/src/values.ts#L45">src/values.ts:45</a></li>
+							<li>Defined in <a href="https://github.com/Patbox/voxelsrv-server/blob/ac4a012/src/values.ts#L50">src/values.ts:50</a></li>
 						</ul>
 					</aside>
 				</section>
 				<section class="tsd-panel tsd-member tsd-kind-variable tsd-parent-kind-module">
 					<a name="serverprotocol" class="tsd-anchor"></a>
 					<h3><span class="tsd-flag ts-flagConst">Const</span> server<wbr>Protocol</h3>
-					<div class="tsd-signature tsd-kind-icon">server<wbr>Protocol<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">2</span><span class="tsd-signature-symbol"> = 2</span></div>
+					<div class="tsd-signature tsd-kind-icon">server<wbr>Protocol<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">3</span><span class="tsd-signature-symbol"> = 3</span></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in <a href="https://github.com/Patbox/voxelsrv-server/blob/5ae8e49/src/values.ts#L4">src/values.ts:4</a></li>
+							<li>Defined in <a href="https://github.com/Patbox/voxelsrv-server/blob/ac4a012/src/values.ts#L4">src/values.ts:4</a></li>
 						</ul>
 					</aside>
 				</section>
 				<section class="tsd-panel tsd-member tsd-kind-variable tsd-parent-kind-module">
 					<a name="serverversion" class="tsd-anchor"></a>
 					<h3><span class="tsd-flag ts-flagConst">Const</span> server<wbr>Version</h3>
-					<div class="tsd-signature tsd-kind-icon">server<wbr>Version<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">"0.2.0-beta.8.1"</span><span class="tsd-signature-symbol"> = &quot;0.2.0-beta.8.1&quot;</span></div>
+					<div class="tsd-signature tsd-kind-icon">server<wbr>Version<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">"0.2.0-beta.19.2"</span><span class="tsd-signature-symbol"> = &quot;0.2.0-beta.19.2&quot;</span></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in <a href="https://github.com/Patbox/voxelsrv-server/blob/5ae8e49/src/values.ts#L3">src/values.ts:3</a></li>
+							<li>Defined in <a href="https://github.com/Patbox/voxelsrv-server/blob/ac4a012/src/values.ts#L3">src/values.ts:3</a></li>
 						</ul>
 					</aside>
-				</section>
-			</section>
-			<section class="tsd-panel-group tsd-member-group ">
-				<h2>Functions</h2>
-				<section class="tsd-panel tsd-member tsd-kind-function tsd-parent-kind-module">
-					<a name="setconfig" class="tsd-anchor"></a>
-					<h3>set<wbr>Config</h3>
-					<ul class="tsd-signatures tsd-kind-function tsd-parent-kind-module">
-						<li class="tsd-signature tsd-kind-icon">set<wbr>Config<span class="tsd-signature-symbol">(</span>config<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">object</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">void</span></li>
-					</ul>
-					<ul class="tsd-descriptions">
-						<li class="tsd-description">
-							<aside class="tsd-sources">
-								<ul>
-									<li>Defined in <a href="https://github.com/Patbox/voxelsrv-server/blob/5ae8e49/src/values.ts#L47">src/values.ts:47</a></li>
-								</ul>
-							</aside>
-							<h4 class="tsd-parameters-title">Parameters</h4>
-							<ul class="tsd-parameters">
-								<li>
-									<h5>config: <span class="tsd-signature-type">object</span></h5>
-								</li>
-							</ul>
-							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4>
-						</li>
-					</ul>
 				</section>
 			</section>
 			<section class="tsd-panel-group tsd-member-group ">
@@ -177,7 +145,7 @@
 					<div class="tsd-signature tsd-kind-icon">server<wbr>Default<wbr>Config<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">object</span></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in <a href="https://github.com/Patbox/voxelsrv-server/blob/5ae8e49/src/values.ts#L26">src/values.ts:26</a></li>
+							<li>Defined in <a href="https://github.com/Patbox/voxelsrv-server/blob/ac4a012/src/values.ts#L28">src/values.ts:28</a></li>
 						</ul>
 					</aside>
 					<section class="tsd-panel tsd-member tsd-kind-variable tsd-parent-kind-object-literal">
@@ -186,27 +154,27 @@
 						<div class="tsd-signature tsd-kind-icon">address<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">string</span><span class="tsd-signature-symbol"> = &quot;0.0.0.0&quot;</span></div>
 						<aside class="tsd-sources">
 							<ul>
-								<li>Defined in <a href="https://github.com/Patbox/voxelsrv-server/blob/5ae8e49/src/values.ts#L28">src/values.ts:28</a></li>
+								<li>Defined in <a href="https://github.com/Patbox/voxelsrv-server/blob/ac4a012/src/values.ts#L30">src/values.ts:30</a></li>
 							</ul>
 						</aside>
 					</section>
 					<section class="tsd-panel tsd-member tsd-kind-variable tsd-parent-kind-object-literal">
 						<a name="serverdefaultconfig.chunktransportcompression" class="tsd-anchor"></a>
 						<h3>chunk<wbr>Transport<wbr>Compression</h3>
-						<div class="tsd-signature tsd-kind-icon">chunk<wbr>Transport<wbr>Compression<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">false</span><span class="tsd-signature-symbol"> = false</span></div>
+						<div class="tsd-signature tsd-kind-icon">chunk<wbr>Transport<wbr>Compression<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">true</span><span class="tsd-signature-symbol"> = true</span></div>
 						<aside class="tsd-sources">
 							<ul>
-								<li>Defined in <a href="https://github.com/Patbox/voxelsrv-server/blob/5ae8e49/src/values.ts#L34">src/values.ts:34</a></li>
+								<li>Defined in <a href="https://github.com/Patbox/voxelsrv-server/blob/ac4a012/src/values.ts#L36">src/values.ts:36</a></li>
 							</ul>
 						</aside>
 					</section>
 					<section class="tsd-panel tsd-member tsd-kind-variable tsd-parent-kind-object-literal">
-						<a name="serverdefaultconfig.loadplugins" class="tsd-anchor"></a>
-						<h3>load<wbr>Plugins</h3>
-						<div class="tsd-signature tsd-kind-icon">load<wbr>Plugins<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">true</span><span class="tsd-signature-symbol"> = true</span></div>
+						<a name="serverdefaultconfig.consoleinput" class="tsd-anchor"></a>
+						<h3>console<wbr>Input</h3>
+						<div class="tsd-signature tsd-kind-icon">console<wbr>Input<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">true</span><span class="tsd-signature-symbol"> = true</span></div>
 						<aside class="tsd-sources">
 							<ul>
-								<li>Defined in <a href="https://github.com/Patbox/voxelsrv-server/blob/5ae8e49/src/values.ts#L42">src/values.ts:42</a></li>
+								<li>Defined in <a href="https://github.com/Patbox/voxelsrv-server/blob/ac4a012/src/values.ts#L46">src/values.ts:46</a></li>
 							</ul>
 						</aside>
 					</section>
@@ -216,7 +184,7 @@
 						<div class="tsd-signature tsd-kind-icon">maxplayers<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">number</span><span class="tsd-signature-symbol"> = 10</span></div>
 						<aside class="tsd-sources">
 							<ul>
-								<li>Defined in <a href="https://github.com/Patbox/voxelsrv-server/blob/5ae8e49/src/values.ts#L32">src/values.ts:32</a></li>
+								<li>Defined in <a href="https://github.com/Patbox/voxelsrv-server/blob/ac4a012/src/values.ts#L34">src/values.ts:34</a></li>
 							</ul>
 						</aside>
 					</section>
@@ -226,7 +194,7 @@
 						<div class="tsd-signature tsd-kind-icon">motd<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">string</span><span class="tsd-signature-symbol"> = &quot;Another VoxelSRV server&quot;</span></div>
 						<aside class="tsd-sources">
 							<ul>
-								<li>Defined in <a href="https://github.com/Patbox/voxelsrv-server/blob/5ae8e49/src/values.ts#L30">src/values.ts:30</a></li>
+								<li>Defined in <a href="https://github.com/Patbox/voxelsrv-server/blob/ac4a012/src/values.ts#L32">src/values.ts:32</a></li>
 							</ul>
 						</aside>
 					</section>
@@ -236,7 +204,17 @@
 						<div class="tsd-signature tsd-kind-icon">name<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">string</span><span class="tsd-signature-symbol"> = &quot;Server&quot;</span></div>
 						<aside class="tsd-sources">
 							<ul>
-								<li>Defined in <a href="https://github.com/Patbox/voxelsrv-server/blob/5ae8e49/src/values.ts#L29">src/values.ts:29</a></li>
+								<li>Defined in <a href="https://github.com/Patbox/voxelsrv-server/blob/ac4a012/src/values.ts#L31">src/values.ts:31</a></li>
+							</ul>
+						</aside>
+					</section>
+					<section class="tsd-panel tsd-member tsd-kind-variable tsd-parent-kind-object-literal">
+						<a name="serverdefaultconfig.plugins" class="tsd-anchor"></a>
+						<h3>plugins</h3>
+						<div class="tsd-signature tsd-kind-icon">plugins<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">undefined</span><span class="tsd-signature-symbol">[]</span><span class="tsd-signature-symbol"> = []</span></div>
+						<aside class="tsd-sources">
+							<ul>
+								<li>Defined in <a href="https://github.com/Patbox/voxelsrv-server/blob/ac4a012/src/values.ts#L45">src/values.ts:45</a></li>
 							</ul>
 						</aside>
 					</section>
@@ -246,7 +224,7 @@
 						<div class="tsd-signature tsd-kind-icon">port<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">number</span><span class="tsd-signature-symbol"> = 3000</span></div>
 						<aside class="tsd-sources">
 							<ul>
-								<li>Defined in <a href="https://github.com/Patbox/voxelsrv-server/blob/5ae8e49/src/values.ts#L27">src/values.ts:27</a></li>
+								<li>Defined in <a href="https://github.com/Patbox/voxelsrv-server/blob/ac4a012/src/values.ts#L29">src/values.ts:29</a></li>
 							</ul>
 						</aside>
 					</section>
@@ -256,7 +234,7 @@
 						<div class="tsd-signature tsd-kind-icon">public<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">false</span><span class="tsd-signature-symbol"> = false</span></div>
 						<aside class="tsd-sources">
 							<ul>
-								<li>Defined in <a href="https://github.com/Patbox/voxelsrv-server/blob/5ae8e49/src/values.ts#L31">src/values.ts:31</a></li>
+								<li>Defined in <a href="https://github.com/Patbox/voxelsrv-server/blob/ac4a012/src/values.ts#L33">src/values.ts:33</a></li>
 							</ul>
 						</aside>
 					</section>
@@ -266,7 +244,7 @@
 						<div class="tsd-signature tsd-kind-icon">view<wbr>Distance<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">number</span><span class="tsd-signature-symbol"> = 5</span></div>
 						<aside class="tsd-sources">
 							<ul>
-								<li>Defined in <a href="https://github.com/Patbox/voxelsrv-server/blob/5ae8e49/src/values.ts#L33">src/values.ts:33</a></li>
+								<li>Defined in <a href="https://github.com/Patbox/voxelsrv-server/blob/ac4a012/src/values.ts#L35">src/values.ts:35</a></li>
 							</ul>
 						</aside>
 					</section>
@@ -276,16 +254,16 @@
 						<div class="tsd-signature tsd-kind-icon">world<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">object</span></div>
 						<aside class="tsd-sources">
 							<ul>
-								<li>Defined in <a href="https://github.com/Patbox/voxelsrv-server/blob/5ae8e49/src/values.ts#L35">src/values.ts:35</a></li>
+								<li>Defined in <a href="https://github.com/Patbox/voxelsrv-server/blob/ac4a012/src/values.ts#L37">src/values.ts:37</a></li>
 							</ul>
 						</aside>
 						<section class="tsd-panel tsd-member tsd-kind-variable tsd-parent-kind-object-literal">
 							<a name="serverdefaultconfig.world.border" class="tsd-anchor"></a>
 							<h3>border</h3>
-							<div class="tsd-signature tsd-kind-icon">border<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">number</span><span class="tsd-signature-symbol"> = 24</span></div>
+							<div class="tsd-signature tsd-kind-icon">border<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">number</span><span class="tsd-signature-symbol"> = 256</span></div>
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/Patbox/voxelsrv-server/blob/5ae8e49/src/values.ts#L37">src/values.ts:37</a></li>
+									<li>Defined in <a href="https://github.com/Patbox/voxelsrv-server/blob/ac4a012/src/values.ts#L39">src/values.ts:39</a></li>
 								</ul>
 							</aside>
 						</section>
@@ -295,7 +273,7 @@
 							<div class="tsd-signature tsd-kind-icon">generator<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">string</span><span class="tsd-signature-symbol"> = &quot;normal&quot;</span></div>
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/Patbox/voxelsrv-server/blob/5ae8e49/src/values.ts#L39">src/values.ts:39</a></li>
+									<li>Defined in <a href="https://github.com/Patbox/voxelsrv-server/blob/ac4a012/src/values.ts#L41">src/values.ts:41</a></li>
 								</ul>
 							</aside>
 						</section>
@@ -305,7 +283,7 @@
 							<div class="tsd-signature tsd-kind-icon">save<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">true</span><span class="tsd-signature-symbol"> = true</span></div>
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/Patbox/voxelsrv-server/blob/5ae8e49/src/values.ts#L40">src/values.ts:40</a></li>
+									<li>Defined in <a href="https://github.com/Patbox/voxelsrv-server/blob/ac4a012/src/values.ts#L42">src/values.ts:42</a></li>
 								</ul>
 							</aside>
 						</section>
@@ -315,7 +293,7 @@
 							<div class="tsd-signature tsd-kind-icon">seed<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">number</span><span class="tsd-signature-symbol"> = 0</span></div>
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/Patbox/voxelsrv-server/blob/5ae8e49/src/values.ts#L36">src/values.ts:36</a></li>
+									<li>Defined in <a href="https://github.com/Patbox/voxelsrv-server/blob/ac4a012/src/values.ts#L38">src/values.ts:38</a></li>
 								</ul>
 							</aside>
 						</section>
@@ -325,7 +303,17 @@
 							<div class="tsd-signature tsd-kind-icon">spawn<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-symbol">[</span><span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">, </span><span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">, </span><span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">]</span><span class="tsd-signature-symbol"> = [0, 100, 0]</span></div>
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/Patbox/voxelsrv-server/blob/5ae8e49/src/values.ts#L38">src/values.ts:38</a></li>
+									<li>Defined in <a href="https://github.com/Patbox/voxelsrv-server/blob/ac4a012/src/values.ts#L40">src/values.ts:40</a></li>
+								</ul>
+							</aside>
+						</section>
+						<section class="tsd-panel tsd-member tsd-kind-variable tsd-parent-kind-object-literal">
+							<a name="serverdefaultconfig.world.worldgenworkers" class="tsd-anchor"></a>
+							<h3>world<wbr>Gen<wbr>Workers</h3>
+							<div class="tsd-signature tsd-kind-icon">world<wbr>Gen<wbr>Workers<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">number</span><span class="tsd-signature-symbol"> = 1</span></div>
+							<aside class="tsd-sources">
+								<ul>
+									<li>Defined in <a href="https://github.com/Patbox/voxelsrv-server/blob/ac4a012/src/values.ts#L43">src/values.ts:43</a></li>
 								</ul>
 							</aside>
 						</section>
@@ -350,19 +338,16 @@
 						<a href="../interfaces/_src_values_.iserverconfig.html" class="tsd-kind-icon">IServer<wbr>Config</a>
 					</li>
 					<li class=" tsd-kind-variable tsd-parent-kind-module">
-						<a href="_src_values_.html#invalidnicknameregex" class="tsd-kind-icon">invalid<wbr>Nickname<wbr>Regex</a>
+						<a href="_src_values_.html#heartbeatserver" class="tsd-kind-icon">heartbeat<wbr>Server</a>
 					</li>
 					<li class=" tsd-kind-variable tsd-parent-kind-module">
-						<a href="_src_values_.html#serverconfig" class="tsd-kind-icon">server<wbr>Config</a>
+						<a href="_src_values_.html#invalidnicknameregex" class="tsd-kind-icon">invalid<wbr>Nickname<wbr>Regex</a>
 					</li>
 					<li class=" tsd-kind-variable tsd-parent-kind-module">
 						<a href="_src_values_.html#serverprotocol" class="tsd-kind-icon">server<wbr>Protocol</a>
 					</li>
 					<li class=" tsd-kind-variable tsd-parent-kind-module">
 						<a href="_src_values_.html#serverversion" class="tsd-kind-icon">server<wbr>Version</a>
-					</li>
-					<li class=" tsd-kind-function tsd-parent-kind-module">
-						<a href="_src_values_.html#setconfig" class="tsd-kind-icon">set<wbr>Config</a>
 					</li>
 					<li class=" tsd-kind-object-literal tsd-parent-kind-module">
 						<a href="_src_values_.html#serverdefaultconfig" class="tsd-kind-icon">server<wbr>Default<wbr>Config</a>

@@ -3,8 +3,8 @@
 <head>
 	<meta charset="utf-8">
 	<meta http-equiv="X-UA-Compatible" content="IE=edge">
-	<title>NormalGenerator | voxelsrv-server</title>
-	<meta name="description" content="Documentation for voxelsrv-server">
+	<title>NormalGenerator | voxelservercore</title>
+	<meta name="description" content="Documentation for voxelservercore">
 	<meta name="viewport" content="width=device-width, initial-scale=1">
 	<link rel="stylesheet" href="../assets/css/main.css">
 </head>
@@ -22,7 +22,7 @@
 						<li class="state loading">Preparing search index...</li>
 						<li class="state failure">The search index is not available</li>
 					</ul>
-					<a href="../index.html" class="title">voxelsrv-server</a>
+					<a href="../index.html" class="title">voxelservercore</a>
 				</div>
 				<div class="table-cell" id="tsd-widgets">
 					<div id="tsd-filter">
@@ -77,6 +77,12 @@
 					</li>
 				</ul>
 			</section>
+			<section class="tsd-panel">
+				<h3>Implements</h3>
+				<ul class="tsd-hierarchy">
+					<li><a href="../interfaces/_src_lib_world_world_.iworldgenerator.html" class="tsd-signature-type">IWorldGenerator</a></li>
+				</ul>
+			</section>
 			<section class="tsd-panel-group tsd-index-group">
 				<h2>Index</h2>
 				<section class="tsd-panel tsd-index-panel">
@@ -90,7 +96,9 @@
 						<section class="tsd-index-section ">
 							<h3>Properties</h3>
 							<ul class="tsd-index-list">
+								<li class="tsd-kind-property tsd-parent-kind-class"><a href="_src_default_worldgen_normal_.normalgenerator.html#_lastworkerused" class="tsd-kind-icon">_last<wbr>Worker<wbr>Used</a></li>
 								<li class="tsd-kind-property tsd-parent-kind-class"><a href="_src_default_worldgen_normal_.normalgenerator.html#_server" class="tsd-kind-icon">_server</a></li>
+								<li class="tsd-kind-property tsd-parent-kind-class"><a href="_src_default_worldgen_normal_.normalgenerator.html#_worker" class="tsd-kind-icon">_worker</a></li>
 								<li class="tsd-kind-property tsd-parent-kind-class"><a href="_src_default_worldgen_normal_.normalgenerator.html#biomenoise1" class="tsd-kind-icon">biome<wbr>Noise1</a></li>
 								<li class="tsd-kind-property tsd-parent-kind-class"><a href="_src_default_worldgen_normal_.normalgenerator.html#biomenoise2" class="tsd-kind-icon">biome<wbr>Noise2</a></li>
 								<li class="tsd-kind-property tsd-parent-kind-class"><a href="_src_default_worldgen_normal_.normalgenerator.html#biomenoise3" class="tsd-kind-icon">biome<wbr>Noise3</a></li>
@@ -111,6 +119,7 @@
 						<section class="tsd-index-section ">
 							<h3>Methods</h3>
 							<ul class="tsd-index-list">
+								<li class="tsd-kind-method tsd-parent-kind-class"><a href="_src_default_worldgen_normal_.normalgenerator.html#_setupworkers" class="tsd-kind-icon">_setup<wbr>Workers</a></li>
 								<li class="tsd-kind-method tsd-parent-kind-class"><a href="_src_default_worldgen_normal_.normalgenerator.html#generatebasechunk" class="tsd-kind-icon">generate<wbr>Base<wbr>Chunk</a></li>
 								<li class="tsd-kind-method tsd-parent-kind-class"><a href="_src_default_worldgen_normal_.normalgenerator.html#generatechunk" class="tsd-kind-icon">generate<wbr>Chunk</a></li>
 								<li class="tsd-kind-method tsd-parent-kind-class"><a href="_src_default_worldgen_normal_.normalgenerator.html#getbiome" class="tsd-kind-icon">get<wbr>Biome</a></li>
@@ -139,7 +148,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/Patbox/voxelsrv-server/blob/5ae8e49/src/default/worldgen/normal.ts#L40">src/default/worldgen/normal.ts:40</a></li>
+									<li>Defined in <a href="https://github.com/Patbox/voxelsrv-server/blob/ac4a012/src/default/worldgen/normal.ts#L40">src/default/worldgen/normal.ts:40</a></li>
 								</ul>
 							</aside>
 							<h4 class="tsd-parameters-title">Parameters</h4>
@@ -159,12 +168,32 @@
 			<section class="tsd-panel-group tsd-member-group ">
 				<h2>Properties</h2>
 				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-class">
+					<a name="_lastworkerused" class="tsd-anchor"></a>
+					<h3>_last<wbr>Worker<wbr>Used</h3>
+					<div class="tsd-signature tsd-kind-icon">_last<wbr>Worker<wbr>Used<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">number</span><span class="tsd-signature-symbol"> = 0</span></div>
+					<aside class="tsd-sources">
+						<ul>
+							<li>Defined in <a href="https://github.com/Patbox/voxelsrv-server/blob/ac4a012/src/default/worldgen/normal.ts#L40">src/default/worldgen/normal.ts:40</a></li>
+						</ul>
+					</aside>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-class">
 					<a name="_server" class="tsd-anchor"></a>
 					<h3>_server</h3>
 					<div class="tsd-signature tsd-kind-icon">_server<span class="tsd-signature-symbol">:</span> <a href="_src_server_.server.html" class="tsd-signature-type">Server</a></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in <a href="https://github.com/Patbox/voxelsrv-server/blob/5ae8e49/src/default/worldgen/normal.ts#L40">src/default/worldgen/normal.ts:40</a></li>
+							<li>Defined in <a href="https://github.com/Patbox/voxelsrv-server/blob/ac4a012/src/default/worldgen/normal.ts#L38">src/default/worldgen/normal.ts:38</a></li>
+						</ul>
+					</aside>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-class">
+					<a name="_worker" class="tsd-anchor"></a>
+					<h3>_worker</h3>
+					<div class="tsd-signature tsd-kind-icon">_worker<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">[]</span><span class="tsd-signature-symbol"> = []</span></div>
+					<aside class="tsd-sources">
+						<ul>
+							<li>Defined in <a href="https://github.com/Patbox/voxelsrv-server/blob/ac4a012/src/default/worldgen/normal.ts#L39">src/default/worldgen/normal.ts:39</a></li>
 						</ul>
 					</aside>
 				</section>
@@ -174,7 +203,7 @@
 					<div class="tsd-signature tsd-kind-icon">biome<wbr>Noise1<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">Noise2D</span></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in <a href="https://github.com/Patbox/voxelsrv-server/blob/5ae8e49/src/default/worldgen/normal.ts#L24">src/default/worldgen/normal.ts:24</a></li>
+							<li>Defined in <a href="https://github.com/Patbox/voxelsrv-server/blob/ac4a012/src/default/worldgen/normal.ts#L19">src/default/worldgen/normal.ts:19</a></li>
 						</ul>
 					</aside>
 				</section>
@@ -184,7 +213,7 @@
 					<div class="tsd-signature tsd-kind-icon">biome<wbr>Noise2<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">Noise2D</span></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in <a href="https://github.com/Patbox/voxelsrv-server/blob/5ae8e49/src/default/worldgen/normal.ts#L25">src/default/worldgen/normal.ts:25</a></li>
+							<li>Defined in <a href="https://github.com/Patbox/voxelsrv-server/blob/ac4a012/src/default/worldgen/normal.ts#L20">src/default/worldgen/normal.ts:20</a></li>
 						</ul>
 					</aside>
 				</section>
@@ -194,7 +223,7 @@
 					<div class="tsd-signature tsd-kind-icon">biome<wbr>Noise3<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">Noise2D</span></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in <a href="https://github.com/Patbox/voxelsrv-server/blob/5ae8e49/src/default/worldgen/normal.ts#L26">src/default/worldgen/normal.ts:26</a></li>
+							<li>Defined in <a href="https://github.com/Patbox/voxelsrv-server/blob/ac4a012/src/default/worldgen/normal.ts#L21">src/default/worldgen/normal.ts:21</a></li>
 						</ul>
 					</aside>
 				</section>
@@ -204,7 +233,7 @@
 					<div class="tsd-signature tsd-kind-icon">biome<wbr>Spacing<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">number</span><span class="tsd-signature-symbol"> = 100</span></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in <a href="https://github.com/Patbox/voxelsrv-server/blob/5ae8e49/src/default/worldgen/normal.ts#L31">src/default/worldgen/normal.ts:31</a></li>
+							<li>Defined in <a href="https://github.com/Patbox/voxelsrv-server/blob/ac4a012/src/default/worldgen/normal.ts#L26">src/default/worldgen/normal.ts:26</a></li>
 						</ul>
 					</aside>
 				</section>
@@ -214,7 +243,7 @@
 					<div class="tsd-signature tsd-kind-icon">biomes<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">any</span></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in <a href="https://github.com/Patbox/voxelsrv-server/blob/5ae8e49/src/default/worldgen/normal.ts#L33">src/default/worldgen/normal.ts:33</a></li>
+							<li>Defined in <a href="https://github.com/Patbox/voxelsrv-server/blob/ac4a012/src/default/worldgen/normal.ts#L28">src/default/worldgen/normal.ts:28</a></li>
 						</ul>
 					</aside>
 				</section>
@@ -224,7 +253,7 @@
 					<div class="tsd-signature tsd-kind-icon">blocks<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">any</span></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in <a href="https://github.com/Patbox/voxelsrv-server/blob/5ae8e49/src/default/worldgen/normal.ts#L32">src/default/worldgen/normal.ts:32</a></li>
+							<li>Defined in <a href="https://github.com/Patbox/voxelsrv-server/blob/ac4a012/src/default/worldgen/normal.ts#L27">src/default/worldgen/normal.ts:27</a></li>
 						</ul>
 					</aside>
 				</section>
@@ -234,7 +263,7 @@
 					<div class="tsd-signature tsd-kind-icon">cave<wbr>Noise1<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">Noise3D</span></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in <a href="https://github.com/Patbox/voxelsrv-server/blob/5ae8e49/src/default/worldgen/normal.ts#L28">src/default/worldgen/normal.ts:28</a></li>
+							<li>Defined in <a href="https://github.com/Patbox/voxelsrv-server/blob/ac4a012/src/default/worldgen/normal.ts#L23">src/default/worldgen/normal.ts:23</a></li>
 						</ul>
 					</aside>
 				</section>
@@ -244,7 +273,7 @@
 					<div class="tsd-signature tsd-kind-icon">cave<wbr>Noise2<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">Noise3D</span></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in <a href="https://github.com/Patbox/voxelsrv-server/blob/5ae8e49/src/default/worldgen/normal.ts#L29">src/default/worldgen/normal.ts:29</a></li>
+							<li>Defined in <a href="https://github.com/Patbox/voxelsrv-server/blob/ac4a012/src/default/worldgen/normal.ts#L24">src/default/worldgen/normal.ts:24</a></li>
 						</ul>
 					</aside>
 				</section>
@@ -254,7 +283,7 @@
 					<div class="tsd-signature tsd-kind-icon">chunk<wbr>Height<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">number</span><span class="tsd-signature-symbol"> = 256</span></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in <a href="https://github.com/Patbox/voxelsrv-server/blob/5ae8e49/src/default/worldgen/normal.ts#L21">src/default/worldgen/normal.ts:21</a></li>
+							<li>Defined in <a href="https://github.com/Patbox/voxelsrv-server/blob/ac4a012/src/default/worldgen/normal.ts#L16">src/default/worldgen/normal.ts:16</a></li>
 						</ul>
 					</aside>
 				</section>
@@ -264,7 +293,7 @@
 					<div class="tsd-signature tsd-kind-icon">chunk<wbr>Witdh<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">number</span><span class="tsd-signature-symbol"> = 32</span></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in <a href="https://github.com/Patbox/voxelsrv-server/blob/5ae8e49/src/default/worldgen/normal.ts#L20">src/default/worldgen/normal.ts:20</a></li>
+							<li>Defined in <a href="https://github.com/Patbox/voxelsrv-server/blob/ac4a012/src/default/worldgen/normal.ts#L15">src/default/worldgen/normal.ts:15</a></li>
 						</ul>
 					</aside>
 				</section>
@@ -274,7 +303,7 @@
 					<div class="tsd-signature tsd-kind-icon">hash<span class="tsd-signature-symbol">:</span> <a href="_src_default_worldgen_normal_.normalgenerator.html#hash" class="tsd-signature-type">hash</a></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in <a href="https://github.com/Patbox/voxelsrv-server/blob/5ae8e49/src/default/worldgen/normal.ts#L34">src/default/worldgen/normal.ts:34</a></li>
+							<li>Defined in <a href="https://github.com/Patbox/voxelsrv-server/blob/ac4a012/src/default/worldgen/normal.ts#L29">src/default/worldgen/normal.ts:29</a></li>
 						</ul>
 					</aside>
 				</section>
@@ -283,8 +312,9 @@
 					<h3>name</h3>
 					<div class="tsd-signature tsd-kind-icon">name<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">string</span><span class="tsd-signature-symbol"> = &quot;normal&quot;</span></div>
 					<aside class="tsd-sources">
+						<p>Implementation of <a href="../interfaces/_src_lib_world_world_.iworldgenerator.html">IWorldGenerator</a>.<a href="../interfaces/_src_lib_world_world_.iworldgenerator.html#name">name</a></p>
 						<ul>
-							<li>Defined in <a href="https://github.com/Patbox/voxelsrv-server/blob/5ae8e49/src/default/worldgen/normal.ts#L19">src/default/worldgen/normal.ts:19</a></li>
+							<li>Defined in <a href="https://github.com/Patbox/voxelsrv-server/blob/ac4a012/src/default/worldgen/normal.ts#L14">src/default/worldgen/normal.ts:14</a></li>
 						</ul>
 					</aside>
 				</section>
@@ -294,7 +324,7 @@
 					<div class="tsd-signature tsd-kind-icon">plant<wbr>Seed<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">number</span></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in <a href="https://github.com/Patbox/voxelsrv-server/blob/5ae8e49/src/default/worldgen/normal.ts#L30">src/default/worldgen/normal.ts:30</a></li>
+							<li>Defined in <a href="https://github.com/Patbox/voxelsrv-server/blob/ac4a012/src/default/worldgen/normal.ts#L25">src/default/worldgen/normal.ts:25</a></li>
 						</ul>
 					</aside>
 				</section>
@@ -303,8 +333,9 @@
 					<h3>seed</h3>
 					<div class="tsd-signature tsd-kind-icon">seed<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">number</span></div>
 					<aside class="tsd-sources">
+						<p>Implementation of <a href="../interfaces/_src_lib_world_world_.iworldgenerator.html">IWorldGenerator</a>.<a href="../interfaces/_src_lib_world_world_.iworldgenerator.html#seed">seed</a></p>
 						<ul>
-							<li>Defined in <a href="https://github.com/Patbox/voxelsrv-server/blob/5ae8e49/src/default/worldgen/normal.ts#L23">src/default/worldgen/normal.ts:23</a></li>
+							<li>Defined in <a href="https://github.com/Patbox/voxelsrv-server/blob/ac4a012/src/default/worldgen/normal.ts#L18">src/default/worldgen/normal.ts:18</a></li>
 						</ul>
 					</aside>
 				</section>
@@ -314,13 +345,39 @@
 					<div class="tsd-signature tsd-kind-icon">water<wbr>Level<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">number</span><span class="tsd-signature-symbol"> = 65</span></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in <a href="https://github.com/Patbox/voxelsrv-server/blob/5ae8e49/src/default/worldgen/normal.ts#L22">src/default/worldgen/normal.ts:22</a></li>
+							<li>Defined in <a href="https://github.com/Patbox/voxelsrv-server/blob/ac4a012/src/default/worldgen/normal.ts#L17">src/default/worldgen/normal.ts:17</a></li>
 						</ul>
 					</aside>
 				</section>
 			</section>
 			<section class="tsd-panel-group tsd-member-group ">
 				<h2>Methods</h2>
+				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class">
+					<a name="_setupworkers" class="tsd-anchor"></a>
+					<h3>_setup<wbr>Workers</h3>
+					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
+						<li class="tsd-signature tsd-kind-icon">_setup<wbr>Workers<span class="tsd-signature-symbol">(</span>server<span class="tsd-signature-symbol">: </span><a href="_src_server_.server.html" class="tsd-signature-type">Server</a>, seed<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">void</span></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<ul>
+									<li>Defined in <a href="https://github.com/Patbox/voxelsrv-server/blob/ac4a012/src/default/worldgen/normal.ts#L70">src/default/worldgen/normal.ts:70</a></li>
+								</ul>
+							</aside>
+							<h4 class="tsd-parameters-title">Parameters</h4>
+							<ul class="tsd-parameters">
+								<li>
+									<h5>server: <a href="_src_server_.server.html" class="tsd-signature-type">Server</a></h5>
+								</li>
+								<li>
+									<h5>seed: <span class="tsd-signature-type">number</span></h5>
+								</li>
+							</ul>
+							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4>
+						</li>
+					</ul>
+				</section>
 				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class">
 					<a name="generatebasechunk" class="tsd-anchor"></a>
 					<h3>generate<wbr>Base<wbr>Chunk</h3>
@@ -330,8 +387,9 @@
 					<ul class="tsd-descriptions">
 						<li class="tsd-description">
 							<aside class="tsd-sources">
+								<p>Implementation of <a href="../interfaces/_src_lib_world_world_.iworldgenerator.html">IWorldGenerator</a>.<a href="../interfaces/_src_lib_world_world_.iworldgenerator.html#generatebasechunk">generateBaseChunk</a></p>
 								<ul>
-									<li>Defined in <a href="https://github.com/Patbox/voxelsrv-server/blob/5ae8e49/src/default/worldgen/normal.ts#L129">src/default/worldgen/normal.ts:129</a></li>
+									<li>Defined in <a href="https://github.com/Patbox/voxelsrv-server/blob/ac4a012/src/default/worldgen/normal.ts#L155">src/default/worldgen/normal.ts:155</a></li>
 								</ul>
 							</aside>
 							<h4 class="tsd-parameters-title">Parameters</h4>
@@ -351,13 +409,14 @@
 					<a name="generatechunk" class="tsd-anchor"></a>
 					<h3>generate<wbr>Chunk</h3>
 					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
-						<li class="tsd-signature tsd-kind-icon">generate<wbr>Chunk<span class="tsd-signature-symbol">(</span>id<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">types.XZ</span>, chunk<span class="tsd-signature-symbol">: </span><a href="../interfaces/_src_types_.iview3duint16.html" class="tsd-signature-type">IView3duint16</a>, world<span class="tsd-signature-symbol">: </span><a href="_src_lib_worlds_.world.html" class="tsd-signature-type">World</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">void</span><span class="tsd-signature-symbol">&gt;</span></li>
+						<li class="tsd-signature tsd-kind-icon">generate<wbr>Chunk<span class="tsd-signature-symbol">(</span>id<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">types.XZ</span>, chunk<span class="tsd-signature-symbol">: </span><a href="../interfaces/_src_types_.iview3duint16.html" class="tsd-signature-type">IView3duint16</a>, world<span class="tsd-signature-symbol">: </span><a href="_src_lib_world_world_.world.html" class="tsd-signature-type">World</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">void</span><span class="tsd-signature-symbol">&gt;</span></li>
 					</ul>
 					<ul class="tsd-descriptions">
 						<li class="tsd-description">
 							<aside class="tsd-sources">
+								<p>Implementation of <a href="../interfaces/_src_lib_world_world_.iworldgenerator.html">IWorldGenerator</a>.<a href="../interfaces/_src_lib_world_world_.iworldgenerator.html#generatechunk">generateChunk</a></p>
 								<ul>
-									<li>Defined in <a href="https://github.com/Patbox/voxelsrv-server/blob/5ae8e49/src/default/worldgen/normal.ts#L153">src/default/worldgen/normal.ts:153</a></li>
+									<li>Defined in <a href="https://github.com/Patbox/voxelsrv-server/blob/ac4a012/src/default/worldgen/normal.ts#L176">src/default/worldgen/normal.ts:176</a></li>
 								</ul>
 							</aside>
 							<h4 class="tsd-parameters-title">Parameters</h4>
@@ -369,7 +428,7 @@
 									<h5>chunk: <a href="../interfaces/_src_types_.iview3duint16.html" class="tsd-signature-type">IView3duint16</a></h5>
 								</li>
 								<li>
-									<h5>world: <a href="_src_lib_worlds_.world.html" class="tsd-signature-type">World</a></h5>
+									<h5>world: <a href="_src_lib_world_world_.world.html" class="tsd-signature-type">World</a></h5>
 								</li>
 							</ul>
 							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">void</span><span class="tsd-signature-symbol">&gt;</span></h4>
@@ -385,8 +444,9 @@
 					<ul class="tsd-descriptions">
 						<li class="tsd-description">
 							<aside class="tsd-sources">
+								<p>Implementation of <a href="../interfaces/_src_lib_world_world_.iworldgenerator.html">IWorldGenerator</a>.<a href="../interfaces/_src_lib_world_world_.iworldgenerator.html#getbiome">getBiome</a></p>
 								<ul>
-									<li>Defined in <a href="https://github.com/Patbox/voxelsrv-server/blob/5ae8e49/src/default/worldgen/normal.ts#L78">src/default/worldgen/normal.ts:78</a></li>
+									<li>Defined in <a href="https://github.com/Patbox/voxelsrv-server/blob/ac4a012/src/default/worldgen/normal.ts#L100">src/default/worldgen/normal.ts:100</a></li>
 								</ul>
 							</aside>
 							<h4 class="tsd-parameters-title">Parameters</h4>
@@ -411,8 +471,9 @@
 					<ul class="tsd-descriptions">
 						<li class="tsd-description">
 							<aside class="tsd-sources">
+								<p>Implementation of <a href="../interfaces/_src_lib_world_world_.iworldgenerator.html">IWorldGenerator</a>.<a href="../interfaces/_src_lib_world_world_.iworldgenerator.html#getbiomesat">getBiomesAt</a></p>
 								<ul>
-									<li>Defined in <a href="https://github.com/Patbox/voxelsrv-server/blob/5ae8e49/src/default/worldgen/normal.ts#L98">src/default/worldgen/normal.ts:98</a></li>
+									<li>Defined in <a href="https://github.com/Patbox/voxelsrv-server/blob/ac4a012/src/default/worldgen/normal.ts#L124">src/default/worldgen/normal.ts:124</a></li>
 								</ul>
 							</aside>
 							<h4 class="tsd-parameters-title">Parameters</h4>
@@ -456,8 +517,9 @@
 					<ul class="tsd-descriptions">
 						<li class="tsd-description">
 							<aside class="tsd-sources">
+								<p>Implementation of <a href="../interfaces/_src_lib_world_world_.iworldgenerator.html">IWorldGenerator</a>.<a href="../interfaces/_src_lib_world_world_.iworldgenerator.html#getblock">getBlock</a></p>
 								<ul>
-									<li>Defined in <a href="https://github.com/Patbox/voxelsrv-server/blob/5ae8e49/src/default/worldgen/normal.ts#L66">src/default/worldgen/normal.ts:66</a></li>
+									<li>Defined in <a href="https://github.com/Patbox/voxelsrv-server/blob/ac4a012/src/default/worldgen/normal.ts#L88">src/default/worldgen/normal.ts:88</a></li>
 								</ul>
 							</aside>
 							<h4 class="tsd-parameters-title">Parameters</h4>
@@ -488,7 +550,7 @@
 					<div class="tsd-signature tsd-kind-icon">features<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">object</span></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in <a href="https://github.com/Patbox/voxelsrv-server/blob/5ae8e49/src/default/worldgen/normal.ts#L35">src/default/worldgen/normal.ts:35</a></li>
+							<li>Defined in <a href="https://github.com/Patbox/voxelsrv-server/blob/ac4a012/src/default/worldgen/normal.ts#L30">src/default/worldgen/normal.ts:30</a></li>
 						</ul>
 					</aside>
 					<section class="tsd-panel tsd-member tsd-kind-variable tsd-parent-kind-object-literal">
@@ -497,7 +559,7 @@
 						<div class="tsd-signature tsd-kind-icon">birch<wbr>Tree<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">number</span><span class="tsd-signature-symbol"> = -2</span></div>
 						<aside class="tsd-sources">
 							<ul>
-								<li>Defined in <a href="https://github.com/Patbox/voxelsrv-server/blob/5ae8e49/src/default/worldgen/normal.ts#L37">src/default/worldgen/normal.ts:37</a></li>
+								<li>Defined in <a href="https://github.com/Patbox/voxelsrv-server/blob/ac4a012/src/default/worldgen/normal.ts#L32">src/default/worldgen/normal.ts:32</a></li>
 							</ul>
 						</aside>
 					</section>
@@ -507,7 +569,7 @@
 						<div class="tsd-signature tsd-kind-icon">cactus<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">number</span><span class="tsd-signature-symbol"> = -3</span></div>
 						<aside class="tsd-sources">
 							<ul>
-								<li>Defined in <a href="https://github.com/Patbox/voxelsrv-server/blob/5ae8e49/src/default/worldgen/normal.ts#L38">src/default/worldgen/normal.ts:38</a></li>
+								<li>Defined in <a href="https://github.com/Patbox/voxelsrv-server/blob/ac4a012/src/default/worldgen/normal.ts#L33">src/default/worldgen/normal.ts:33</a></li>
 							</ul>
 						</aside>
 					</section>
@@ -517,7 +579,27 @@
 						<div class="tsd-signature tsd-kind-icon">oak<wbr>Tree<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">number</span><span class="tsd-signature-symbol"> = -1</span></div>
 						<aside class="tsd-sources">
 							<ul>
-								<li>Defined in <a href="https://github.com/Patbox/voxelsrv-server/blob/5ae8e49/src/default/worldgen/normal.ts#L36">src/default/worldgen/normal.ts:36</a></li>
+								<li>Defined in <a href="https://github.com/Patbox/voxelsrv-server/blob/ac4a012/src/default/worldgen/normal.ts#L31">src/default/worldgen/normal.ts:31</a></li>
+							</ul>
+						</aside>
+					</section>
+					<section class="tsd-panel tsd-member tsd-kind-variable tsd-parent-kind-object-literal">
+						<a name="features.sprucetree" class="tsd-anchor"></a>
+						<h3>spruce<wbr>Tree</h3>
+						<div class="tsd-signature tsd-kind-icon">spruce<wbr>Tree<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">number</span><span class="tsd-signature-symbol"> = -4</span></div>
+						<aside class="tsd-sources">
+							<ul>
+								<li>Defined in <a href="https://github.com/Patbox/voxelsrv-server/blob/ac4a012/src/default/worldgen/normal.ts#L34">src/default/worldgen/normal.ts:34</a></li>
+							</ul>
+						</aside>
+					</section>
+					<section class="tsd-panel tsd-member tsd-kind-variable tsd-parent-kind-object-literal">
+						<a name="features.yellowoaktree" class="tsd-anchor"></a>
+						<h3>yellow<wbr>Oak<wbr>Tree</h3>
+						<div class="tsd-signature tsd-kind-icon">yellow<wbr>Oak<wbr>Tree<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">number</span><span class="tsd-signature-symbol"> = -5</span></div>
+						<aside class="tsd-sources">
+							<ul>
+								<li>Defined in <a href="https://github.com/Patbox/voxelsrv-server/blob/ac4a012/src/default/worldgen/normal.ts#L35">src/default/worldgen/normal.ts:35</a></li>
 							</ul>
 						</aside>
 					</section>
@@ -546,7 +628,13 @@
 								<a href="_src_default_worldgen_normal_.normalgenerator.html#constructor" class="tsd-kind-icon">constructor</a>
 							</li>
 							<li class=" tsd-kind-property tsd-parent-kind-class">
+								<a href="_src_default_worldgen_normal_.normalgenerator.html#_lastworkerused" class="tsd-kind-icon">_last<wbr>Worker<wbr>Used</a>
+							</li>
+							<li class=" tsd-kind-property tsd-parent-kind-class">
 								<a href="_src_default_worldgen_normal_.normalgenerator.html#_server" class="tsd-kind-icon">_server</a>
+							</li>
+							<li class=" tsd-kind-property tsd-parent-kind-class">
+								<a href="_src_default_worldgen_normal_.normalgenerator.html#_worker" class="tsd-kind-icon">_worker</a>
 							</li>
 							<li class=" tsd-kind-property tsd-parent-kind-class">
 								<a href="_src_default_worldgen_normal_.normalgenerator.html#biomenoise1" class="tsd-kind-icon">biome<wbr>Noise1</a>
@@ -594,6 +682,9 @@
 								<a href="_src_default_worldgen_normal_.normalgenerator.html#waterlevel" class="tsd-kind-icon">water<wbr>Level</a>
 							</li>
 							<li class=" tsd-kind-method tsd-parent-kind-class">
+								<a href="_src_default_worldgen_normal_.normalgenerator.html#_setupworkers" class="tsd-kind-icon">_setup<wbr>Workers</a>
+							</li>
+							<li class=" tsd-kind-method tsd-parent-kind-class">
 								<a href="_src_default_worldgen_normal_.normalgenerator.html#generatebasechunk" class="tsd-kind-icon">generate<wbr>Base<wbr>Chunk</a>
 							</li>
 							<li class=" tsd-kind-method tsd-parent-kind-class">
@@ -619,10 +710,10 @@
 						<a href="../modules/_src_default_worldgen_normal_.html#ndarray" class="tsd-kind-icon">ndarray</a>
 					</li>
 					<li class=" tsd-kind-function tsd-parent-kind-module tsd-is-not-exported">
-						<a href="../modules/_src_default_worldgen_normal_.html#dist2" class="tsd-kind-icon">dist2</a>
+						<a href="../modules/_src_default_worldgen_normal_.html#delay" class="tsd-kind-icon">delay</a>
 					</li>
 					<li class=" tsd-kind-function tsd-parent-kind-module tsd-is-not-exported">
-						<a href="../modules/_src_default_worldgen_normal_.html#gethighestblock" class="tsd-kind-icon">get<wbr>Highest<wbr>Block</a>
+						<a href="../modules/_src_default_worldgen_normal_.html#dist2" class="tsd-kind-icon">dist2</a>
 					</li>
 					<li class=" tsd-kind-function tsd-parent-kind-module tsd-is-not-exported">
 						<a href="../modules/_src_default_worldgen_normal_.html#pastestructure" class="tsd-kind-icon">paste<wbr>Structure</a>
