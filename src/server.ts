@@ -41,7 +41,7 @@ export class Server extends EventEmitter implements ICoreServer {
 	console: Console;
 
 	config: IServerConfig;
-	heartbeatID: number;
+	heartbeatUpdater: any;
 
 	overrides: {[i: string]: [string, string]};
 
@@ -138,8 +138,19 @@ export class Server extends EventEmitter implements ICoreServer {
 
 		await this.initDefWorld();
 
-		if (this.config.public) this.heartbeatPing();
+		if (this.config.public) {
+			this.heartbeatPing();
 
+			this.heartbeatUpdater = setInterval(() => {
+				fetch(`${heartbeatServer}/api/servers`)
+					.then((res) => res.json())
+					.then((json) => {
+						if (json[`${this.config.address}:${this.config.port}`] == undefined) {
+							this.heartbeatPing();
+						}
+					});
+			}, 50000)
+		}
 		this.status = 'active';
 
 		this.log.normal([
@@ -151,7 +162,7 @@ export class Server extends EventEmitter implements ICoreServer {
 	}
 
 	heartbeatPing() {
-		fetch(`http://${heartbeatServer}/api/addServer?ip=${this.config.address}:${this.config.port}`)
+		fetch(`${heartbeatServer}/api/addServer?ip=${this.config.address}:${this.config.port}&type=0`)
 			.then((res) => res.json())
 			.then((json) => {});
 	}
@@ -176,7 +187,7 @@ export class Server extends EventEmitter implements ICoreServer {
 
 		let loginTimeout = true;
 
-		socket.on('LoginResponse', (data: ILoginResponse) => {
+		socket.on('LoginResponse', async (data: ILoginResponse) => {
 			loginTimeout = false;
 
 			if (this.players.isBanned(data.uuid)) {
@@ -195,16 +206,16 @@ export class Server extends EventEmitter implements ICoreServer {
 				return;
 			}
 
-			const check = verifyLogin(data);
-			if (data.username == '' || data.username == null || data.username == undefined) data.username = 'Player' + Math.round(Math.random() * 100000);
+			const check = await this.authenticatePlayer(data);
 
 			const id = data.username.toLowerCase();
 
-			if (check != 0) {
+			if (check != null) {
 				socket.send('PlayerKick', { reason: check, time: Date.now() });
 				socket.close();
 				return;
 			}
+
 			if (this.players.get(id) != null) {
 				socket.send('PlayerKick', {
 					reason: 'Player with that nickname is already online!',
@@ -304,7 +315,19 @@ export class Server extends EventEmitter implements ICoreServer {
 		}, 10000);
 	}
 
+	async authenticatePlayer(data: ILoginResponse) {
+		if (data == undefined) return 'No data!';
+		else if (data.username == undefined || invalidNicknameRegex.test(data.username)) return 'Illegal username - ' + data.username;
+		else if (data.protocol == undefined || data.protocol != serverProtocol) return 'Unsupported protocol';
+
+		return null;
+	}
+
 	stopServer() {
+		if (this.heartbeatUpdater != undefined) {
+			clearInterval(this.heartbeatUpdater);
+		}
+
 		this.status = 'stopping';
 
 		this.emit('server-stop', this);
@@ -314,6 +337,7 @@ export class Server extends EventEmitter implements ICoreServer {
 
 		Object.values(this.players.getAll()).forEach((player) => {
 			player.kick('Server close');
+			player.socket.close();
 		});
 
 		Object.values(this.worlds.worlds).forEach((world) => {
@@ -352,14 +376,6 @@ export class Server extends EventEmitter implements ICoreServer {
 			if (err) this.log.error(`Cant save config ${namespace}/${config}! Reason: ${err}`);
 		});
 	}
-}
-
-function verifyLogin(data) {
-	if (data == undefined) return 'No data!';
-	else if (data.username == undefined || invalidNicknameRegex.test(data.username)) return 'Illegal username - ' + data.username;
-	else if (data.protocol == undefined || data.protocol != serverProtocol) return 'Unsupported protocol';
-
-	return 0;
 }
 
 class Console {

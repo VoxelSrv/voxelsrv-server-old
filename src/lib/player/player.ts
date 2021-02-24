@@ -29,6 +29,7 @@ export class PlayerManager implements ICorePlayerManager {
 	ipbanlist: { [index: string]: string } = {};
 	cache: { [index: string]: { [index: string]: string } } = {};
 	chunksToSend = [];
+
 	_server: Server;
 	_entities: EntityManager;
 	_worlds: WorldManager;
@@ -46,16 +47,20 @@ export class PlayerManager implements ICorePlayerManager {
 		this.cache.ip = this._server.loadConfig('', '.cacheip');
 
 		server.on('entity-create', (data) => {
-			this.sendPacketAll('EntityCreate', {
-				uuid: data.uuid,
-				data: JSON.stringify(data.entity.getObject().data),
-			});
+			this.sendPacketAllExcept(
+				'EntityCreate',
+				{
+					uuid: data.uuid,
+					data: JSON.stringify(data.entity.getObject().data),
+				},
+				this.players[data.uuid]
+			);
 		});
 		server.on('entity-move', (data) => {
-			this.sendPacketAll('EntityMove', data);
+			this.sendPacketAllExcept('EntityMove', data, this.players[data.uuid]);
 		});
 		server.on('entity-remove', (data) => {
-			this.sendPacketAll('EntityRemove', data);
+			this.sendPacketAllExcept('EntityRemove', data, this.players[data.uuid]);
 		});
 
 		server.on('server-stop', () => {
@@ -122,6 +127,12 @@ export class PlayerManager implements ICorePlayerManager {
 		});
 	}
 
+	sendPacketAllExcept(type: string, data: any, player: Player) {
+		Object.values(this.players).forEach((p: Player) => {
+			if (p != player) p.sendPacket(type, data);
+		});
+	}
+
 	isBanned(id: string): boolean {
 		return this.banlist[id] != undefined;
 	}
@@ -182,6 +193,7 @@ export class Player implements ICorePlayer {
 		size: 5,
 		result: null,
 	};
+
 	cache = {
 		lastBlockCheck: {
 			x: 0,
@@ -190,6 +202,10 @@ export class Player implements ICorePlayer {
 			status: false,
 		},
 	};
+
+	rateLimitChatMessageCounter: number = 0;
+	rateLimitChatMessageTime: number = Date.now();
+	rateLimitChatMessageLastClear: number = Date.now();
 
 	_chunksToSend = [];
 	_chunksInterval: any;
@@ -375,7 +391,7 @@ export class Player implements ICorePlayer {
 		this.sendPacket('PlayerKick', { reason: reason, date: Date.now() });
 		setTimeout(() => {
 			this.socket.close();
-		}, 50);
+		}, 20);
 	}
 
 	ban(reason: string = 'Unknown reason') {
@@ -566,10 +582,14 @@ export class Player implements ICorePlayer {
 		} else if (type == 'main' && data.slot == inventory.selected) {
 			const item = inventory.items[data.slot]?.id;
 
-			this._players.sendPacketAll('EntityHeldItem', {
-				uuid: this.entity.id,
-				id: item,
-			});
+			this._players.sendPacketAllExcept(
+				'EntityHeldItem',
+				{
+					uuid: this.entity.id,
+					id: item,
+				},
+				this
+			);
 
 			this.entity.data.helditem = item;
 		}
@@ -587,6 +607,23 @@ export class Player implements ICorePlayer {
 
 	action_chatmessage(data: pClient.IActionMessage & { cancel: boolean }) {
 		data.cancel = false;
+
+		if (this._server.config.rateLimitChatMessages) {
+			this.rateLimitChatMessageCounter = this.rateLimitChatMessageCounter + 1;
+			this.rateLimitChatMessageTime = Date.now();
+			this.rateLimitChatMessageLastClear = this.rateLimitChatMessageLastClear + 100;
+
+			if (this.rateLimitChatMessageLastClear + 2000 < this.rateLimitChatMessageTime) {
+				this.rateLimitChatMessageLastClear = Date.now();
+				this.rateLimitChatMessageCounter = this.rateLimitChatMessageCounter - 1;
+			}
+
+			if (this.rateLimitChatMessageCounter > 10) {
+				this.kick('Spamming in chat');
+				return;
+			}
+		}
+
 		for (let x = 0; x <= 5; x++) {
 			this._server.emit(`player-message-${x}`, this, data);
 			if (data.cancel) return;
@@ -607,7 +644,12 @@ export class Player implements ICorePlayer {
 				}
 			} else this.send(new chat.MessageBuilder().red("This command doesn't exist! Check /help for list of available commands."));
 		} else if (data.message != '') {
-			const msg = new chat.MessageBuilder().white(this.displayName).hex('#eeeeee').text(' » ').white(data.message);
+			let shortMessage: string = data.message;
+			if (data.message.length > 256) {
+				shortMessage = data.message.slice(0, 256);
+			}
+
+			const msg = new chat.MessageBuilder().white(this.displayName).hex('#eeeeee').text(' » ').white(shortMessage);
 
 			this._server.emit('chat-message', msg, this);
 

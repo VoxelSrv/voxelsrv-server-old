@@ -1,6 +1,6 @@
 import * as types from './types';
 
-export const serverVersion = '0.2.0-beta.19.2';
+export const serverVersion = '0.2.0-beta.19.3';
 export const serverProtocol = 3;
 
 export interface IServerConfig {
@@ -22,6 +22,7 @@ export interface IServerConfig {
 	};
 	plugins: string[];
 	consoleInput: boolean;
+	rateLimitChatMessages: boolean;
 	[index: string]: any;
 }
 
@@ -44,9 +45,10 @@ export const serverDefaultConfig: IServerConfig = {
 	},
 	plugins: [],
 	consoleInput: true,
+	rateLimitChatMessages: true,
 	//logs: true
 };
 
 export const invalidNicknameRegex = new RegExp('[^a-zA-Z0-9_]');
 
-export const heartbeatServer = 'pb4.eu:9001';
+export const heartbeatServer = 'https://voxelsrv.pb4.eu';
