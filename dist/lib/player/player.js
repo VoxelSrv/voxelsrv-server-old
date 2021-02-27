@@ -374,16 +374,14 @@ class Player {
             for (let x = 0 - w; x <= 0 + w; x++) {
                 for (let z = 0 - w; z <= 0 + w; z++) {
                     const cid = [chunk[0] + x, chunk[1] + z];
-                    if (this.world.isChunkInBounds(cid)) {
-                        const id = cid.toString();
-                        if (loadedchunks[id] == undefined) {
-                            this.chunks[id] = true;
-                            this._chunksToSend.push(cid);
-                        }
-                        if (this.world.chunks[cid.toString()] != undefined)
-                            this.world.chunks[cid.toString()].keepAlive();
-                        loadedchunks[cid.toString()] = false;
+                    const id = cid.toString();
+                    if (loadedchunks[id] == undefined) {
+                        this.chunks[id] = true;
+                        this._chunksToSend.push(cid);
                     }
+                    if (this.world.chunks[cid.toString()] != undefined)
+                        this.world.chunks[cid.toString()].keepAlive();
+                    loadedchunks[cid.toString()] = false;
                 }
             }
         }

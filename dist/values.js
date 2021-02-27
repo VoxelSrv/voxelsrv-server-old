@@ -1,7 +1,7 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.heartbeatServer = exports.invalidNicknameRegex = exports.serverDefaultConfig = exports.serverProtocol = exports.serverVersion = void 0;
-exports.serverVersion = '0.2.0-beta.19.3';
+exports.serverVersion = '0.2.0-beta.20';
 exports.serverProtocol = 3;
 exports.serverDefaultConfig = {
     port: 3000,
@@ -19,10 +19,13 @@ exports.serverDefaultConfig = {
         generator: 'normal',
         save: true,
         worldGenWorkers: 1,
+        borderBlock: 'barrier',
     },
     plugins: [],
     consoleInput: true,
     rateLimitChatMessages: true,
+    useWSS: false,
+    wssOptions: { key: '', cert: '' },
 };
 exports.invalidNicknameRegex = new RegExp('[^a-zA-Z0-9_]');
 exports.heartbeatServer = 'https://voxelsrv.pb4.eu';

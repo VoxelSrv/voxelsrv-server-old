@@ -25,21 +25,29 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.startServer = void 0;
 const fs = __importStar(require("fs"));
 const ws_1 = __importDefault(require("ws"));
+const https_1 = __importDefault(require("https"));
+const http_1 = __importDefault(require("http"));
 const socket_1 = require("./socket");
 const server_1 = require("./server");
 function startServer() {
     let json = '{"port": 3000}';
     if (fs.existsSync('./config/') && fs.existsSync('./config/config.json'))
         json = fs.readFileSync('./config/config.json').toString();
-    let cfg = { port: 3000 };
+    let cfg = { port: 3000, useWSS: false, wssOptions: { key: '', cert: '' } };
     try {
         cfg = JSON.parse(json.toString());
     }
     catch (e) {
-        cfg = { port: 3000 };
+        cfg = { port: 3000, useWSS: false, wssOptions: { key: '', cert: '' } };
         fs.unlinkSync('./config/config.json');
     }
-    const wss = new ws_1.default.Server({ port: cfg.port });
+    const httpServer = cfg.useWSS
+        ? https_1.default.createServer({
+            cert: fs.readFileSync(cfg.wssOptions.cert),
+            key: fs.readFileSync(cfg.wssOptions.key),
+        })
+        : http_1.default.createServer();
+    const wss = new ws_1.default.Server({ server: httpServer });
     const server = new server_1.Server();
     wss.on('connection', (s, req) => {
         // @ts-ignore
@@ -49,6 +57,7 @@ function startServer() {
     server.on('server-stopped', () => {
         process.exit();
     });
+    httpServer.listen(cfg.port);
     return server;
 }
 exports.startServer = startServer;

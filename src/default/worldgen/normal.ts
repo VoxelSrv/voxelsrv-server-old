@@ -9,7 +9,6 @@ import ndarray = require('ndarray');
 import type { World, IWorldGenerator } from '../../lib/world/world';
 import type { Server } from '../../server';
 
-
 export default class NormalGenerator implements IWorldGenerator {
 	name: string = 'normal';
 	chunkWitdh: number = 32;
@@ -41,7 +40,7 @@ export default class NormalGenerator implements IWorldGenerator {
 
 	constructor(seed: number, server: Server) {
 		this._server = server;
-		
+
 		this._setupWorkers(server, seed);
 
 		this.seed = seed;
@@ -71,7 +70,7 @@ export default class NormalGenerator implements IWorldGenerator {
 		const overrides = server.overrides['worldGenWorkers'];
 		for (let y = 0; y < server.config.world.worldGenWorkers; y++) {
 			const worker = new Worker(overrides[0] + 'normalWorker' + overrides[1]);
-				
+
 			// @ts-ignore
 			if (worker.setMaxListeners != undefined) {
 				// @ts-ignore
@@ -83,6 +82,20 @@ export default class NormalGenerator implements IWorldGenerator {
 				x.setupGenerator(seed, server.registry.blockPalette);
 			});
 		}
+	}
+
+	async _getWorker() {
+		this._lastWorkerUsed++;
+		if (this._lastWorkerUsed >= this._worker.length) this._lastWorkerUsed = 0;
+
+		if (this._worker[this._lastWorkerUsed] == undefined) {
+			return await new Promise(async (resolve, reject) => {
+				while (this._worker[this._lastWorkerUsed] == undefined) {
+					await delay(100);
+				}
+				resolve(this._worker[this._lastWorkerUsed]);
+			});
+		} else return this._worker[this._lastWorkerUsed];
 	}
 
 	getBlock(x: number, y: number, z: number, biomes): number {
@@ -152,25 +165,8 @@ export default class NormalGenerator implements IWorldGenerator {
 		};
 	}
 
-	generateBaseChunk(id: types.XZ, chunk: types.IView3duint16): Promise<types.IView3duint16> {
-		if (this._lastWorkerUsed >= this._worker.length) this._lastWorkerUsed = 0;
-
-		if (this._worker[this._lastWorkerUsed] == undefined) {
-			return new Promise(async (resolve, reject) => {
-				while (this._worker[this._lastWorkerUsed] == undefined) {
-					await delay(100);
-				}
-				resolve(
-					new ndarray(await this._worker[this._lastWorkerUsed].generateBaseChunk(id, chunk), [this.chunkWitdh, this.chunkHeight, this.chunkWitdh])
-				);
-			});
-		} else
-			return this._worker[this._lastWorkerUsed]
-				.generateBaseChunk(id, chunk)
-				.then((data) => {
-					return new ndarray(data, [this.chunkWitdh, this.chunkHeight, this.chunkWitdh]);
-				})
-				.catch(() => {});
+	async generateBaseChunk(id: types.XZ, chunk: types.IView3duint16): Promise<types.IView3duint16> {
+		return new ndarray(await (await this._getWorker()).generateBaseChunk(id, chunk), [this.chunkWitdh, this.chunkHeight, this.chunkWitdh]);
 	}
 
 	async generateChunk(id: types.XZ, chunk: types.IView3duint16, world: World) {
@@ -180,7 +176,7 @@ export default class NormalGenerator implements IWorldGenerator {
 		let x: number, y: number, z: number;
 		let block: number;
 		let biome;
-		let chunkBase = new ndarray(new Uint16Array(chunk.data.slice(0)), [this.chunkWitdh, this.chunkHeight, this.chunkWitdh]);
+		let chunkBase: types.IView3duint16 = new ndarray(new Uint16Array(chunk.data.slice(0)), [this.chunkWitdh, this.chunkHeight, this.chunkWitdh]);
 
 		function get(y1: number) {
 			return chunkBase.get(x, y1, z);

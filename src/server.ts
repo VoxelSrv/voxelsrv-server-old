@@ -113,7 +113,10 @@ export class Server extends EventEmitter implements ICoreServer {
 			{ text: `[Protocol: ${serverProtocol}]`, color: 'lightblue' },
 		]);
 
-		this.config = { ...serverDefaultConfig, ...this.loadConfig('', 'config') };
+		const tmpConfig = this.loadConfig('', 'config');
+
+		this.config = { ...serverDefaultConfig, ...tmpConfig };
+		this.config.world = {...serverDefaultConfig.world, ...tmpConfig.world }
 
 		this.permissions.loadGroups(this.loadConfig('', 'permissions'));
 		this.saveConfig('', 'config', this.config);
@@ -142,10 +145,12 @@ export class Server extends EventEmitter implements ICoreServer {
 			this.heartbeatPing();
 
 			this.heartbeatUpdater = setInterval(() => {
+				const address = (this.config.useWSS ? 'wss://' : 'ws://') + `${this.config.address}:${this.config.port}`;
+
 				fetch(`${heartbeatServer}/api/servers`)
 					.then((res) => res.json())
 					.then((json) => {
-						if (json[`${this.config.address}:${this.config.port}`] == undefined) {
+						if (json[address] == undefined) {
 							this.heartbeatPing();
 						}
 					});
@@ -162,7 +167,9 @@ export class Server extends EventEmitter implements ICoreServer {
 	}
 
 	heartbeatPing() {
-		fetch(`${heartbeatServer}/api/addServer?ip=${this.config.address}:${this.config.port}&type=0`)
+		const address = (this.config.useWSS ? 'wss://' : 'ws://') + `${this.config.address}:${this.config.port}`;
+
+		fetch(`${heartbeatServer}/api/addServer?ip=${address}&type=0`)
 			.then((res) => res.json())
 			.then((json) => {});
 	}

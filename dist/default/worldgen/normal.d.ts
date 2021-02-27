@@ -32,6 +32,7 @@ export default class NormalGenerator implements IWorldGenerator {
     _lastWorkerUsed: number;
     constructor(seed: number, server: Server);
     _setupWorkers(server: Server, seed: number): void;
+    _getWorker(): Promise<any>;
     getBlock(x: number, y: number, z: number, biomes: any): number;
     getBiome(x: number, z: number): biome.BaseBiome;
     getBiomesAt(x: number, z: number): {

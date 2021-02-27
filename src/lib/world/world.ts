@@ -17,6 +17,7 @@ import ndarray = require('ndarray');
 import { WorldManager } from './manager';
 import { getRandomSeed, globalToChunk } from './helper';
 
+
 export class World implements ICoreWorld {
 	name: string;
 	seed: number;
@@ -29,6 +30,8 @@ export class World implements ICoreWorld {
 	autoSaveInterval: any;
 	chunkUnloadInterval: any;
 	active: boolean = false;
+
+	_borderChunkArray: types.IView3duint16 = null;
 
 	_server: Server;
 	_worldMen: WorldManager;
@@ -77,8 +80,7 @@ export class World implements ICoreWorld {
 		const idS = id.toString();
 
 		if (!this.isChunkInBounds(id)) {
-			const chunk = new Chunk(id, new ndarray(new Uint16Array(32 * 256 * 32), [32, 256, 32]), {}, false);
-			return chunk;
+			return this.getBorderChunk(id);
 		}
 
 		if (this.chunks[idS] != undefined && this.chunks[idS].metadata.stage > 0) {
@@ -101,6 +103,15 @@ export class World implements ICoreWorld {
 		}
 
 		return this.chunks[idS];
+	}
+
+	getBorderChunk(id: types.XZ) {
+		if (this._borderChunkArray == null) {
+			this._borderChunkArray = new ndarray(new Uint16Array(262144), [32, 256, 32]);
+			this._borderChunkArray.data.fill(this._server.registry.blockPalette[this._server.config.world.borderBlock] || 1);
+		}
+
+		return new Chunk(id, this._borderChunkArray, {}, false);
 	}
 
 	getNeighborIDsChunks(id: types.XZ): types.XZ[] {

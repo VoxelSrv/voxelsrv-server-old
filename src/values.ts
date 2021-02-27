@@ -1,6 +1,6 @@
 import * as types from './types';
 
-export const serverVersion = '0.2.0-beta.19.3';
+export const serverVersion = '0.2.0-beta.20';
 export const serverProtocol = 3;
 
 export interface IServerConfig {
@@ -19,10 +19,13 @@ export interface IServerConfig {
 		generator: string;
 		save: boolean;
 		worldGenWorkers: number;
+		borderBlock: string;
 	};
 	plugins: string[];
 	consoleInput: boolean;
 	rateLimitChatMessages: boolean;
+	useWSS: boolean;
+	wssOptions: { key: string; cert: string };
 	[index: string]: any;
 }
 
@@ -42,10 +45,13 @@ export const serverDefaultConfig: IServerConfig = {
 		generator: 'normal',
 		save: true,
 		worldGenWorkers: 1,
+		borderBlock: 'barrier',
 	},
 	plugins: [],
 	consoleInput: true,
 	rateLimitChatMessages: true,
+	useWSS: false,
+	wssOptions: { key: '', cert: '' },
 	//logs: true
 };
 

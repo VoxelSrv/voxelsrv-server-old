@@ -17,11 +17,13 @@ export declare class World implements ICoreWorld {
     autoSaveInterval: any;
     chunkUnloadInterval: any;
     active: boolean;
+    _borderChunkArray: types.IView3duint16;
     _server: Server;
     _worldMen: WorldManager;
     constructor(name: string, seed: number, generator: string, ver: number, server: Server);
     stringToID(id: string): types.XZ;
     getChunk(id: types.XZ): Promise<Chunk>;
+    getBorderChunk(id: types.XZ): Chunk;
     getNeighborIDsChunks(id: types.XZ): types.XZ[];
     existChunk(id: types.XZ): boolean;
     saveAll(): void;

@@ -445,16 +445,15 @@ export class Player implements ICorePlayer {
 				for (let z = 0 - w; z <= 0 + w; z++) {
 					const cid: types.XZ = [chunk[0] + x, chunk[1] + z];
 
-					if (this.world.isChunkInBounds(cid)) {
-						const id = cid.toString();
+					const id = cid.toString();
 
-						if (loadedchunks[id] == undefined) {
-							this.chunks[id] = true;
-							this._chunksToSend.push(cid);
-						}
-						if (this.world.chunks[cid.toString()] != undefined) this.world.chunks[cid.toString()].keepAlive();
-						loadedchunks[cid.toString()] = false;
+					if (loadedchunks[id] == undefined) {
+						this.chunks[id] = true;
+						this._chunksToSend.push(cid);
 					}
+
+					if (this.world.chunks[cid.toString()] != undefined) this.world.chunks[cid.toString()].keepAlive();
+					loadedchunks[cid.toString()] = false;
 				}
 			}
 		}

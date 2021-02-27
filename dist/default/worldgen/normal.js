@@ -82,6 +82,21 @@ class NormalGenerator {
             });
         }
     }
+    async _getWorker() {
+        this._lastWorkerUsed++;
+        if (this._lastWorkerUsed >= this._worker.length)
+            this._lastWorkerUsed = 0;
+        if (this._worker[this._lastWorkerUsed] == undefined) {
+            return await new Promise(async (resolve, reject) => {
+                while (this._worker[this._lastWorkerUsed] == undefined) {
+                    await delay(100);
+                }
+                resolve(this._worker[this._lastWorkerUsed]);
+            });
+        }
+        else
+            return this._worker[this._lastWorkerUsed];
+    }
     getBlock(x, y, z, biomes) {
         let value = 0;
         let key = '';
@@ -150,24 +165,8 @@ class NormalGenerator {
             size,
         };
     }
-    generateBaseChunk(id, chunk) {
-        if (this._lastWorkerUsed >= this._worker.length)
-            this._lastWorkerUsed = 0;
-        if (this._worker[this._lastWorkerUsed] == undefined) {
-            return new Promise(async (resolve, reject) => {
-                while (this._worker[this._lastWorkerUsed] == undefined) {
-                    await delay(100);
-                }
-                resolve(new ndarray(await this._worker[this._lastWorkerUsed].generateBaseChunk(id, chunk), [this.chunkWitdh, this.chunkHeight, this.chunkWitdh]));
-            });
-        }
-        else
-            return this._worker[this._lastWorkerUsed]
-                .generateBaseChunk(id, chunk)
-                .then((data) => {
-                return new ndarray(data, [this.chunkWitdh, this.chunkHeight, this.chunkWitdh]);
-            })
-                .catch(() => { });
+    async generateBaseChunk(id, chunk) {
+        return new ndarray(await (await this._getWorker()).generateBaseChunk(id, chunk), [this.chunkWitdh, this.chunkHeight, this.chunkWitdh]);
     }
     async generateChunk(id, chunk, world) {
         const xoff = id[0] * this.chunkWitdh;

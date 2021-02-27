@@ -103,7 +103,9 @@ class Server extends events_1.EventEmitter {
             { text: `Starting VoxelSRV server version: ${values_1.serverVersion} `, color: 'yellow' },
             { text: `[Protocol: ${values_1.serverProtocol}]`, color: 'lightblue' },
         ]);
-        this.config = { ...values_1.serverDefaultConfig, ...this.loadConfig('', 'config') };
+        const tmpConfig = this.loadConfig('', 'config');
+        this.config = { ...values_1.serverDefaultConfig, ...tmpConfig };
+        this.config.world = { ...values_1.serverDefaultConfig.world, ...tmpConfig.world };
         this.permissions.loadGroups(this.loadConfig('', 'permissions'));
         this.saveConfig('', 'config', this.config);
         this.emit('server-config-update', this.config);
@@ -122,10 +124,11 @@ class Server extends events_1.EventEmitter {
         if (this.config.public) {
             this.heartbeatPing();
             this.heartbeatUpdater = setInterval(() => {
+                const address = (this.config.useWSS ? 'wss://' : 'ws://') + `${this.config.address}:${this.config.port}`;
                 node_fetch_1.default(`${values_1.heartbeatServer}/api/servers`)
                     .then((res) => res.json())
                     .then((json) => {
-                    if (json[`${this.config.address}:${this.config.port}`] == undefined) {
+                    if (json[address] == undefined) {
                         this.heartbeatPing();
                     }
                 });
@@ -139,7 +142,8 @@ class Server extends events_1.EventEmitter {
         this.emit('server-started', this);
     }
     heartbeatPing() {
-        node_fetch_1.default(`${values_1.heartbeatServer}/api/addServer?ip=${this.config.address}:${this.config.port}&type=0`)
+        const address = (this.config.useWSS ? 'wss://' : 'ws://') + `${this.config.address}:${this.config.port}`;
+        node_fetch_1.default(`${values_1.heartbeatServer}/api/addServer?ip=${address}&type=0`)
             .then((res) => res.json())
             .then((json) => { });
     }

@@ -31,6 +31,7 @@ const helper_1 = require("./helper");
 class World {
     constructor(name, seed, generator, ver, server) {
         this.active = false;
+        this._borderChunkArray = null;
         this._server = server;
         this._worldMen = server.worlds;
         this.name = name;
@@ -72,8 +73,7 @@ class World {
     async getChunk(id) {
         const idS = id.toString();
         if (!this.isChunkInBounds(id)) {
-            const chunk = new Chunk(id, new ndarray(new Uint16Array(32 * 256 * 32), [32, 256, 32]), {}, false);
-            return chunk;
+            return this.getBorderChunk(id);
         }
         if (this.chunks[idS] != undefined && this.chunks[idS].metadata.stage > 0) {
             this.chunks[idS].keepAlive();
@@ -93,6 +93,13 @@ class World {
             this.chunks[idS].metadata.stage = 1;
         }
         return this.chunks[idS];
+    }
+    getBorderChunk(id) {
+        if (this._borderChunkArray == null) {
+            this._borderChunkArray = new ndarray(new Uint16Array(262144), [32, 256, 32]);
+            this._borderChunkArray.data.fill(this._server.registry.blockPalette[this._server.config.world.borderBlock] || 1);
+        }
+        return new Chunk(id, this._borderChunkArray, {}, false);
     }
     getNeighborIDsChunks(id) {
         const obj = [];
