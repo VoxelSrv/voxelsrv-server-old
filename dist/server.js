@@ -33,6 +33,7 @@ const chat_1 = require("./lib/chat");
 const chat = __importStar(require("./lib/chat"));
 const semver = __importStar(require("semver"));
 const node_fetch_1 = __importDefault(require("node-fetch"));
+const uuid_1 = require("uuid");
 const normal_1 = __importDefault(require("./default/worldgen/normal"));
 const flat_1 = __importDefault(require("./default/worldgen/flat"));
 const values_1 = require("./values");
@@ -155,6 +156,7 @@ class Server extends events_1.EventEmitter {
                 console.log(sender, type, data);
             };
         }
+        const secret = this.config.requireAuth ? `${this.config.name}-${uuid_1.v4()}-${uuid_1.v4()}` : '';
         socket.send('LoginRequest', {
             name: this.config.name,
             motd: this.config.motd,
@@ -162,12 +164,20 @@ class Server extends events_1.EventEmitter {
             maxPlayers: this.config.maxplayers,
             onlinePlayers: this.playerCount,
             software: `VoxelSrv-Server`,
+            auth: this.config.requireAuth,
+            secret: secret,
         });
         let loginTimeout = true;
-        socket.on('LoginResponse', async (data) => {
+        socket.on('LoginResponse', async (loginData) => {
             loginTimeout = false;
-            if (this.players.isBanned(data.uuid)) {
-                socket.send('PlayerKick', { reason: 'You are banned!\nReason: ' + this.players.getBanReason(data.uuid), time: Date.now() });
+            const check = await this.authenticatePlayer(loginData, secret);
+            if (!check.valid) {
+                socket.send('PlayerKick', { reason: check.message, time: Date.now() });
+                socket.close();
+                return;
+            }
+            if (this.players.isBanned(loginData.uuid)) {
+                socket.send('PlayerKick', { reason: 'You are banned!\nReason: ' + this.players.getBanReason(loginData.uuid), time: Date.now() });
                 socket.close();
                 return;
             }
@@ -181,14 +191,7 @@ class Server extends events_1.EventEmitter {
                 socket.close();
                 return;
             }
-            const check = await this.authenticatePlayer(data);
-            const id = data.username.toLowerCase();
-            if (check != null) {
-                socket.send('PlayerKick', { reason: check, time: Date.now() });
-                socket.close();
-                return;
-            }
-            if (this.players.get(id) != null) {
+            if (this.players.get(loginData.uuid) != null) {
                 socket.send('PlayerKick', {
                     reason: 'Player with that nickname is already online!',
                     time: Date.now(),
@@ -196,8 +199,8 @@ class Server extends events_1.EventEmitter {
                 socket.close();
             }
             else {
-                this.emit('player-connection', id, socket);
-                var player = this.players.create(id, data, socket);
+                this.emit('player-connection', loginData.uuid, socket);
+                var player = this.players.create(loginData.uuid, loginData, socket);
                 socket.send('LoginSuccess', {
                     xPos: player.entity.data.position[0],
                     yPos: player.entity.data.position[1],
@@ -223,7 +226,7 @@ class Server extends events_1.EventEmitter {
                 chat.event.emit('system-message', joinMsg);
                 this.playerCount = this.playerCount + 1;
                 socket.on('close', () => {
-                    this.emit('player-disconnect', id);
+                    this.emit('player-disconnect', loginData.uuid);
                     const leaveMsg = new chat_1.MessageBuilder().hex('#f59898').text(`${player.displayName} left the game!`);
                     chat.sendMlt([this.console.executorchat, ...Object.values(this.players.getAll())], leaveMsg);
                     chat.event.emit('system-message', leaveMsg);
@@ -270,14 +273,32 @@ class Server extends events_1.EventEmitter {
             }
         }, 10000);
     }
-    async authenticatePlayer(data) {
+    async authenticatePlayer(data, serverSecret) {
         if (data == undefined)
-            return 'No data!';
-        else if (data.username == undefined || values_1.invalidNicknameRegex.test(data.username))
-            return 'Illegal username - ' + data.username;
+            return { valid: false, auth: false, message: 'No data!' };
+        else if (data.username == undefined || data.username.length > 18 || data.username.length < 3 || values_1.invalidNicknameRegex.test(data.username))
+            return { valid: false, auth: false, message: 'Invalid username - ' + data.username };
         else if (data.protocol == undefined || data.protocol != values_1.serverProtocol)
-            return 'Unsupported protocol';
-        return null;
+            return { valid: false, auth: false, message: 'Unsupported protocol' };
+        if (this.config.requireAuth) {
+            const checkLogin = await (await node_fetch_1.default(values_1.heartbeatServer + '/api/validateAuth', {
+                method: 'post',
+                body: JSON.stringify({ uuid: data.uuid, token: data.secret, serverSecret: serverSecret }),
+                headers: { 'Content-Type': 'application/json' },
+            })).json();
+            if (checkLogin.valid) {
+                return { valid: true, auth: true, message: '' };
+            }
+            else {
+                data.uuid = 'nl-' + data.username.toLowerCase();
+                data.username = '*' + data.username;
+                return { valid: this.config.allowNotLogged, auth: false, message: 'You need to be logged' };
+            }
+        }
+        else {
+            data.uuid = 'nl-' + data.username.toLowerCase();
+            return { valid: true, auth: false, message: '' };
+        }
     }
     stopServer() {
         if (this.heartbeatUpdater != undefined) {

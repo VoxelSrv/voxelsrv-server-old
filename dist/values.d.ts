@@ -1,12 +1,14 @@
 import * as types from './types';
-export declare const serverVersion = "0.2.0-beta.20";
-export declare const serverProtocol = 3;
+export declare const serverVersion = "0.2.0-beta.21";
+export declare const serverProtocol: number;
 export interface IServerConfig {
     port: number;
     address: string;
     name: string;
     motd: string;
     public: boolean;
+    requireAuth: boolean;
+    allowNotLogged: boolean;
     maxplayers: number;
     viewDistance: number;
     chunkTransportCompression: boolean;

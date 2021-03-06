@@ -50,13 +50,13 @@ class PlayerManager {
             this.sendPacketAllExcept('EntityCreate', {
                 uuid: data.uuid,
                 data: JSON.stringify(data.entity.getObject().data),
-            }, this.players[data.uuid]);
+            }, this.players[data.uuid.slice(7)]);
         });
         server.on('entity-move', (data) => {
-            this.sendPacketAllExcept('EntityMove', data, this.players[data.uuid]);
+            this.sendPacketAllExcept('EntityMove', data, this.players[data.uuid.slice(7)]);
         });
         server.on('entity-remove', (data) => {
-            this.sendPacketAllExcept('EntityRemove', data, this.players[data.uuid]);
+            this.sendPacketAllExcept('EntityRemove', data, this.players[data.uuid.slice(7)]);
         });
         server.on('server-stop', () => {
             this.saveCache();
@@ -188,13 +188,13 @@ class Player {
         if (this._players.exist(this.id))
             data = this._players.read(this.id);
         if (data == null) {
-            this.entity = this._players._entities.recreate(this.id, 'player', {
+            this.entity = this._players._entities.recreate('player-' + this.id, 'player', {
                 name: name,
                 nametag: true,
                 health: 20,
                 maxHealth: 20,
                 model: 'player',
-                texture: 'entity/steve',
+                texture: 'skins:' + this.id,
                 position: this._server.config.world.spawn,
                 rotation: 0,
                 pitch: 0,
@@ -210,13 +210,13 @@ class Player {
             this._server.emit('player-join', this);
         }
         else {
-            this.entity = this._players._entities.recreate(this.id, 'player', {
+            this.entity = this._players._entities.recreate('player-' + this.id, 'player', {
                 name: data.entity.data.name,
                 nametag: data.entity.data.nametag,
                 health: data.entity.data.health,
                 maxHealth: data.entity.data.maxhealth,
                 model: 'player',
-                texture: 'entity/steve',
+                texture: 'skins:' + this.id,
                 position: data.entity.data.position,
                 rotation: data.entity.data.rotation,
                 pitch: data.entity.data.pitch,
