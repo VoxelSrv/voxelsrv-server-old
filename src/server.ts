@@ -11,6 +11,7 @@ import { MessageBuilder } from './lib/chat';
 import * as chat from './lib/chat';
 import * as semver from 'semver';
 import fetch from 'node-fetch';
+import { v4 as uuidv4 } from 'uuid';
 
 import normalGenerator from './default/worldgen/normal';
 import flatGenerator from './default/worldgen/flat';
@@ -43,7 +44,7 @@ export class Server extends EventEmitter implements ICoreServer {
 	config: IServerConfig;
 	heartbeatUpdater: any;
 
-	overrides: {[i: string]: [string, string]};
+	overrides: { [i: string]: [string, string] };
 
 	status: string = 'none';
 
@@ -58,7 +59,7 @@ export class Server extends EventEmitter implements ICoreServer {
 
 		this.log = new Logging(fs.createWriteStream('./logs/latest.log', { flags: 'w' }));
 
-		this.overrides = { worldGenWorkers: ['./', ''] }
+		this.overrides = { worldGenWorkers: ['./', ''] };
 
 		this.status = 'initiating';
 		this.console = new Console(this);
@@ -69,7 +70,6 @@ export class Server extends EventEmitter implements ICoreServer {
 		this.permissions = new PermissionManager(this);
 		this.players = new PlayerManager(this);
 		this.plugins = new PluginManager(this);
-
 
 		if (startServer) {
 			this.startServer();
@@ -116,7 +116,7 @@ export class Server extends EventEmitter implements ICoreServer {
 		const tmpConfig = this.loadConfig('', 'config');
 
 		this.config = { ...serverDefaultConfig, ...tmpConfig };
-		this.config.world = {...serverDefaultConfig.world, ...tmpConfig.world }
+		this.config.world = { ...serverDefaultConfig.world, ...tmpConfig.world };
 
 		this.permissions.loadGroups(this.loadConfig('', 'permissions'));
 		this.saveConfig('', 'config', this.config);
@@ -154,7 +154,7 @@ export class Server extends EventEmitter implements ICoreServer {
 							this.heartbeatPing();
 						}
 					});
-			}, 50000)
+			}, 50000);
 		}
 		this.status = 'active';
 
@@ -179,9 +179,11 @@ export class Server extends EventEmitter implements ICoreServer {
 
 		if (this.config.debugProtocol) {
 			socket.debugListener = (sender, type, data) => {
-				console.log(sender, type, data)
-			}
+				console.log(sender, type, data);
+			};
 		}
+
+		const secret = this.config.requireAuth ? `${this.config.name}-${uuidv4()}-${uuidv4()}` : '';
 
 		socket.send('LoginRequest', {
 			name: this.config.name,
@@ -190,15 +192,25 @@ export class Server extends EventEmitter implements ICoreServer {
 			maxPlayers: this.config.maxplayers,
 			onlinePlayers: this.playerCount,
 			software: `VoxelSrv-Server`,
+			auth: this.config.requireAuth,
+			secret: secret,
 		});
 
 		let loginTimeout = true;
 
-		socket.on('LoginResponse', async (data: ILoginResponse) => {
+		socket.on('LoginResponse', async (loginData: ILoginResponse) => {
 			loginTimeout = false;
 
-			if (this.players.isBanned(data.uuid)) {
-				socket.send('PlayerKick', { reason: 'You are banned!\nReason: ' + this.players.getBanReason(data.uuid), time: Date.now() });
+			const check = await this.authenticatePlayer(loginData, secret);
+
+			if (!check.valid) {
+				socket.send('PlayerKick', { reason: check.message, time: Date.now() });
+				socket.close();
+				return;
+			}
+
+			if (this.players.isBanned(loginData.uuid)) {
+				socket.send('PlayerKick', { reason: 'You are banned!\nReason: ' + this.players.getBanReason(loginData.uuid), time: Date.now() });
 				socket.close();
 				return;
 			} else if (this.players.isIPBanned(socket.ip)) {
@@ -213,25 +225,15 @@ export class Server extends EventEmitter implements ICoreServer {
 				return;
 			}
 
-			const check = await this.authenticatePlayer(data);
-
-			const id = data.username.toLowerCase();
-
-			if (check != null) {
-				socket.send('PlayerKick', { reason: check, time: Date.now() });
-				socket.close();
-				return;
-			}
-
-			if (this.players.get(id) != null) {
+			if (this.players.get(loginData.uuid) != null) {
 				socket.send('PlayerKick', {
 					reason: 'Player with that nickname is already online!',
 					time: Date.now(),
 				});
 				socket.close();
 			} else {
-				this.emit('player-connection', id, socket);
-				var player = this.players.create(id, data, socket);
+				this.emit('player-connection', loginData.uuid, socket);
+				var player = this.players.create(loginData.uuid, loginData, socket);
 
 				socket.send('LoginSuccess', {
 					xPos: player.entity.data.position[0],
@@ -264,7 +266,7 @@ export class Server extends EventEmitter implements ICoreServer {
 				this.playerCount = this.playerCount + 1;
 
 				socket.on('close', () => {
-					this.emit('player-disconnect', id);
+					this.emit('player-disconnect', loginData.uuid);
 					const leaveMsg = new MessageBuilder().hex('#f59898').text(`${player.displayName} left the game!`);
 					chat.sendMlt([this.console.executorchat, ...Object.values(this.players.getAll())], leaveMsg);
 					chat.event.emit('system-message', leaveMsg);
@@ -322,12 +324,34 @@ export class Server extends EventEmitter implements ICoreServer {
 		}, 10000);
 	}
 
-	async authenticatePlayer(data: ILoginResponse) {
-		if (data == undefined) return 'No data!';
-		else if (data.username == undefined || invalidNicknameRegex.test(data.username)) return 'Illegal username - ' + data.username;
-		else if (data.protocol == undefined || data.protocol != serverProtocol) return 'Unsupported protocol';
+	async authenticatePlayer(data: ILoginResponse, serverSecret: string): Promise<{ valid: boolean, auth: boolean, message: string }> {
+		if (data == undefined) return { valid: false, auth: false, message: 'No data!' };
+		else if (data.username == undefined || data.username.length > 18 || data.username.length < 3 || invalidNicknameRegex.test(data.username))
+			return { valid: false, auth: false, message: 'Invalid username - ' + data.username };
+		else if (data.protocol == undefined || data.protocol != serverProtocol) return { valid: false, auth: false, message: 'Unsupported protocol' };
 
-		return null;
+		if (this.config.requireAuth) {
+			const checkLogin: { valid: boolean; uuid: string; username: string; type: number } = await (
+				await fetch(heartbeatServer + '/api/validateAuth', {
+					method: 'post',
+					body: JSON.stringify({ uuid: data.uuid, token: data.secret, serverSecret: serverSecret }),
+					headers: { 'Content-Type': 'application/json' },
+				})
+			).json();
+
+			if (checkLogin.valid) {
+				return { valid: true, auth: true, message: '' };
+			} else {
+				data.uuid = 'nl-' + data.username.toLowerCase();
+				data.username = '*' + data.username;
+
+				return { valid: this.config.allowNotLogged, auth: false, message: 'You need to be logged' };
+			}
+		} else {
+			data.uuid = 'nl-' + data.username.toLowerCase();
+
+			return { valid: true, auth: false, message: '' };
+		}
 	}
 
 	stopServer() {
@@ -404,7 +428,6 @@ class Console {
 class PluginManager implements ICorePluginManager {
 	_plugins: { [i: string]: ICorePlugin };
 	_server: Server;
-
 
 	constructor(server: Server) {
 		this._server = server;

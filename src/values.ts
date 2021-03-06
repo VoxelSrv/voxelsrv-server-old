@@ -1,7 +1,8 @@
 import * as types from './types';
+import { protocolVersion } from 'voxelsrv-protocol/const.json'
 
-export const serverVersion = '0.2.0-beta.20';
-export const serverProtocol = 3;
+export const serverVersion = '0.2.0-beta.21';
+export const serverProtocol = protocolVersion;
 
 export interface IServerConfig {
 	port: number;
@@ -9,6 +10,8 @@ export interface IServerConfig {
 	name: string;
 	motd: string;
 	public: boolean;
+	requireAuth: boolean
+	allowNotLogged: boolean
 	maxplayers: number;
 	viewDistance: number;
 	chunkTransportCompression: boolean;
@@ -35,6 +38,8 @@ export const serverDefaultConfig: IServerConfig = {
 	name: 'Server',
 	motd: 'Another VoxelSRV server',
 	public: false,
+	requireAuth: true,
+	allowNotLogged: true,
 	maxplayers: 10,
 	viewDistance: 5,
 	chunkTransportCompression: true,
@@ -58,3 +63,4 @@ export const serverDefaultConfig: IServerConfig = {
 export const invalidNicknameRegex = new RegExp('[^a-zA-Z0-9_]');
 
 export const heartbeatServer = 'https://voxelsrv.pb4.eu';
+//export const heartbeatServer = 'http://localhost:9001';

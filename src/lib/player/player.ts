@@ -53,16 +53,15 @@ export class PlayerManager implements ICorePlayerManager {
 					uuid: data.uuid,
 					data: JSON.stringify(data.entity.getObject().data),
 				},
-				this.players[data.uuid]
+				this.players[data.uuid.slice(7)]
 			);
 		});
 		server.on('entity-move', (data) => {
-			this.sendPacketAllExcept('EntityMove', data, this.players[data.uuid]);
+			this.sendPacketAllExcept('EntityMove', data, this.players[data.uuid.slice(7)]);
 		});
 		server.on('entity-remove', (data) => {
-			this.sendPacketAllExcept('EntityRemove', data, this.players[data.uuid]);
+			this.sendPacketAllExcept('EntityRemove', data, this.players[data.uuid.slice(7)]);
 		});
-
 		server.on('server-stop', () => {
 			this.saveCache();
 			this.saveBanlist();
@@ -225,7 +224,7 @@ export class Player implements ICorePlayer {
 
 		if (data == null) {
 			this.entity = this._players._entities.recreate(
-				this.id,
+				'player-' + this.id,
 				'player',
 				{
 					name: name,
@@ -233,7 +232,7 @@ export class Player implements ICorePlayer {
 					health: 20,
 					maxHealth: 20,
 					model: 'player',
-					texture: 'entity/steve',
+					texture: 'skins:' + this.id,
 					position: this._server.config.world.spawn,
 					rotation: 0,
 					pitch: 0,
@@ -254,7 +253,7 @@ export class Player implements ICorePlayer {
 			this._server.emit('player-join', this);
 		} else {
 			this.entity = this._players._entities.recreate(
-				this.id,
+				'player-' + this.id,
 				'player',
 				{
 					name: data.entity.data.name,
@@ -262,7 +261,7 @@ export class Player implements ICorePlayer {
 					health: data.entity.data.health,
 					maxHealth: data.entity.data.maxhealth,
 					model: 'player',
-					texture: 'entity/steve',
+					texture: 'skins:' + this.id,
 					position: data.entity.data.position,
 					rotation: data.entity.data.rotation,
 					pitch: data.entity.data.pitch,

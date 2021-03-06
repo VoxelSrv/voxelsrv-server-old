@@ -12,10 +12,12 @@ export class PermissionManager implements ICorePermissionManager {
 
 	constructor(server) {
 		this._server = server;
+
+		this.groups['default'] = new PermissionHolder({})
 	}
 
 	loadGroups(groups2) {
-		for (const x in this.groups) {
+		for (const x in groups2) {
 			this.groups[x] = new PermissionHolder(groups2[x].permissions);
 		};
 	}
