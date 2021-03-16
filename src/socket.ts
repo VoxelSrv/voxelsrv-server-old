@@ -3,7 +3,7 @@ import type WebSocket from 'ws';
 
 export class BaseSocket {
 	socket: any;
-	listeners: Object = {};
+	listeners: { [i: string]: { callback: (data: any) => void; remove: boolean }[] } = {};
 	debugListener: (sender: string, type: string, data: object) => void = (sender, type, data) => {};
 	ip: string = '0.0.0.0';
 
@@ -27,18 +27,29 @@ export class BaseSocket {
 	protected emit(type, data) {
 		this.debugListener('client', type, data);
 		if (this.listeners[type] != undefined) {
-			this.listeners[type].forEach((func) => {
-				func(data);
+			this.listeners[type] = this.listeners[type].filter((event) => {
+				event.callback(data);
+				
+				return !event.remove;
 			});
 		}
 	}
 
-	on(type: string, func: Function) {
+	on(type: string, func: (data: any) => void) {
 		if (this.listeners[type] != undefined) {
-			this.listeners[type].push(func);
+			this.listeners[type].push({ callback: func, remove: false });
 		} else {
 			this.listeners[type] = new Array();
-			this.listeners[type].push(func);
+			this.listeners[type].push({ callback: func, remove: false });
+		}
+	}
+
+	once(type: string, func: (data: any) => void) {
+		if (this.listeners[type] != undefined) {
+			this.listeners[type].push({ callback: func, remove: true });
+		} else {
+			this.listeners[type] = new Array();
+			this.listeners[type].push({ callback: func, remove: true });
 		}
 	}
 }

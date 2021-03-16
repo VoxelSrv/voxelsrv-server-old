@@ -168,7 +168,7 @@ class Server extends events_1.EventEmitter {
             secret: secret,
         });
         let loginTimeout = true;
-        socket.on('LoginResponse', async (loginData) => {
+        socket.once('LoginResponse', async (loginData) => {
             loginTimeout = false;
             const check = await this.authenticatePlayer(loginData, secret);
             if (!check.valid) {
@@ -193,7 +193,7 @@ class Server extends events_1.EventEmitter {
             }
             if (this.players.get(loginData.uuid) != null) {
                 socket.send('PlayerKick', {
-                    reason: 'Player with that nickname is already online!',
+                    reason: 'Your account is already online!',
                     time: Date.now(),
                 });
                 socket.close();
@@ -214,7 +214,7 @@ class Server extends events_1.EventEmitter {
                 socket.send('PlayerHealth', {
                     value: player.entity.data.health,
                 });
-                socket.send('PlayerEntity', { uuid: player.entity.id });
+                socket.send('PlayerEntity', { uuid: player.entity.id, model: 'player', texture: 'skins:' + player.id });
                 Object.entries(player.world.entities).forEach((data) => {
                     socket.send('EntityCreate', {
                         uuid: data[0],

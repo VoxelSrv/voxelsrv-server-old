@@ -200,11 +200,10 @@ export class Player implements ICorePlayer {
 			z: 0,
 			status: false,
 		},
+		rateLimitChatMessageCounter: 0,
+		rateLimitChatMessageTime: Date.now(),
+		rateLimitChatMessageLastClear: Date.now(),
 	};
-
-	rateLimitChatMessageCounter: number = 0;
-	rateLimitChatMessageTime: number = Date.now();
-	rateLimitChatMessageLastClear: number = Date.now();
 
 	_chunksToSend = [];
 	_chunksInterval: any;
@@ -608,16 +607,16 @@ export class Player implements ICorePlayer {
 			data.cancel = false;
 
 			if (this._server.config.rateLimitChatMessages) {
-				this.rateLimitChatMessageCounter = this.rateLimitChatMessageCounter + 1;
-				this.rateLimitChatMessageTime = Date.now();
-				this.rateLimitChatMessageLastClear = this.rateLimitChatMessageLastClear + 100;
+				this.cache.rateLimitChatMessageCounter = this.cache.rateLimitChatMessageCounter + 1;
+				this.cache.rateLimitChatMessageTime = Date.now();
+				this.cache.rateLimitChatMessageLastClear = this.cache.rateLimitChatMessageLastClear + 100;
 
-				if (this.rateLimitChatMessageLastClear + 2000 < this.rateLimitChatMessageTime) {
-					this.rateLimitChatMessageLastClear = Date.now();
-					this.rateLimitChatMessageCounter = this.rateLimitChatMessageCounter - 1;
+				if (this.cache.rateLimitChatMessageLastClear + 2000 < this.cache.rateLimitChatMessageTime) {
+					this.cache.rateLimitChatMessageLastClear = Date.now();
+					this.cache.rateLimitChatMessageCounter = this.cache.rateLimitChatMessageCounter - 1;
 				}
 
-				if (this.rateLimitChatMessageCounter > 10) {
+				if (this.cache.rateLimitChatMessageCounter > 10) {
 					this.kick('Spamming in chat');
 					return;
 				}

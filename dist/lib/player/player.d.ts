@@ -73,10 +73,10 @@ export declare class Player implements ICorePlayer {
             z: number;
             status: boolean;
         };
+        rateLimitChatMessageCounter: number;
+        rateLimitChatMessageTime: number;
+        rateLimitChatMessageLastClear: number;
     };
-    rateLimitChatMessageCounter: number;
-    rateLimitChatMessageTime: number;
-    rateLimitChatMessageLastClear: number;
     _chunksToSend: any[];
     _chunksInterval: any;
     _players: PlayerManager;

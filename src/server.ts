@@ -198,7 +198,7 @@ export class Server extends EventEmitter implements ICoreServer {
 
 		let loginTimeout = true;
 
-		socket.on('LoginResponse', async (loginData: ILoginResponse) => {
+		socket.once('LoginResponse', async (loginData: ILoginResponse) => {
 			loginTimeout = false;
 
 			const check = await this.authenticatePlayer(loginData, secret);
@@ -227,7 +227,7 @@ export class Server extends EventEmitter implements ICoreServer {
 
 			if (this.players.get(loginData.uuid) != null) {
 				socket.send('PlayerKick', {
-					reason: 'Player with that nickname is already online!',
+					reason: 'Your account is already online!',
 					time: Date.now(),
 				});
 				socket.close();
@@ -251,7 +251,7 @@ export class Server extends EventEmitter implements ICoreServer {
 					value: player.entity.data.health,
 				});
 
-				socket.send('PlayerEntity', { uuid: player.entity.id });
+				socket.send('PlayerEntity', { uuid: player.entity.id, model: 'player', texture: 'skins:' + player.id });
 
 				Object.entries(player.world.entities).forEach((data) => {
 					socket.send('EntityCreate', {
