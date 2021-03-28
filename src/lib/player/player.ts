@@ -3,7 +3,7 @@ import * as zlib from 'zlib';
 
 import type { Entity } from '../world/entity';
 import type { WorldManager, EntityManager } from '../world/manager';
-import type { ItemStack } from '../registry';
+import type { IItemStack, ItemStack } from '../registry';
 import type { Server } from '../../server';
 import * as fs from 'fs';
 import * as types from '../../types';
@@ -21,7 +21,7 @@ import * as pServer from 'voxelsrv-protocol/js/server';
 import { BaseSocket } from '../../socket';
 import { ICorePlayerManager, ICorePlayer } from 'voxelservercore/interfaces/player';
 import { CoreMessage } from 'voxelservercore/interfaces/message';
-import { Inventory, InventoryObject } from '../inventory/generalInventory';
+import { InventoryObject } from '../inventory/generalInventory';
 
 export class PlayerManager implements ICorePlayerManager {
 	players: { [index: string]: Player } = {};
@@ -47,14 +47,7 @@ export class PlayerManager implements ICorePlayerManager {
 		this.cache.ip = this._server.loadConfig('', '.cacheip');
 
 		server.on('entity-create', (data) => {
-			this.sendPacketAllExcept(
-				'EntityCreate',
-				{
-					uuid: data.uuid,
-					data: JSON.stringify(data.entity.getObject().data),
-				},
-				this.players[data.uuid.slice(7)]
-			);
+			this.sendPacketAllExcept('EntityCreate', data.entity.getSpawnData(), this.players[data.uuid.slice(7)]);
 		});
 		server.on('entity-move', (data) => {
 			this.sendPacketAllExcept('EntityMove', data, this.players[data.uuid.slice(7)]);
@@ -226,7 +219,7 @@ export class Player implements ICorePlayer {
 				'player-' + this.id,
 				'player',
 				{
-					name: name,
+					name: [{ text: name }],
 					nametag: true,
 					health: 20,
 					maxHealth: 20,
@@ -286,11 +279,7 @@ export class Player implements ICorePlayer {
 		this._players.save(this.id, this.getObject());
 
 		this.inventory.event.on('slot-update', (data) => {
-			this.sendPacket('PlayerSlotUpdate', {
-				slot: parseInt(data.slot),
-				data: JSON.stringify(data.data),
-				type: data.type,
-			});
+			this.sendPacket('PlayerSlotUpdate', data);
 		});
 
 		this._server.emit('player-created', this);
@@ -365,7 +354,7 @@ export class Player implements ICorePlayer {
 					z: id[1],
 					height: 8,
 					compressed: true,
-					data: zlib.deflateSync(Buffer.from(chunk.data.data.buffer, chunk.data.data.byteOffset)),
+					blockData: zlib.deflateSync(Buffer.from(chunk.data.data.buffer, chunk.data.data.byteOffset)),
 				});
 			} else {
 				this.sendPacket('WorldChunkLoad', {
@@ -374,7 +363,7 @@ export class Player implements ICorePlayer {
 					z: id[1],
 					height: 8,
 					compressed: false,
-					data: Buffer.from(chunk.data.data.buffer, chunk.data.data.byteOffset),
+					blockData: Buffer.from(chunk.data.data.buffer, chunk.data.data.byteOffset),
 				});
 			}
 		});
@@ -386,7 +375,7 @@ export class Player implements ICorePlayer {
 	}
 
 	kick(reason: string = '') {
-		this.sendPacket('PlayerKick', { reason: reason, date: Date.now() });
+		this.sendPacket('PlayerKick', { reason: [{ text: reason }], date: Date.now() });
 		setTimeout(() => {
 			this.socket.close();
 		}, 20);
@@ -527,7 +516,7 @@ export class Player implements ICorePlayer {
 	}
 
 	action_invclick(data: pClient.IActionInventoryClick & { cancel: boolean }) {
-		if (data.inventory == undefined) data.inventory = pClient.ActionInventoryClick.TypeInv.MAIN;
+		if (data.inventory == undefined) data.inventory = pClient.InventoryType.MAIN;
 
 		data.cancel = false;
 		for (let x = 0; x <= 5; x++) {
@@ -536,47 +525,47 @@ export class Player implements ICorePlayer {
 		}
 
 		let inventory: InventoryObject;
-		let type = 'main';
+		let type = data.inventory;
 		switch (data.inventory) {
-			case pClient.ActionInventoryClick.TypeInv.MAIN:
+			case pClient.InventoryType.MAIN:
 				inventory = this.inventory;
-				type = 'main';
 				break;
-			case pClient.ActionInventoryClick.TypeInv.HOOK:
+			case pClient.InventoryType.HOOK:
 				inventory = this.hookInventory != null ? this.hookInventory : this.inventory;
-				type = 'hook';
 				break;
-			case pClient.ActionInventoryClick.TypeInv.ARMOR:
+			case pClient.InventoryType.ARMOR:
 				inventory = this.entity.data.armor;
-				type = 'armor';
 				break;
-			case pClient.ActionInventoryClick.TypeInv.CRAFTING:
+			case pClient.InventoryType.CRAFT:
 				inventory = this.crafting;
-				type = 'crafting';
 				break;
 			default:
 				this.kick('Invalid inventory');
 				return;
 		}
 
-		if (-2 < data.slot && data.slot <= this.inventory.size && (data.inventory != pClient.ActionInventoryClick.TypeInv.CRAFTING || data.slot < 4)) {
-			if (data.type == pClient.ActionInventoryClick.Type.LEFT) this.inventory.action_left(inventory, data.slot, type);
-			else if (data.type == pClient.ActionInventoryClick.Type.RIGHT) this.inventory.action_right(inventory, data.slot, type);
-			else if (data.type == pClient.ActionInventoryClick.Type.SELECT && -1 < data.slot && data.slot < 9) {
+		if (-2 < data.slot && data.slot <= this.inventory.size && (data.inventory != pClient.InventoryType.CRAFT || data.slot < 4)) {
+			if (data.type == pClient.MouseClickType.LEFT) this.inventory.action_left(inventory, data.slot, type);
+			else if (data.type == pClient.MouseClickType.RIGHT) this.inventory.action_right(inventory, data.slot, type);
+			else if (data.type == pClient.MouseClickType.SELECT && -1 < data.slot && data.slot < 9) {
 				this.inventory.select(data.slot);
 			}
-		} else if (data.inventory == pClient.ActionInventoryClick.TypeInv.CRAFTING && data.slot < 4) {
+		} else if (data.inventory == pClient.InventoryType.CRAFT && data.slot < 4) {
 		}
 
-		if (type == 'armor') {
-			const item = inventory.items[data.slot]?.id;
+		if (type == pClient.InventoryType.ARMOR) {
+			const item = inventory.items[data.slot]?.id ?? '';
 
-			this._players.sendPacketAll('EntityArmor', {
-				uuid: this.entity.id,
-				type: data.slot,
-				id: item,
-			});
-		} else if (type == 'main' && data.slot == inventory.selected) {
+			this._players.sendPacketAllExcept(
+				'EntityArmor',
+				{
+					uuid: this.entity.id,
+					type: data.slot,
+					id: item,
+				},
+				this
+			);
+		} else if (type == pClient.InventoryType.MAIN && data.slot == inventory.selected) {
 			const item = inventory.items[data.slot]?.id;
 
 			this._players.sendPacketAllExcept(
@@ -680,8 +669,8 @@ export class Player implements ICorePlayer {
 		} else if (data.y < 256) {
 			const blockID = this.world.chunks[local.id.toString()].data.get(Math.floor(local.pos[0]), Math.floor(local.pos[1]), Math.floor(local.pos[2]));
 			const block = this._server.registry.blocks[this._server.registry.blockIDmap[blockID]];
-			if (block == undefined || block.options == undefined) data.cancel = true;
-			else if (block.options.solid != false && block.options.fluid != true) data.cancel = true;
+			if (block == undefined) data.cancel = true;
+			else if (block.solid != false && block.fluid != true) data.cancel = true;
 		}
 
 		blockPos.status = data.cancel;
@@ -726,18 +715,14 @@ export class Player implements ICorePlayer {
 export interface PlayerMovement {
 	airJumps: number;
 	airMoveMult: number;
-	crouch: boolean;
 	crouchMoveMult: number;
 	jumpForce: number;
 	jumpImpulse: number;
 	jumpTime: number;
-	jumping: boolean;
 	maxSpeed: number;
 	moveForce: number;
 	responsiveness: number;
-	running: boolean;
 	runningFriction: number;
-	sprint: boolean;
 	sprintMoveMult: number;
 	standingFriction: number;
 }
@@ -745,18 +730,15 @@ export interface PlayerMovement {
 export const defaultPlayerMovement = {
 	airJumps: 0,
 	airMoveMult: 0.3,
-	crouch: false,
 	crouchMoveMult: 0.8,
 	jumpForce: 6,
 	jumpImpulse: 8.5,
 	jumpTime: 500,
-	jumping: false,
+	jumping: 0,
 	maxSpeed: 7.5,
 	moveForce: 38,
 	responsiveness: 20,
-	running: false,
 	runningFriction: 0,
-	sprint: false,
 	sprintMoveMult: 1.2,
 	standingFriction: 2,
 };

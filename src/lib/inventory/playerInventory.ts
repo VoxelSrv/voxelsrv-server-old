@@ -1,3 +1,4 @@
+import { InventoryType } from "voxelsrv-protocol/js/client";
 import type { Server } from "../../server";
 import { IItemStack } from "../registry";
 import { Inventory, InventoryObject } from "./generalInventory";
@@ -36,18 +37,18 @@ export class PlayerInventory extends Inventory {
 		this.items[x] = tempy;
 		this.items[y] = tempx;
 		this.event.emit('slot-update', {
-			data: this.items[x],
+			item: this.items[x],
 			slot: x,
-			type: 'main',
+			type: InventoryType.MAIN,
 		});
 		this.event.emit('slot-update', {
-			data: this.items[y],
+			item: this.items[y],
 			slot: y,
-			type: 'main',
+			type: InventoryType.MAIN,
 		});
 	}
 
-	action_left(inv: InventoryObject, x: number, type: string): void {
+	action_left(inv: InventoryObject, x: number, type: InventoryType): void {
 		this.lastUpdate = Date.now();
 		this.updated = false;
 		if (x >= 0) {
@@ -71,14 +72,14 @@ export class PlayerInventory extends Inventory {
 					this.tempslot = tempW;
 				}
 				this.event.emit('slot-update', {
-					data: inv.items[x],
+					item: inv.items[x],
 					slot: x,
 					type: type,
 				});
 				this.event.emit('slot-update', {
-					data: this.tempslot,
+					item: this.tempslot,
 					slot: -1,
-					type: 'temp',
+					type: InventoryType.TEMP,
 				});
 			}
 			// If target slot has diffrent itemtype
@@ -87,21 +88,21 @@ export class PlayerInventory extends Inventory {
 				this.tempslot = tempX;
 
 				this.event.emit('slot-update', {
-					data: inv.items[x],
+					item: inv.items[x],
 					slot: x,
 					type: type,
 				});
 
 				this.event.emit('slot-update', {
-					data: this.tempslot,
+					item: this.tempslot,
 					slot: -1,
-					type: 'temp',
+					type: InventoryType.TEMP,
 				});
 			}
 		}
 	}
 
-	action_right(inv: InventoryObject, x: number, type: string): void {
+	action_right(inv: InventoryObject, x: number, type: InventoryType): void {
 		this.lastUpdate = Date.now();
 		this.updated = false;
 		// Normal slots
@@ -138,14 +139,14 @@ export class PlayerInventory extends Inventory {
 			}
 
 			this.event.emit('slot-update', {
-				data: inv.items[x],
+				item: inv.items[x],
 				slot: x,
 				type: type,
 			});
 			this.event.emit('slot-update', {
-				data: this.tempslot,
+				item: this.tempslot,
 				slot: -1,
-				type: 'temp',
+				type: InventoryType.TEMP,
 			});
 		}
 	}

@@ -26,6 +26,7 @@ import type { ICorePlugin, ICorePluginManager } from 'voxelservercore/interfaces
 
 import { version as coreVersion } from 'voxelservercore/values';
 import { server_setMessageBuilder, server_setMessageStringify } from 'voxelservercore/api';
+import { Entity } from './lib/world/entity';
 
 export class Server extends EventEmitter implements ICoreServer {
 	name = 'VoxelSrv Server';
@@ -233,31 +234,35 @@ export class Server extends EventEmitter implements ICoreServer {
 				socket.close();
 			} else {
 				this.emit('player-connection', loginData.uuid, socket);
-				var player = this.players.create(loginData.uuid, loginData, socket);
+				const player = this.players.create(loginData.uuid, loginData, socket);
 
 				socket.send('LoginSuccess', {
+					movement: player.movement,
+					blocksDef: this.registry._blockRegistryObject,
+					itemsDef: this.registry._itemRegistryObject,
+				});
+
+				const inv = player.inventory.getObject();
+
+				socket.send('PlayerSpawn', {
 					xPos: player.entity.data.position[0],
 					yPos: player.entity.data.position[1],
 					zPos: player.entity.data.position[2],
 
-					inventory: JSON.stringify(player.inventory.getObject()),
-					blocksDef: JSON.stringify(this.registry._blockRegistryObject),
-					itemsDef: JSON.stringify(this.registry._itemRegistryObject),
-					armor: JSON.stringify(player.entity.data.armor.getObject()),
-					movement: JSON.stringify(player.movement),
+					inventory: inv.items,
+					size: inv.size,
+					armor: player.entity.data.armor.getObject().items,
+					movement: player.movement,
+
+					entity: { uuid: player.entity.id, model: 'player', texture: 'skins:' + player.id },
 				});
 
 				socket.send('PlayerHealth', {
 					value: player.entity.data.health,
 				});
 
-				socket.send('PlayerEntity', { uuid: player.entity.id, model: 'player', texture: 'skins:' + player.id });
-
-				Object.entries(player.world.entities).forEach((data) => {
-					socket.send('EntityCreate', {
-						uuid: data[0],
-						data: JSON.stringify(data[1].getObject().data),
-					});
+				Object.values(player.world.entities).forEach((data: Entity) => {
+					socket.send('EntityCreate', data.getSpawnData());
 				});
 
 				const joinMsg = new MessageBuilder().hex('#b5f598').text(`${player.displayName} joined the game!`);
@@ -324,7 +329,7 @@ export class Server extends EventEmitter implements ICoreServer {
 		}, 10000);
 	}
 
-	async authenticatePlayer(data: ILoginResponse, serverSecret: string): Promise<{ valid: boolean, auth: boolean, message: string }> {
+	async authenticatePlayer(data: ILoginResponse, serverSecret: string): Promise<{ valid: boolean; auth: boolean; message: string }> {
 		if (data == undefined) return { valid: false, auth: false, message: 'No data!' };
 		else if (data.username == undefined || data.username.length > 18 || data.username.length < 3 || invalidNicknameRegex.test(data.username))
 			return { valid: false, auth: false, message: 'Invalid username - ' + data.username };
@@ -501,4 +506,20 @@ class PluginManager implements ICorePluginManager {
 			this.load(file);
 		}
 	}
+}
+function IPlayerSpawn(
+	arg0: string,
+	arg1: {
+		xPos: number;
+		yPos: number;
+		zPos: number;
+		inventory: { [index: number]: any };
+		size: number;
+		armor: any;
+		movement: import('./lib/player/player').PlayerMovement;
+		entity: { uuid: string; model: string; texture: string };
+	},
+	IPlayerSpawn: any
+) {
+	throw new Error('Function not implemented.');
 }

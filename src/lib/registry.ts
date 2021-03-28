@@ -1,7 +1,8 @@
 import * as fs from 'fs';
 import type { Server } from '../server';
 import type { ICoreRegistry, ICoreBasicBlock, ICoreBasicItem, ICoreCommand } from 'voxelservercore/interfaces/registry';
-
+import { BlockDef, ItemDef } from 'voxelsrv-protocol/js/client';
+import { ChatMessage, convertToPlain, MessageBuilder } from './chat';
 
 export class Registry implements ICoreRegistry {
 	items: { [index: string]: any } = {};
@@ -10,8 +11,8 @@ export class Registry implements ICoreRegistry {
 	blockPalette: { [index: string]: number } = {};
 	blockIDmap: { [index: number]: string } = {};
 
-	_blockRegistryObject: { [index: string]: object } = {};
-	_itemRegistryObject: { [index: string]: object } = {};
+	_blockRegistryObject: BlockDef[] = [];
+	_itemRegistryObject: ItemDef[] = [];
 	_freeIDs: number[] = [];
 	_lastID = 0;
 	finalized: boolean = false;
@@ -21,7 +22,7 @@ export class Registry implements ICoreRegistry {
 	constructor(server: Server) {
 		this._server = server;
 
-		this.blocks['air'] = new Block('air', -1, '', { solid: false }, 0, 0, 'any');
+		this.blocks['air'] = new Block('air', { solid: false });
 		this.blocks['air'].numId = 0;
 		this.blockIDmap[0] = 'air';
 		this.blockPalette['air'] = 0;
@@ -93,11 +94,11 @@ export class Registry implements ICoreRegistry {
 
 		items.forEach((name) => {
 			this.items[name]._finalize(this);
-			this._itemRegistryObject[name] = this.items[name].getObject();
+			this._itemRegistryObject.push(this.items[name].getObject());
 		});
 		blocks.forEach((name) => {
 			this.blocks[name]._finalize(this);
-			this._blockRegistryObject[name] = this.blocks[name].getObject();
+			this._blockRegistryObject.push(this.blocks[name].getObject());
 		});
 
 		delete this._blockRegistryObject['air'];
@@ -153,8 +154,7 @@ export class ItemStack {
  *
  */
 
-
-export class Item implements ICoreBasicItem{
+export class Item implements ICoreBasicItem {
 	id: string;
 	numId: number;
 	name: string;
@@ -204,10 +204,10 @@ export class ItemBlock extends Item {
 	getObject(): object {
 		return {
 			id: this.id,
-			name: this.name,
-			texture: this.texture,
-			stack: this.stack,
-			type: this.constructor.name,
+			name: [{ text: this.name }],
+			textures: [this.texture],
+			maxStack: this.stack,
+			toolType: [],
 			block: this.blockID,
 			flat: this.flat,
 		};
@@ -257,10 +257,9 @@ export class ItemTool extends Item {
 		let tool: boolean;
 		let power: boolean;
 
-		if (Array.isArray(block.tool)) tool = block.tool.includes(this.type);
-		else if (block.tool == this.type) tool = true;
+		tool = block.toolType.includes(this.type) || block.toolType.includes('*');
 
-		if (block.hardness <= this.power) power = true;
+		if (block.miningPower <= this.power) power = true;
 		else power = false;
 
 		return tool && power;
@@ -281,18 +280,6 @@ export class ItemArmor extends Item {
 	getReducedDamage(x: number): number {
 		return x - (x * this.reduction) / 100;
 	}
-
-	getObject(): object {
-		return {
-			id: this.id,
-			name: this.name,
-			texture: this.texture,
-			stack: this.stack,
-			type: this.constructor.name,
-			armorType: this.type,
-			durability: this.durability,
-		};
-	}
 }
 
 /*
@@ -301,52 +288,91 @@ export class ItemArmor extends Item {
  *
  */
 
+export interface BlockData {
+	textures?: string[];
+	type?: BlockDef.Type;
+	toolType?: string[];
+	miningSpeed?: number;
+	miningPower?: number;
+	solid?: boolean;
+	fluid?: boolean;
+	opaque?: boolean;
+	color?: [number, number, number, number?];
+	material?: string[];
+	fluidDensity?: number;
+	viscosity?: number;
+	customModel?: string;
+	unbreakable?: boolean;
+}
+
 export class Block implements ICoreBasicBlock {
 	numId: number = -1;
 	id: string;
 	name: string;
-	type: number;
-	texture: string | Array<string>;
-	options: object;
-	hardness: number;
+	type: BlockDef.Type;
+	_registry: Registry = null;
+	toolType: string[];
+	textures: string[];
+	miningPower: number;
+	miningSpeed: number;
+	solid: boolean;
+	fluid: boolean;
+	opaque: boolean;
+	color: number[];
+	material: string[];
+	fluidDensity: number;
+	viscosity: number;
+	customModel: string;
 	unbreakable: boolean;
-	miningtime: number;
-	tool: string | string[];
-	registry: Registry = null;
 
-	constructor(id: string, type: number, texture: string | string[], options: object, hardness: number, miningtime: number, tool: string | string[]) {
+	constructor(id: string, data: BlockData) {
 		this.id = id;
-		this.texture = texture;
-		this.options = options;
-		this.hardness = hardness;
-		this.miningtime = miningtime;
-		this.tool = tool;
-		this.type = type;
+		this.name = id;
+		this.type = data.type ?? BlockDef.Type.BLOCK;
+		this.textures = data.textures ?? [];
+		this.toolType = data.toolType ?? ['*'];
+		this.miningSpeed = data.miningSpeed ?? 2;
+		this.miningPower = data.miningPower ?? 2;
+		this.solid = data.solid ?? true;
+		this.fluid = data.fluid ?? false;
+		this.opaque = data.opaque ?? true;
+		this.color = data.color ?? [0, 0, 0];
+		this.material = data.material ?? [];
+		this.fluidDensity = data.fluidDensity ?? 0;
+		this.viscosity = data.viscosity ?? 0;
+		this.customModel = data.customModel ?? '';
+		this.unbreakable = data.unbreakable ?? false;
 	}
 
 	getItemStack(count?: number): ItemStack {
 		const number = count != undefined ? count : 1;
-		return new ItemStack(this.id, number, {}, this.registry);
+		return new ItemStack(this.id, number, {}, this._registry);
 	}
 
 	getObject(): object {
 		return {
 			numId: this.numId,
-			rawid: this.numId,
 			id: this.id,
-			texture: this.texture,
-			options: this.options,
-			hardness: this.hardness,
-			miningtime: this.miningtime,
-			tool: this.tool,
 			type: this.type,
+			textures: this.textures,
+			toolType: this.toolType,
+			miningSpeed: this.miningSpeed,
+			miningPower: this.miningPower,
+			solid: this.solid,
+			fluid: this.fluid,
+			opaque: this.opaque,
+			color: this.color,
+			material: this.material,
+			fluidDensity: this.fluidDensity,
+			viscosity: this.viscosity,
+			customModel: this.customModel,
 			unbreakable: this.unbreakable,
 		};
 	}
 
 	_finalize(registry: Registry) {
 		if (!registry.finalized) {
-			this.registry = registry;
+			this._registry = registry;
 			if (registry.blockPalette[this.id] != undefined) this.numId = registry.blockPalette[this.id];
 			else {
 				if (registry._freeIDs.length > 0) {

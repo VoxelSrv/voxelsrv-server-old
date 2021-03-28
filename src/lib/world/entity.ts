@@ -1,11 +1,11 @@
 import type { World, Chunk } from './world';
-import type { EntityManager } from './manager'
+import type { EntityManager } from './manager';
 
 import * as types from '../../types';
 import { ArmorInventory } from '../inventory/armorInventory';
 import { globalToChunk } from './helper';
 import { Item } from '../registry';
-
+import { IChatComponent } from '../chat';
 
 export interface EntityData {
 	position: types.XYZ;
@@ -15,7 +15,7 @@ export interface EntityData {
 	maxHealth: number;
 	model: string;
 	texture: string;
-	name: string;
+	name: IChatComponent[];
 	nametag: boolean;
 	hitbox: types.XYZ;
 	armor?: ArmorInventory | any;
@@ -64,6 +64,9 @@ export class Entity implements IEntity {
 		if (data.pitch == undefined) {
 			this.data.pitch = 0;
 		}
+		if (typeof data.name == 'string') {
+			data.name = [{ text: data.name }];
+		}
 		this.type = type;
 		this.id = id;
 		this.world = world;
@@ -86,12 +89,36 @@ export class Entity implements IEntity {
 				name: this.data.name,
 				nametag: this.data.nametag,
 				hitbox: this.data.hitbox,
-				armor: this.data.armor.getObject()
+				armor: this.data.armor.getObject(),
 			},
 			id: this.id,
 			world: this.world.name,
 			type: this.type,
 			chunk: this.chunkID,
+		};
+	}
+
+	getSpawnData() {
+		const armor = this.data.armor.items;
+		return {
+			uuid: this.id,
+			type: this.type,
+			x: this.data.position[0],
+			y: this.data.position[1],
+			z: this.data.position[2],
+			rotation: this.data.rotation,
+			pitch: this.data.pitch,
+			model: this.data.model,
+			texture: this.data.texture,
+			name: this.data.name,
+			nametag: this.data.nametag,
+			hitbox: this.data.hitbox,
+			armor: {
+				0: armor[0]?.id ?? '',
+				1: armor[1]?.id ?? '',
+				2: armor[2]?.id ?? '',
+				3: armor[3]?.id ?? '',
+			}
 		};
 	}
 

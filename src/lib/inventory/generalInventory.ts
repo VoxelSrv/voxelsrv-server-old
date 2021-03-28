@@ -1,6 +1,7 @@
 import { IItemStack, ItemStack } from '../registry';
 import { EventEmitter } from 'events';
 import type { Server } from '../../server';
+import { InventoryType } from 'voxelsrv-protocol/js/client';
 
 // Generic Inventory for mobs/block like chest, etc
 
@@ -39,9 +40,9 @@ export class Inventory {
 			if (data != null && data.id == item && data.count + count < this._server.registry.items[item].stack + 1) {
 				this.items[slot].count = count + data.count;
 				this.event.emit('slot-update', {
-					data: this.items[slot],
+					item: this.items[slot],
 					slot: slot,
-					type: 'main',
+					type: InventoryType.MAIN,
 				});
 				return true;
 			}
@@ -50,9 +51,9 @@ export class Inventory {
 			if (data == null) {
 				this.items[slot] = new ItemStack(item, count, data, this._server.registry);
 				this.event.emit('slot-update', {
-					data: this.items[slot],
+					item: this.items[slot],
 					slot: slot,
-					type: 'main',
+					type: InventoryType.MAIN,
 				});
 				return true;
 			}
@@ -72,9 +73,9 @@ export class Inventory {
 			if (newcount > 0) this.items[sel].count = newcount;
 			else this.items[sel] = null;
 			this.event.emit('slot-update', {
-				data: this.items[sel],
+				item: this.items[sel],
 				slot: sel,
-				type: 'main',
+				type: InventoryType.MAIN,
 			});
 			if (count <= 0) return true;
 		}
@@ -86,9 +87,9 @@ export class Inventory {
 				if (newcount > 0) this.items[slot] = new ItemStack(item, newcount, data.data, this._server.registry);
 				else this.items[slot] = null;
 				this.event.emit('slot-update', {
-					data: this.items[slot],
+					item: this.items[slot],
 					slot: slot,
-					type: 'main',
+					type: InventoryType.MAIN,
 				});
 			}
 		}
@@ -102,9 +103,9 @@ export class Inventory {
 		else this.items[slot] = new ItemStack(item, count, data, this._server.registry);
 
 		this.event.emit('slot-update', {
-			data: this.items[slot],
+			item: this.items[slot],
 			slot: slot,
-			type: 'main',
+			type: InventoryType.MAIN,
 		});
 	}
 
