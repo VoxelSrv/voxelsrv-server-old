@@ -186,6 +186,16 @@ export class Server extends EventEmitter implements ICoreServer {
 
 		const secret = this.config.requireAuth ? `${this.config.name}-${uuidv4()}-${uuidv4()}` : '';
 
+		const serverSecret = this.config.requireAuth ? `${uuidv4()}-${uuidv4()}` : '';
+
+		if (this.config.requireAuth) {
+			await fetch(heartbeatServer + '/api/registerAuth', {
+				method: 'post',
+				body: JSON.stringify({ token: secret, secret: serverSecret }),
+				headers: { 'Content-Type': 'application/json' },
+			});
+		}
+
 		socket.send('LoginRequest', {
 			name: this.config.name,
 			motd: this.config.motd,
@@ -202,7 +212,7 @@ export class Server extends EventEmitter implements ICoreServer {
 		socket.once('LoginResponse', async (loginData: ILoginResponse) => {
 			loginTimeout = false;
 
-			const check = await this.authenticatePlayer(loginData, secret);
+			const check = await this.authenticatePlayer(loginData, secret, serverSecret);
 
 			if (!check.valid) {
 				socket.send('PlayerKick', { reason: check.message, time: Date.now() });
@@ -329,7 +339,7 @@ export class Server extends EventEmitter implements ICoreServer {
 		}, 10000);
 	}
 
-	async authenticatePlayer(data: ILoginResponse, serverSecret: string): Promise<{ valid: boolean; auth: boolean; message: string }> {
+	async authenticatePlayer(data: ILoginResponse, secret: string, serverSecret: string): Promise<{ valid: boolean; auth: boolean; message: string }> {
 		if (data == undefined) return { valid: false, auth: false, message: 'No data!' };
 		else if (data.username == undefined || data.username.length > 18 || data.username.length < 3 || invalidNicknameRegex.test(data.username))
 			return { valid: false, auth: false, message: 'Invalid username - ' + data.username };
@@ -339,7 +349,7 @@ export class Server extends EventEmitter implements ICoreServer {
 			const checkLogin: { valid: boolean; uuid: string; username: string; type: number } = await (
 				await fetch(heartbeatServer + '/api/validateAuth', {
 					method: 'post',
-					body: JSON.stringify({ uuid: data.uuid, token: data.secret, serverSecret: serverSecret }),
+					body: JSON.stringify({ uuid: data.uuid, token: data.secret, secret: secret, serverSecret: serverSecret }),
 					headers: { 'Content-Type': 'application/json' },
 				})
 			).json();

@@ -2,7 +2,7 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.heartbeatServer = exports.invalidNicknameRegex = exports.serverDefaultConfig = exports.serverProtocol = exports.serverVersion = void 0;
 const const_json_1 = require("voxelsrv-protocol/const.json");
-exports.serverVersion = '0.2.0-beta.22';
+exports.serverVersion = '0.2.0-beta.22.1';
 exports.serverProtocol = const_json_1.protocolVersion;
 exports.serverDefaultConfig = {
     port: 3000,
