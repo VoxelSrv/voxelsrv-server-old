@@ -34,7 +34,7 @@ export declare class Server extends EventEmitter implements ICoreServer {
     startServer(): Promise<void>;
     heartbeatPing(): void;
     connectPlayer(socket: BaseSocket): Promise<void>;
-    authenticatePlayer(data: ILoginResponse, serverSecret: string): Promise<{
+    authenticatePlayer(data: ILoginResponse, secret: string, serverSecret: string): Promise<{
         valid: boolean;
         auth: boolean;
         message: string;

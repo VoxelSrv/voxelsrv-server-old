@@ -157,6 +157,14 @@ class Server extends events_1.EventEmitter {
             };
         }
         const secret = this.config.requireAuth ? `${this.config.name}-${uuid_1.v4()}-${uuid_1.v4()}` : '';
+        const serverSecret = this.config.requireAuth ? `${uuid_1.v4()}-${uuid_1.v4()}` : '';
+        if (this.config.requireAuth) {
+            await node_fetch_1.default(values_1.heartbeatServer + '/api/registerAuth', {
+                method: 'post',
+                body: JSON.stringify({ token: secret, secret: serverSecret }),
+                headers: { 'Content-Type': 'application/json' },
+            });
+        }
         socket.send('LoginRequest', {
             name: this.config.name,
             motd: this.config.motd,
@@ -170,7 +178,7 @@ class Server extends events_1.EventEmitter {
         let loginTimeout = true;
         socket.once('LoginResponse', async (loginData) => {
             loginTimeout = false;
-            const check = await this.authenticatePlayer(loginData, secret);
+            const check = await this.authenticatePlayer(loginData, secret, serverSecret);
             if (!check.valid) {
                 socket.send('PlayerKick', { reason: check.message, time: Date.now() });
                 socket.close();
@@ -273,7 +281,7 @@ class Server extends events_1.EventEmitter {
             }
         }, 10000);
     }
-    async authenticatePlayer(data, serverSecret) {
+    async authenticatePlayer(data, secret, serverSecret) {
         if (data == undefined)
             return { valid: false, auth: false, message: 'No data!' };
         else if (data.username == undefined || data.username.length > 18 || data.username.length < 3 || values_1.invalidNicknameRegex.test(data.username))
@@ -283,7 +291,7 @@ class Server extends events_1.EventEmitter {
         if (this.config.requireAuth) {
             const checkLogin = await (await node_fetch_1.default(values_1.heartbeatServer + '/api/validateAuth', {
                 method: 'post',
-                body: JSON.stringify({ uuid: data.uuid, token: data.secret, serverSecret: serverSecret }),
+                body: JSON.stringify({ uuid: data.uuid, token: data.secret, secret: secret, serverSecret: serverSecret }),
                 headers: { 'Content-Type': 'application/json' },
             })).json();
             if (checkLogin.valid) {

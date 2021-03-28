@@ -1,7 +1,7 @@
 import * as types from './types';
 import { protocolVersion } from 'voxelsrv-protocol/const.json'
 
-export const serverVersion = '0.2.0-beta.22';
+export const serverVersion = '0.2.0-beta.22.1';
 export const serverProtocol = protocolVersion;
 
 export interface IServerConfig {
